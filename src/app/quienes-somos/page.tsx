@@ -26,23 +26,23 @@ export default function HomePage() {
       color: 'white', 
       fontFamily: 'Arial', 
       overflowX: 'hidden',
-      backgroundImage: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("/guru.jpg")', // AQUÍ RECUPERAMOS TU IMAGEN
+      backgroundImage: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("/guru.jpg")', 
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed'
     }}>
-      {/* NAVEGACIÓN ÉLITE */}
+      {/* NAVEGACIÓN */}
       <nav style={{ 
         padding: '20px 5%', 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
         borderBottom: '1px solid rgba(26, 29, 35, 0.5)',
-        position: 'fixed', // Para que el menú siempre esté arriba al bajar
+        position: 'fixed', 
         top: 0,
         width: '100%',
         zIndex: 1000,
-        backgroundColor: 'rgba(2, 4, 6, 0.8)', // Un toque de transparencia elegante
+        backgroundColor: 'rgba(2, 4, 6, 0.9)', 
         backdropFilter: 'blur(10px)'
       }}>
         <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start' }}>
@@ -62,7 +62,6 @@ export default function HomePage() {
           {menuOpen ? <X size={30} /> : <Menu size={30} />}
         </div>
 
-        {/* MENÚ DESPLEGABLE */}
         {menuOpen && (
           <div style={{
             position: 'absolute', top: '100%', left: 0, width: '100%', backgroundColor: '#0a0c10',
@@ -82,45 +81,45 @@ export default function HomePage() {
         `}</style>
       </nav>
 
-      {/* SECCIÓN HERO (CON TUS TEXTOS RECUPERADOS) */}
-      <section style={{ 
-        minHeight: '100vh', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        textAlign: 'center', 
-        padding: '100px 20px 40px 20px' 
-      }}>
-        <h3 style={{ color: '#00C853', letterSpacing: '5px', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)', marginBottom: '20px', fontWeight: 'bold' }}>
-          INTELIGENCIA DEPORTIVA AVANZADA
-        </h3>
-        <h1 style={{ 
-          fontSize: 'clamp(2.8rem, 13vw, 6rem)', 
-          fontWeight: '900', 
-          fontStyle: 'italic', 
-          lineHeight: '0.85', 
-          marginBottom: '30px',
-          textShadow: '2px 4px 10px rgba(0,0,0,0.5)' // Para que resalte sobre la imagen
-        }}>
-          MÁXIMO<br />
-          <span style={{ color: '#00C853' }}>RENDIMIENTO</span>
-        </h1>
-        <p style={{ color: '#eee', maxWidth: '600px', marginBottom: '40px', fontSize: 'clamp(1rem, 3.5vw, 1.2rem)', lineHeight: '1.6' }}>
-          Gestión de capital privado basada en modelos de probabilidad. <br/>
-          Resultados verificados para inversores de alto nivel.
-        </p>
-        <button onClick={() => window.location.href = '/registro'} style={{ 
-          backgroundColor: '#00C853', color: 'black', padding: '20px 50px', borderRadius: '12px', 
-          border: 'none', fontWeight: '900', cursor: 'pointer', fontSize: '1.1rem',
-          boxShadow: '0 10px 20px rgba(0, 200, 83, 0.3)'
-        }}>
-          ADQUIRIR MEMBRESÍA
-        </button>
+      {/* HERO SECTION */}
+      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '120px 20px 60px 20px' }}>
+        <h3 style={{ color: '#00C853', letterSpacing: '5px', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)', marginBottom: '20px', fontWeight: 'bold' }}>INTELIGENCIA DEPORTIVA AVANZADA</h3>
+        <h1 style={{ fontSize: 'clamp(2.8rem, 13vw, 6rem)', fontWeight: '900', fontStyle: 'italic', lineHeight: '0.85', marginBottom: '30px' }}>MÁXIMO<br /><span style={{ color: '#00C853' }}>RENDIMIENTO</span></h1>
+        <p style={{ color: '#eee', maxWidth: '600px', marginBottom: '40px', fontSize: 'clamp(1rem, 3.5vw, 1.2rem)', lineHeight: '1.6' }}>Gestión de capital privado basada en modelos de probabilidad. Resultados verificados para inversores de alto nivel.</p>
+        <button onClick={() => window.location.href = '/registro'} style={{ backgroundColor: '#00C853', color: 'black', padding: '20px 50px', borderRadius: '12px', border: 'none', fontWeight: '900', cursor: 'pointer', fontSize: '1.1rem' }}>ADQUIRIR MEMBRESÍA</button>
       </section>
 
-      {/* SECCIONES DE ABAJO (ESTADÍSTICAS Y MEMBRESÍAS) */}
-      {/* ... (Estas se mantienen igual que las tenías) ... */}
+      {/* ESTADÍSTICAS (RECUPERADAS) */}
+      <section style={{ padding: '60px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+        {[{ t: 'CRECIMIENTO ANUAL', v: '+142%', h: 100 }, { t: 'WIN RATE GLOBAL', v: '78.4%', h: 80 }, { t: 'PROFIT MENSUAL', v: '$12,400', h: 120 }].map(s => (
+          <div key={s.t} style={{ background: 'rgba(10, 12, 16, 0.8)', backdropFilter: 'blur(5px)', padding: '30px', borderRadius: '25px', border: '1px solid #1a1d23', textAlign: 'center' }}>
+            <span style={{ fontSize: '10px', color: '#888', fontWeight: 'bold' }}>{s.t}</span>
+            <div style={{ height: s.h, background: 'linear-gradient(to top,#00C853,transparent)', width: '25px', margin: '20px auto', borderRadius: '4px' }}></div>
+            <div style={{ fontSize: '24px', fontWeight: '900' }}>{s.v}</div>
+          </div>
+        ))}
+      </section>
+
+      {/* MEMBRESÍAS (RECUPERADAS) */}
+      <section id="membresias" style={{ padding: '100px 20px', textAlign: 'center', background: 'rgba(5, 7, 10, 0.9)' }}>
+        <h2 style={{ marginBottom: '50px', fontStyle: 'italic', fontSize: 'clamp(1.5rem, 5vw, 2.5rem)' }}>MEMBRESÍAS DE INVERSIÓN</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '20px', maxWidth: '1100px', margin: '0 auto' }}>
+          {m.map(p => (
+            <div key={p.n} style={{ background: '#0a0c10', padding: '30px', borderRadius: '20px', border: '1px solid #00C853' }}>
+              <b style={{ color: '#00C853', fontSize: '1.2rem' }}>{p.n}</b><h3 style={{ fontSize: '2rem', margin: '15px 0' }}>${p.v}</h3><button onClick={() => window.location.href = '/registro'} style={{ width: '100%', background: '#00C853', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>SELECCIONAR</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ padding: '60px 20px', borderTop: '1px solid #1a1d23', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '30px', color: '#888', fontSize: '12px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ minWidth: '200px', flex: 1 }}><b style={{ color: '#eee' }}>EL GURÚ ÉLITE</b><p>Gestión de activos bajo estándares de máxima seguridad.</p></div>
+        <div style={{ display: 'flex', gap: '40px' }}>
+          <div><b style={{ color: '#eee' }}>LEGAL</b><p>Términos</p><p>Privacidad</p></div>
+          <div><b style={{ color: '#eee' }}>REDES</b><p>Instagram</p><p>Telegram</p></div>
+        </div>
+      </footer>
     </main>
   );
 }
