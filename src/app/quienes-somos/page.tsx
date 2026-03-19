@@ -31,13 +31,13 @@ export default function HomePage() {
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed'
     }}>
-      {/* NAVEGACIÓN */}
+      {/* NAVEGACIÓN RESPONSIVE */}
       <nav style={{ 
         padding: '20px 5%', 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        borderBottom: '1px solid rgba(26, 29, 35, 0.5)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         position: 'fixed', 
         top: 0,
         width: '100%',
@@ -50,6 +50,7 @@ export default function HomePage() {
           <p style={{ fontSize: '8px', letterSpacing: '4px', color: '#888', margin: 0 }}>ÉLITE INVESTMENTS</p>
         </div>
 
+        {/* MENÚ PC */}
         <div className="pc-menu" style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
           {menuLinks.map(link => (
             <a key={link.name} href={link.url} style={{ color:'#fff', textDecoration:'none', fontSize:'12px', fontWeight:'bold', letterSpacing:'1px' }}>
@@ -58,10 +59,12 @@ export default function HomePage() {
           ))}
         </div>
 
+        {/* ICONO MÓVIL */}
         <div className="mobile-menu-icon" style={{ display: 'none', cursor: 'pointer', color: '#00C853' }} onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen ? <X size={30} /> : <Menu size={30} />}
         </div>
 
+        {/* MENÚ DESPLEGABLE MÓVIL */}
         {menuOpen && (
           <div style={{
             position: 'absolute', top: '100%', left: 0, width: '100%', backgroundColor: '#0a0c10',
@@ -81,7 +84,7 @@ export default function HomePage() {
         `}</style>
       </nav>
 
-      {/* HERO SECTION */}
+      {/* SECCIÓN PRINCIPAL (HERO) */}
       <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '120px 20px 60px 20px' }}>
         <h3 style={{ color: '#00C853', letterSpacing: '5px', fontSize: 'clamp(0.7rem, 2vw, 0.9rem)', marginBottom: '20px', fontWeight: 'bold' }}>INTELIGENCIA DEPORTIVA AVANZADA</h3>
         <h1 style={{ fontSize: 'clamp(2.8rem, 13vw, 6rem)', fontWeight: '900', fontStyle: 'italic', lineHeight: '0.85', marginBottom: '30px' }}>MÁXIMO<br /><span style={{ color: '#00C853' }}>RENDIMIENTO</span></h1>
@@ -89,7 +92,7 @@ export default function HomePage() {
         <button onClick={() => window.location.href = '/registro'} style={{ backgroundColor: '#00C853', color: 'black', padding: '20px 50px', borderRadius: '12px', border: 'none', fontWeight: '900', cursor: 'pointer', fontSize: '1.1rem' }}>ADQUIRIR MEMBRESÍA</button>
       </section>
 
-      {/* ESTADÍSTICAS (RECUPERADAS) */}
+      {/* SECCIÓN ESTADÍSTICAS */}
       <section style={{ padding: '60px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '20px', maxWidth: '1200px', margin: '0 auto' }}>
         {[{ t: 'CRECIMIENTO ANUAL', v: '+142%', h: 100 }, { t: 'WIN RATE GLOBAL', v: '78.4%', h: 80 }, { t: 'PROFIT MENSUAL', v: '$12,400', h: 120 }].map(s => (
           <div key={s.t} style={{ background: 'rgba(10, 12, 16, 0.8)', backdropFilter: 'blur(5px)', padding: '30px', borderRadius: '25px', border: '1px solid #1a1d23', textAlign: 'center' }}>
@@ -100,13 +103,15 @@ export default function HomePage() {
         ))}
       </section>
 
-      {/* MEMBRESÍAS (RECUPERADAS) */}
+      {/* SECCIÓN MEMBRESÍAS */}
       <section id="membresias" style={{ padding: '100px 20px', textAlign: 'center', background: 'rgba(5, 7, 10, 0.9)' }}>
         <h2 style={{ marginBottom: '50px', fontStyle: 'italic', fontSize: 'clamp(1.5rem, 5vw, 2.5rem)' }}>MEMBRESÍAS DE INVERSIÓN</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '20px', maxWidth: '1100px', margin: '0 auto' }}>
           {m.map(p => (
             <div key={p.n} style={{ background: '#0a0c10', padding: '30px', borderRadius: '20px', border: '1px solid #00C853' }}>
-              <b style={{ color: '#00C853', fontSize: '1.2rem' }}>{p.n}</b><h3 style={{ fontSize: '2rem', margin: '15px 0' }}>${p.v}</h3><button onClick={() => window.location.href = '/registro'} style={{ width: '100%', background: '#00C853', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>SELECCIONAR</button>
+              <b style={{ color: '#00C853', fontSize: '1.2rem' }}>{p.n}</b>
+              <h3 style={{ fontSize: '2rem', margin: '15px 0' }}>${p.v}</h3>
+              <button onClick={() => window.location.href = '/registro'} style={{ width: '100%', background: '#00C853', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>SELECCIONAR</button>
             </div>
           ))}
         </div>
@@ -114,7 +119,10 @@ export default function HomePage() {
 
       {/* FOOTER */}
       <footer style={{ padding: '60px 20px', borderTop: '1px solid #1a1d23', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '30px', color: '#888', fontSize: '12px', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ minWidth: '200px', flex: 1 }}><b style={{ color: '#eee' }}>EL GURÚ ÉLITE</b><p>Gestión de activos bajo estándares de máxima seguridad.</p></div>
+        <div style={{ minWidth: '200px', flex: 1 }}>
+          <b style={{ color: '#eee' }}>EL GURÚ ÉLITE</b>
+          <p>Gestión de activos bajo estándares de máxima seguridad.</p>
+        </div>
         <div style={{ display: 'flex', gap: '40px' }}>
           <div><b style={{ color: '#eee' }}>LEGAL</b><p>Términos</p><p>Privacidad</p></div>
           <div><b style={{ color: '#eee' }}>REDES</b><p>Instagram</p><p>Telegram</p></div>
