@@ -1,30 +1,44 @@
 "use client";
 import React, { useState } from 'react';
-import { ArrowLeft, UserPlus, LoaderCircle } from 'lucide-react';
+import { ArrowLeft, UserPlus, LoaderCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
-// 1. CONEXIÓN A SUPABASE
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function RegistroPage() {
   const [loading, setLoading] = useState(false);
+  const [registroExitoso, setRegistroExitoso] = useState(false);
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
+  
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
     password: '',
-    plan: 'PLAN ÉLITE' // Plan por defecto
+    confirmarPassword: '',
+    plan: 'PLAN ÉLITE'
   });
 
-  // 2. FUNCIÓN PARA REGISTRAR AL SOCIO
   const handleRegistro = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validaciones de seguridad
+    if (formData.password !== formData.confirmarPassword) {
+      alert("⚠️ Las contraseñas no coinciden. Por favor, verifica.");
+      return;
+    }
+
+    if (!aceptaTerminos) {
+      alert("⚠️ Debes aceptar los términos y condiciones.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('socios_elite')
         .insert([
           { 
@@ -38,65 +52,78 @@ export default function RegistroPage() {
 
       if (error) throw error;
 
-      alert("✅ ¡REGISTRO EXITOSO! Bienvenido a El Gurú Élite.");
-      window.location.href = "/"; // Redirigir al inicio tras éxito
+      setRegistroExitoso(true);
+      // Aquí el sistema ya guardó al socio. El correo se dispara desde Supabase Auth o un Edge Function.
 
     } catch (error: any) {
-      console.error("❌ Error en registro:", error.message);
-      alert("Hubo un error al registrarte: " + error.message);
+      console.error("❌ Error:", error.message);
+      alert("Error al registrar: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return (
-    <div style={{height:'100vh', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', backgroundColor:'#020406', color:'#00C853'}}>
-      <LoaderCircle size={50} className="animate-spin" style={{marginBottom:'20px'}} />
-      <h2 style={{fontWeight: 900}}>PROCESANDO REGISTRO ÉLITE...</h2>
-    </div>
-  );
+  // Pantalla de Éxito
+  if (registroExitoso) {
+    return (
+      <div style={{height:'100vh', display:'flex', justifyContent:'center', alignItems:'center', backgroundColor:'#020406', color:'white', textAlign:'center', padding:'20px'}}>
+        <div style={{background:'#0a0c10', padding:'50px', borderRadius:'30px', border:'1px solid #00C853', maxWidth:'450px'}}>
+          <CheckCircle2 size={80} color="#00C853" style={{marginBottom:'20px'}} />
+          <h1 style={{fontWeight:900, color:'#00C853'}}>¡BIENVENIDO ÉLITE!</h1>
+          <p style={{marginTop:'20px', lineHeight:'1.6'}}>Tu registro se ha completado con éxito. Hemos enviado una **confirmación a tu correo electrónico**.</p>
+          <p style={{fontSize:'12px', color:'#555', marginTop:'10px'}}>Revisa tu bandeja de entrada (y spam) para activar tu cuenta.</p>
+          <Link href="/" style={{display:'inline-block', marginTop:'30px', padding:'15px 30px', background:'#00C853', color:'black', borderRadius:'10px', textDecoration:'none', fontWeight:'bold'}}>VOLVER AL INICIO</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <main style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', padding: '40px 20px', fontFamily: 'sans-serif' }}>
-      <Link href="/" style={{ color: '#00C853', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px', fontWeight: 'bold' }}>
-        <ArrowLeft size={20} /> VOLVER AL INICIO
+      <Link href="/" style={{ color: '#00C853', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '30px', fontWeight: 'bold', fontSize:'13px' }}>
+        <ArrowLeft size={18} /> VOLVER AL INICIO
       </Link>
 
-      <div style={{ maxWidth: '400px', margin: '0 auto', textAlign: 'center', background: '#0a0c10', padding: '40px', borderRadius: '20px', border: '1px solid #111', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-        <UserPlus size={40} color="#00C853" style={{ marginBottom: '20px' }} />
-        <h1 style={{ fontSize: '2rem', marginBottom: '10px', fontWeight: 900 }}>REGISTRO ÉLITE</h1>
-        <p style={{fontSize:'12px', color:'#555', marginBottom:'30px'}}>ÚNETE AL CÍRCULO EXCLUSIVO</p>
+      <div style={{ maxWidth: '450px', margin: '0 auto', background: '#0a0c10', padding: '40px', borderRadius: '25px', border: '1px solid #111' }}>
+        <div style={{textAlign:'center', marginBottom:'30px'}}>
+            <UserPlus size={40} color="#00C853" style={{ marginBottom: '15px' }} />
+            <h1 style={{ fontSize: '1.8rem', fontWeight: 900, margin:0 }}>REGISTRO ÉLITE</h1>
+            <p style={{fontSize:'10px', color:'#555', letterSpacing:'2px', marginTop:'5px'}}>SISTEMA DE ALTA DE SOCIOS</p>
+        </div>
 
         <form onSubmit={handleRegistro} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <input 
-            required
-            type="text" 
-            placeholder="Tu Nombre Completo" 
-            onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-            style={{ padding: '15px', borderRadius: '8px', border: '1px solid #222', backgroundColor: '#020406', color: 'white', outline:'none' }} 
-          />
-          <input 
-            required
-            type="email" 
-            placeholder="Email Corporativo" 
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
-            style={{ padding: '15px', borderRadius: '8px', border: '1px solid #222', backgroundColor: '#020406', color: 'white', outline:'none' }} 
-          />
-          <input 
-            required
-            type="password" 
-            placeholder="Contraseña de Acceso" 
-            onChange={(e) => setFormData({...formData, password: e.target.value})}
-            style={{ padding: '15px', borderRadius: '8px', border: '1px solid #222', backgroundColor: '#020406', color: 'white', outline:'none' }} 
-          />
+          <input required type="text" placeholder="Nombre completo" onChange={(e) => setFormData({...formData, nombre: e.target.value})} style={inputStyle} />
+          <input required type="email" placeholder="Correo electrónico" onChange={(e) => setFormData({...formData, email: e.target.value})} style={inputStyle} />
+          
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px'}}>
+            <input required type="password" placeholder="Contraseña" onChange={(e) => setFormData({...formData, password: e.target.value})} style={inputStyle} />
+            <input required type="password" placeholder="Confirmar" onChange={(e) => setFormData({...formData, confirmarPassword: e.target.value})} style={inputStyle} />
+          </div>
+
+          <div style={{display:'flex', alignItems:'flex-start', gap:'10px', padding:'10px', background:'rgba(255,255,255,0.02)', borderRadius:'10px', marginTop:'10px'}}>
+            <input type="checkbox" id="terms" checked={aceptaTerminos} onChange={(e) => setAceptaTerminos(e.target.checked)} style={{marginTop:'4px', cursor:'pointer'}} />
+            <label htmlFor="terms" style={{fontSize:'11px', color:'#888', lineHeight:'1.4', cursor:'pointer'}}>
+                Acepto los <b>Términos de Servicio</b> y la <b>Política de Privacidad</b> de El Gurú Élite. Entiendo que mi registro está sujeto a verificación.
+            </label>
+          </div>
           
           <button 
             type="submit" 
-            style={{ backgroundColor: '#00C853', color: 'black', padding: '18px', borderRadius: '8px', border: 'none', fontWeight: 900, marginTop: '10px', cursor:'pointer', fontSize:'14px', textTransform:'uppercase' }}>
-            REGISTRARME AHORA
+            disabled={loading || !aceptaTerminos}
+            style={{ 
+                backgroundColor: aceptaTerminos ? '#00C853' : '#222', 
+                color: aceptaTerminos ? 'black' : '#555', 
+                padding: '18px', borderRadius: '12px', border: 'none', fontWeight: 900, marginTop: '10px', cursor: aceptaTerminos ? 'pointer' : 'not-allowed', transition:'0.3s', display:'flex', justifyContent:'center', alignItems:'center', gap:'10px' 
+            }}>
+            {loading ? <LoaderCircle size={20} className="animate-spin" /> : <ShieldCheck size={20} />}
+            {loading ? 'PROCESANDO...' : 'SOLICITAR ACCESO ÉLITE'}
           </button>
         </form>
       </div>
     </main>
   );
 }
+
+const inputStyle = {
+    padding: '16px', borderRadius: '10px', border: '1px solid #222', backgroundColor: '#020406', color: 'white', outline: 'none', fontSize: '14px'
+};
