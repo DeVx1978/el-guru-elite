@@ -1,24 +1,14 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { Users, Trash2, Eye, DollarSign, Lock, Power, PowerOff, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Trash2, Eye, DollarSign, Lock, Power, PowerOff } from 'lucide-react';
 
 export default function AdminControlTotal() {
   const [isLocked, setIsLocked] = useState(true);
   const [pass, setPass] = useState("");
-  
-  // ESTADO DE SOCIOS: Ahora inicia vacío para no traer usuarios falsos
   const [socios, setSocios] = useState([]);
 
-  // FUNCIÓN PARA VER EXPEDIENTE
   const verInfo = (socio: any) => {
-    alert(
-      `--- EXPEDIENTE DEL SOCIO ---\n\n` +
-      `NOMBRE: ${socio.nombre}\n` +
-      `EMAIL: ${socio.email}\n` +
-      `CONTRASEÑA: ${socio.passUser}\n` +
-      `PLAN: ${socio.plan}\n` +
-      `ESTADO: ${socio.estado}`
-    );
+    alert(`EXPEDIENTE:\nNombre: ${socio.nombre}\nEmail: ${socio.email}\nPass: ${socio.passUser}\nPlan: ${socio.plan}`);
   };
 
   const toggleEstado = (id: number) => {
@@ -60,7 +50,6 @@ export default function AdminControlTotal() {
         <button onClick={() => setIsLocked(true)} style={{ background: '#111', color: '#ff4444', border: '1px solid #222', padding: '10px 20px', borderRadius: '10px' }}>BLOQUEAR</button>
       </div>
 
-      {/* MÉTRICAS RELEVANTES */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
         <div style={{ background: '#0a0c10', padding: '25px', borderRadius: '20px', border: '1px solid #111' }}>
           <Users size={24} color="#00C853" />
