@@ -32,15 +32,14 @@ export default function RegistroPage() {
     setLoading(true);
 
     try {
-      // AQUÍ ESTÁ LA CORRECCIÓN CLAVE SEGÚN TU IMAGEN DE SUPABASE
+      // CORRECCIÓN DEFINITIVA DE NOMBRES DE COLUMNA
       const { error } = await supabase
         .from('socios_elite')
         .insert([
           { 
-            nombre_complete: formData.nombre, // Antes era 'nombre'
-            id_socio: formData.email,        // Antes era 'email'
-            clave_acceso: formData.password,  // Antes era 'password'
-            // He quitado 'plan_elegido' y 'estatus_pago' porque no se veían en tu tabla
+            nombre_completo: formData.nombre, // Cambiado de 'complete' a 'completo' (con O)
+            id_socio: formData.email,        // Columna de email en tu Supabase
+            clave_acceso: formData.password   // Columna de password en tu Supabase
           }
         ]);
 
