@@ -16,7 +16,7 @@ const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
 export default function AdminControlTotal() {
   const [isLocked, setIsLocked] = useState(true);
   const [pass, setPass] = useState("");
-  const [socios, setSocios] = useState([]);
+  const [socios, setSocios] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // 2. CONFIGURACIÓN DE SEGURIDAD
