@@ -75,7 +75,10 @@ export default function PanelSocioElite() {
         
         {/* HEADER MÓVIL (Solo visible en pantallas pequeñas) */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <button onClick={() => setIsLocked(false)} style={{ background: '#0a0c10', border: '1px solid #222', padding: '10px', borderRadius: '10px', color: '#00C853' }} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)} 
+            style={{ background: '#0a0c10', border: '1px solid #222', padding: '10px', borderRadius: '10px', color: '#00C853', cursor: 'pointer' }}
+          >
              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           <Bell size={24} color="#222" />
@@ -100,7 +103,7 @@ export default function PanelSocioElite() {
           </div>
         </div>
 
-        {/* MONITOR DE MÉTRICAS (LO QUE TENÍAS ANTES) */}
+        {/* MONITOR DE MÉTRICAS */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '20px' }}>
            <div style={{ background: '#0a0c10', padding: '25px', borderRadius: '25px', border: '1px solid #111' }}>
               <TrendingUp size={24} color="#00C853" style={{ marginBottom: '15px' }} />
@@ -114,19 +117,17 @@ export default function PanelSocioElite() {
            </div>
         </div>
 
-        {/* ESPACIO PARA GRÁFICOS O REPORTES DETALLADOS */}
+        {/* ESPACIO PARA GRÁFICOS */}
         <div style={{ background: '#0a0c10', height: '300px', marginTop: '30px', borderRadius: '30px', border: '1px solid #111', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#222' }}>
            <p>MÓDULO DE MONITOREO EN TIEMPO REAL</p>
         </div>
 
       </main>
 
-      {/* ESTILOS CSS INYECTADOS PARA COMPUTADORA */}
       <style jsx>{`
         @media (min-width: 768px) {
           #sidebar-elite { left: 0 !important; }
           .main-content { margin-left: 260px !important; }
-          .header-toggle { display: none !important; }
         }
       `}</style>
     </div>
