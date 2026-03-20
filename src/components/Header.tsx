@@ -23,7 +23,7 @@ export default function Header() {
           <a href="/login" style={{ color: 'white', textDecoration: 'none', fontSize: '10px', fontWeight: '900', letterSpacing: '1px' }}>
             INICIAR SESIÓN
           </a>
-          <a href="/registro" style={{ textDecoration: 'none' }}>
+          <a href="/unete" style={{ textDecoration: 'none' }}>
             <button style={{ 
               backgroundColor: '#00C853', color: 'black', fontWeight: '900', fontSize: '10px', 
               padding: '10px 20px', borderRadius: '5px', border: 'none', cursor: 'pointer', 

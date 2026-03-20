@@ -32,7 +32,7 @@ export default function Membresias() {
               </div>
 
               {/* ENLACE AL REGISTRO */}
-              <a href="/registro" style={{ textDecoration: 'none', marginTop: '30px' }}>
+              <a href="/unete" style={{ textDecoration: 'none', marginTop: '30px' }}>
                 <button style={{ backgroundColor: '#111', border: '1px solid #222', color: 'white', padding: '12px 0', fontSize: '10px', fontWeight: 'bold', borderRadius: '5px', cursor: 'pointer', width: '100%' }}>
                   SELECCIONAR PLAN
                 </button>
