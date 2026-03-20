@@ -1,10 +1,14 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, LogOut, User } from 'lucide-react';
+import { 
+  LayoutDashboard, FileText, LogOut, User, 
+  TrendingUp, ShieldCheck, Zap, Bell, Menu, X 
+} from 'lucide-react';
 
-export default function PanelSocio() {
+export default function PanelSocioElite() {
   const [nombre, setNombre] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // Para móviles
   const router = useRouter();
 
   useEffect(() => {
@@ -22,45 +26,109 @@ export default function PanelSocio() {
   };
 
   return (
-    <div style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif', display: 'flex', overflowX: 'hidden' }}>
       
-      {/* CABECERA MÓVIL */}
-      <header style={{ padding: '20px', borderBottom: '1px solid #111', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0a0c10' }}>
-        <div>
-          <h1 style={{ color: '#00C853', margin: 0, fontSize: '1.2rem', fontWeight: 900 }}>EL GURÚ</h1>
-          <span style={{ fontSize: '10px', color: '#555' }}>SISTEMA ÉLITE</span>
+      {/* SIDEBAR - Ahora se oculta en móvil si no se activa */}
+      <aside style={{
+        width: '260px',
+        backgroundColor: '#0a0c10',
+        borderRight: '1px solid #111',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'fixed',
+        height: '100vh',
+        zIndex: 100,
+        transition: '0.3s ease',
+        left: isMenuOpen ? '0' : '-260px', // Efecto deslizar en móvil
+      }} id="sidebar-elite">
+        <div style={{ padding: '30px', borderBottom: '1px solid #111' }}>
+          <h1 style={{ color: '#00C853', margin: 0, fontSize: '1.5rem', fontWeight: 900 }}>EL GURÚ</h1>
+          <span style={{ fontSize: '10px', color: '#555', letterSpacing: '2px' }}>SISTEMA ÉLITE</span>
         </div>
-        <button onClick={cerrarSesion} style={{ background: 'none', border: 'none', color: '#ff4444' }}>
-          <LogOut size={20} />
+
+        <nav style={{ flex: 1, padding: '20px' }}>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            <li style={{ padding: '15px', color: '#00C853', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer', background: 'rgba(0,200,83,0.05)', borderRadius: '12px', marginBottom: '10px' }}>
+              <LayoutDashboard size={20} /> <span style={{fontWeight: 'bold'}}>MONITOR EN VIVO</span>
+            </li>
+            <li style={{ padding: '15px', color: '#444', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer', transition: '0.3s' }}>
+              <FileText size={20} /> <span>MIS REPORTES</span>
+            </li>
+            <li style={{ padding: '15px', color: '#444', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }}>
+              <Zap size={20} /> <span>OPERACIONES</span>
+            </li>
+          </ul>
+        </nav>
+
+        <button onClick={cerrarSesion} style={{ margin: '20px', padding: '15px', background: 'none', border: '1px solid #ff4444', color: '#ff4444', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: 'bold' }}>
+          <LogOut size={18} /> CERRAR SESIÓN
         </button>
-      </header>
+      </aside>
 
-      {/* CONTENIDO PRINCIPAL */}
-      <main style={{ padding: '20px', flex: 1 }}>
-        <div style={{ background: 'linear-gradient(145deg, #0a0c10, #020406)', padding: '25px', borderRadius: '20px', border: '1px solid #00C853', marginBottom: '20px' }}>
-          <User size={30} color="#00C853" style={{ marginBottom: '10px' }} />
-          <h2 style={{ margin: 0, fontSize: '1.4rem' }}>¡Bienvenido,</h2>
-          <h2 style={{ margin: 0, color: '#00C853', textTransform: 'uppercase', fontWeight: 900 }}>{nombre}!</h2>
-          <p style={{ color: '#555', fontSize: '13px', marginTop: '10px' }}>Tu estatus actual es: <b style={{color: '#00C853'}}>ACTIVO</b></p>
+      {/* CONTENIDO PRINCIPAL - Ajuste dinámico de margen */}
+      <main style={{ 
+        flex: 1, 
+        padding: '20px', 
+        marginLeft: '0', // Por defecto en móvil
+        transition: '0.3s ease'
+      }} className="main-content">
+        
+        {/* HEADER MÓVIL (Solo visible en pantallas pequeñas) */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+          <button onClick={() => setIsLocked(false)} style={{ background: '#0a0c10', border: '1px solid #222', padding: '10px', borderRadius: '10px', color: '#00C853' }} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <Bell size={24} color="#222" />
         </div>
 
-        {/* ACCESOS RÁPIDOS */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-          <div style={{ background: '#0a0c10', padding: '20px', borderRadius: '15px', border: '1px solid #111', textAlign: 'center' }}>
-            <LayoutDashboard size={24} color="#00C853" style={{ margin: '0 auto 10px' }} />
-            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>MONITOR</span>
+        {/* TARJETA DE BIENVENIDA PREMIUM */}
+        <div style={{ background: 'linear-gradient(135deg, #0a0c10 0%, #020406 100%)', padding: '35px', borderRadius: '30px', border: '1px solid #111', position: 'relative', overflow: 'hidden', marginBottom: '30px' }}>
+          <div style={{ position: 'absolute', top: '-20px', right: '-20px', opacity: 0.1 }}>
+            <ShieldCheck size={150} color="#00C853" />
           </div>
-          <div style={{ background: '#0a0c10', padding: '20px', borderRadius: '15px', border: '1px solid #111', textAlign: 'center' }}>
-            <FileText size={24} color="#00C853" style={{ margin: '0 auto 10px' }} />
-            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>REPORTES</span>
+          <p style={{ color: '#00C853', fontWeight: 'bold', fontSize: '12px', margin: 0, textTransform: 'uppercase', letterSpacing: '2px' }}>Status: Miembro Élite</p>
+          <h2 style={{ fontSize: '2rem', margin: '10px 0', fontWeight: 900 }}>Bienvenido, <span style={{ color: '#00C853' }}>{nombre}</span></h2>
+          <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
+             <div style={{ textAlign: 'center' }}>
+                <p style={{ color: '#555', margin: 0, fontSize: '10px' }}>SESIÓN ACTIVA</p>
+                <b style={{ color: 'white' }}>LIVE</b>
+             </div>
+             <div style={{ textAlign: 'center' }}>
+                <p style={{ color: '#555', margin: 0, fontSize: '10px' }}>ACCESO</p>
+                <b style={{ color: '#00C853' }}>FULL</b>
+             </div>
           </div>
         </div>
+
+        {/* MONITOR DE MÉTRICAS (LO QUE TENÍAS ANTES) */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '20px' }}>
+           <div style={{ background: '#0a0c10', padding: '25px', borderRadius: '25px', border: '1px solid #111' }}>
+              <TrendingUp size={24} color="#00C853" style={{ marginBottom: '15px' }} />
+              <p style={{ fontSize: '11px', color: '#555', margin: 0 }}>RENDIMIENTO</p>
+              <h3 style={{ fontSize: '1.5rem', margin: '5px 0' }}>+12.5%</h3>
+           </div>
+           <div style={{ background: '#0a0c10', padding: '25px', borderRadius: '25px', border: '1px solid #111' }}>
+              <Zap size={24} color="#00C853" style={{ marginBottom: '15px' }} />
+              <p style={{ fontSize: '11px', color: '#555', margin: 0 }}>OPERACIONES</p>
+              <h3 style={{ fontSize: '1.5rem', margin: '5px 0' }}>24</h3>
+           </div>
+        </div>
+
+        {/* ESPACIO PARA GRÁFICOS O REPORTES DETALLADOS */}
+        <div style={{ background: '#0a0c10', height: '300px', marginTop: '30px', borderRadius: '30px', border: '1px solid #111', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#222' }}>
+           <p>MÓDULO DE MONITOREO EN TIEMPO REAL</p>
+        </div>
+
       </main>
 
-      {/* PIE DE PÁGINA */}
-      <footer style={{ padding: '20px', textAlign: 'center', color: '#222', fontSize: '10px' }}>
-        &copy; 2026 EL GURÚ ÉLITE - ACCESO EXCLUSIVO
-      </footer>
+      {/* ESTILOS CSS INYECTADOS PARA COMPUTADORA */}
+      <style jsx>{`
+        @media (min-width: 768px) {
+          #sidebar-elite { left: 0 !important; }
+          .main-content { margin-left: 260px !important; }
+          .header-toggle { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
