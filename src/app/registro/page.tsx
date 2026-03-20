@@ -19,7 +19,6 @@ export default function RegistroPage() {
     email: '',
     password: '',
     confirmarPassword: '',
-    plan: 'PLAN ÉLITE'
   });
 
   const handleRegistro = async (e: React.FormEvent) => {
@@ -33,15 +32,15 @@ export default function RegistroPage() {
     setLoading(true);
 
     try {
+      // AQUÍ ESTÁ LA CORRECCIÓN CLAVE SEGÚN TU IMAGEN DE SUPABASE
       const { error } = await supabase
         .from('socios_elite')
         .insert([
           { 
-            nombre: formData.nombre, 
-            email: formData.email, // Si falla de nuevo, verifica si en Supabase se llama 'correo'
-            password: formData.password,
-            plan_elegido: formData.plan,
-            estatus_pago: 'PENDIENTE'
+            nombre_complete: formData.nombre, // Antes era 'nombre'
+            id_socio: formData.email,        // Antes era 'email'
+            clave_acceso: formData.password,  // Antes era 'password'
+            // He quitado 'plan_elegido' y 'estatus_pago' porque no se veían en tu tabla
           }
         ]);
 
@@ -61,8 +60,8 @@ export default function RegistroPage() {
       <div style={{height:'100vh', display:'flex', justifyContent:'center', alignItems:'center', backgroundColor:'#020406', color:'white', textAlign:'center', padding:'20px'}}>
         <div style={{background:'#0a0c10', padding:'50px', borderRadius:'30px', border:'1px solid #00C853', maxWidth:'450px'}}>
           <CheckCircle2 size={80} color="#00C853" style={{marginBottom:'20px'}} />
-          <h1 style={{fontWeight:900, color:'#00C853'}}>¡BIENVENIDO!</h1>
-          <p style={{marginTop:'20px'}}>Tu registro se ha completado. Pronto recibirás noticias en tu correo.</p>
+          <h1 style={{fontWeight:900, color:'#00C853'}}>¡SOLICITUD ENVIADA!</h1>
+          <p style={{marginTop:'20px'}}>Te has registrado correctamente. Ahora puedes intentar acceder al sistema.</p>
           <Link href="/" style={{display:'inline-block', marginTop:'30px', padding:'15px 30px', background:'#00C853', color:'black', borderRadius:'10px', textDecoration:'none', fontWeight:'bold'}}>VOLVER AL INICIO</Link>
         </div>
       </div>
@@ -86,14 +85,13 @@ export default function RegistroPage() {
           <input required type="text" placeholder="Nombre completo" onChange={(e) => setFormData({...formData, nombre: e.target.value})} style={inputStyle} />
           <input required type="email" placeholder="Correo electrónico" onChange={(e) => setFormData({...formData, email: e.target.value})} style={inputStyle} />
           
-          {/* Contraseña con Ojo */}
           <div style={{position:'relative'}}>
             <input 
                 required 
                 type={showPass ? "text" : "password"} 
                 placeholder="Contraseña" 
                 onChange={(e) => setFormData({...formData, password: e.target.value})} 
-                style={{...inputStyle, width:'100%', boxSizing:'border-box'}} 
+                style={inputStyle} 
             />
             <button 
                 type="button" 
@@ -113,8 +111,8 @@ export default function RegistroPage() {
           />
 
           <div style={{display:'flex', alignItems:'flex-start', gap:'10px', padding:'10px', background:'rgba(255,255,255,0.02)', borderRadius:'10px'}}>
-            <input type="checkbox" id="terms" checked={aceptaTerminos} onChange={(e) => setAceptaTerminos(e.target.checked)} style={{marginTop:'4px'}} />
-            <label htmlFor="terms" style={{fontSize:'11px', color:'#888', lineHeight:'1.4'}}>
+            <input type="checkbox" id="terms" checked={aceptaTerminos} onChange={(e) => setAceptaTerminos(e.target.checked)} style={{marginTop:'4px', cursor:'pointer'}} />
+            <label htmlFor="terms" style={{fontSize:'11px', color:'#888', lineHeight:'1.4', cursor:'pointer'}}>
                 Acepto los Términos y la Política de Privacidad de El Gurú Élite.
             </label>
           </div>
