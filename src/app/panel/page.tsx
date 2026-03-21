@@ -3,34 +3,22 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   User, Wallet, TrendingUp, ShieldCheck, LogOut, 
-  Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard
+  Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard,
+  ArrowUpRight, Activity
 } from 'lucide-react';
 
 export default function SocioPanel() {
   const router = useRouter();
   const [nombre, setNombre] = useState("Socio");
-  const [plan, setPlan] = useState("Cargando...");
-
-  // --- CONFIGURACIÓN DE PLANES (COLORES Y NOMBRES) ---
-  const configPlanes: any = {
-    micro: { nombre: 'MICRO SOCIO', color: '#E0E0E0', icon: Target },
-    inicial: { nombre: 'SOCIO INICIAL', color: '#81D4FA', icon: Briefcase },
-    activo: { nombre: 'SOCIO ACTIVO', color: '#FFD54F', icon: Zap },
-    premium: { nombre: 'SOCIO PREMIUM', color: '#FF8A65', icon: Award },
-    elite: { nombre: 'SOCIO ÉLITE', color: '#00C853', icon: Star },
-  };
 
   useEffect(() => {
-    // 1. Recuperamos los datos que guardamos en el Login Maestro
     const socioNombre = localStorage.getItem('socio_nombre');
     const socioId = localStorage.getItem('socio_id');
 
     if (!socioId) {
-      router.push('/login'); // Si no hay sesión, expulsar
+      router.push('/login');
     } else {
       setNombre(socioNombre || "Socio");
-      // Aquí podrías hacer un fetch rápido a Supabase si quieres el plan exacto en tiempo real
-      // Por ahora simulamos que ya lo tenemos o lo pedimos
     }
   }, []);
 
@@ -68,70 +56,124 @@ export default function SocioPanel() {
           </div>
         </header>
 
-        {/* TARJETAS DE ESTADO RAPIDO */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-          
-          {/* TARJETA DE PLAN ACTUAL */}
-          <div style={{ background: '#0a0c10', border: '1px solid #111', padding: '30px', borderRadius: '25px', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ color: '#555', fontSize: '0.8rem', fontWeight: 900, marginBottom: '15px', letterSpacing: '2px' }}>MEMBRESÍA ACTIVA</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <div style={{ background: 'rgba(129, 212, 250, 0.1)', padding: '15px', borderRadius: '15px' }}>
-                <Briefcase size={30} color="#81D4FA" />
-              </div>
-              <div>
-                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#81D4FA' }}>SOCIO INICIAL</h2>
-                <p style={{ margin: 0, color: '#00C853', fontSize: '0.8rem', fontWeight: 'bold' }}>Participación: 0.167%</p>
-              </div>
-            </div>
-          </div>
+        {/* --- MONITOR DE CRECIMIENTO ÉLITE (CIRUGÍA PLÁSTICA) --- */}
+        <div style={{ 
+          background: 'linear-gradient(145deg, #0a0c10 0%, #050505 100%)', 
+          border: '1px solid #111', 
+          padding: '40px', 
+          borderRadius: '35px', 
+          marginBottom: '40px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+           {/* Efecto de luz ambiental en la esquina */}
+           <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'rgba(0, 200, 83, 0.05)', filter: 'blur(50px)', borderRadius: '50%' }}></div>
 
-          {/* TARJETA DE BALANCE (SIMULADO POR AHORA) */}
-          <div style={{ background: '#0a0c10', border: '1px solid #111', padding: '30px', borderRadius: '25px' }}>
-            <div style={{ color: '#555', fontSize: '0.8rem', fontWeight: 900, marginBottom: '15px', letterSpacing: '2px' }}>UTILIDADES ACUMULADAS</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <div style={{ background: 'rgba(0, 200, 83, 0.1)', padding: '15px', borderRadius: '15px' }}>
-                <TrendingUp size={30} color="#00C853" />
-              </div>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px', position: 'relative', zIndex: 1 }}>
               <div>
-                <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 900 }}>$0.00 <span style={{fontSize: '0.8rem', color: '#444'}}>USD</span></h2>
-                <p style={{ margin: 0, color: '#555', fontSize: '0.8rem' }}>Próximo corte: 30 de Marzo</p>
+                <p style={{ color: '#555', fontSize: '0.8rem', fontWeight: 900, letterSpacing: '2px', marginBottom: '15px' }}>ESTADO ACTUAL DE RENDIMIENTO</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '15px' }}>
+                  <h2 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0, letterSpacing: '-2px' }}>$0.00</h2>
+                  <span style={{ color: '#00C853', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '1.2rem' }}>
+                    <ArrowUpRight size={20} /> +0.00%
+                  </span>
+                </div>
               </div>
-            </div>
-          </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ background: 'rgba(129, 212, 250, 0.1)', padding: '10px 20px', borderRadius: '15px', border: '1px solid rgba(129, 212, 250, 0.2)', display: 'inline-block' }}>
+                  <p style={{ color: '#81D4FA', fontSize: '0.7rem', fontWeight: 900, margin: 0, letterSpacing: '1px' }}>NIVEL DE SOCIO</p>
+                  <p style={{ color: '#fff', fontWeight: 900, margin: 0, fontSize: '1.1rem' }}>PLAN INICIAL</p>
+                </div>
+              </div>
+           </div>
 
+           {/* BARRA DE PROGRESO CON NEÓN */}
+           <div style={{ marginTop: '40px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.8rem', fontWeight: 'bold', color: '#444' }}>
+                <span>PROGRESO DE CARTERA</span>
+                <span style={{ color: '#00C853' }}>EN ESPERA DE MERCADO</span>
+              </div>
+              <div style={{ width: '100%', height: '12px', background: '#111', borderRadius: '20px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
+                <div className="progress-bar-glow" style={{ width: '5%', height: '100%', background: '#00C853', borderRadius: '20px' }}></div>
+              </div>
+              <p style={{ color: '#333', fontSize: '0.7rem', marginTop: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity size={12} className="pulse" /> SISTEMA DE ALGORITMOS CALCULANDO UTILIDADES EN TIEMPO REAL...
+              </p>
+           </div>
         </div>
 
-        {/* SECCIÓN DE HERRAMIENTAS ÉLITE */}
-        <h3 style={{ marginBottom: '20px', fontWeight: 900, fontSize: '1.2rem' }}>HERRAMIENTAS DISPONIBLES</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-          <div className="tool-card"> <LayoutDashboard size={20} /> Señales en Vivo</div>
-          <div className="tool-card"> <Wallet size={20} /> Gestionar Retiros</div>
-          <div className="tool-card"> <User size={20} /> Datos Personales</div>
+        {/* TARJETAS DE ACCIÓN RÁPIDA */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+          
+          <div className="action-card">
+            <div className="icon-box" style={{ background: 'rgba(0, 200, 83, 0.1)', color: '#00C853' }}><TrendingUp /></div>
+            <div>
+              <h4 style={{ margin: 0 }}>Señales en Vivo</h4>
+              <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#555' }}>Acceso a operativa diaria</p>
+            </div>
+          </div>
+
+          <div className="action-card">
+            <div className="icon-box" style={{ background: 'rgba(129, 212, 250, 0.1)', color: '#81D4FA' }}><Wallet /></div>
+            <div>
+              <h4 style={{ margin: 0 }}>Gestionar Retiros</h4>
+              <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#555' }}>Solicitudes de capital</p>
+            </div>
+          </div>
+
+          <div className="action-card">
+            <div className="icon-box" style={{ background: 'rgba(255, 213, 79, 0.1)', color: '#FFD54F' }}><User /></div>
+            <div>
+              <h4 style={{ margin: 0 }}>Perfil Élite</h4>
+              <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#555' }}>Ajustes de cuenta</p>
+            </div>
+          </div>
+
         </div>
 
       </main>
 
       <style jsx>{`
-        .tool-card {
-          background: #080808;
+        .action-card {
+          background: #0a0c10;
           border: 1px solid #111;
           padding: 25px;
-          border-radius: 15px;
-          text-align: center;
+          border-radius: 25px;
           display: flex;
-          flex-direction: column;
           align-items: center;
-          gap: 15px;
-          font-weight: bold;
-          font-size: 0.9rem;
-          color: #444;
-          transition: 0.3s;
+          gap: 20px;
+          transition: 0.3s ease;
           cursor: pointer;
         }
-        .tool-card:hover {
+        .action-card:hover {
           border-color: #00C853;
-          color: #fff;
-          background: #0a0c10;
+          background: #0d1015;
+          transform: translateY(-5px);
+        }
+        .icon-box {
+          padding: 15px;
+          borderRadius: 18px;
+          display: flex;
+          alignItems: center;
+          justifyContent: center;
+        }
+        .progress-bar-glow {
+          box-shadow: 0 0 15px #00C853;
+          animation: loading 2s infinite ease-in-out;
+        }
+        .pulse {
+          animation: pulse-animation 2s infinite;
+        }
+        @keyframes pulse-animation {
+          0% { opacity: 1; }
+          50% { opacity: 0.3; }
+          100% { opacity: 1; }
+        }
+        @keyframes loading {
+          0% { filter: brightness(1); }
+          50% { filter: brightness(1.5); }
+          100% { filter: brightness(1); }
         }
       `}</style>
     </div>
