@@ -1,145 +1,284 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogIn, Shield, BarChart3, PieChart, Activity, Globe, Lock, FileText, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { 
+  TrendingUp, ShieldCheck, Zap, ChevronRight, 
+  ArrowUpRight, Wallet, Activity, Lock
+} from 'lucide-react';
 
-// CARGADOR INICIAL
-const BallLoader = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', width: '100vw', backgroundColor: '#020406', position: 'fixed', top: 0, left: 0, zIndex: 9999 }}>
-    <div style={{ width: '60px', height: '60px', border: '4px solid rgba(0, 200, 83, 0.1)', borderTop: '4px solid #00C853', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-    <style jsx global>{` @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } `}</style>
-  </div>
-);
-
-export default function HomePage() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showStats, setShowStats] = useState(false);
+export default function LandingPage() {
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowStats(true), 800);
+    const timer = setTimeout(() => setLoading(false), 5000);
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return <BallLoader />;
+  // 1. PANTALLA DE CARGA (SPLASH SCREEN) - IMPACTO INICIAL
+  if (loading) {
+    return (
+      <div className="splash">
+        <div className="loader-container">
+          <div className="pulse-ring"></div>
+          <div className="image-wrapper">
+            <img src="/images/guru.jpg" alt="El Guru Elite" />
+          </div>
+          <div className="scan-line"></div>
+        </div>
+        <div className="loading-bar-container">
+          <div className="loading-bar-progress"></div>
+        </div>
+        <h2 className="loading-text">IDENTIFICANDO SOCIO ÉLITE...</h2>
+
+        <style jsx>{`
+          .splash {
+            background: #000;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+          }
+          .loader-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 30px;
+          }
+          .image-wrapper {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #00C853;
+            box-shadow: 0 0 50px rgba(0, 200, 83, 0.3);
+            position: relative;
+            z-index: 2;
+          }
+          .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+          .pulse-ring {
+            position: absolute;
+            top: -10%; left: -10%; width: 120%; height: 120%;
+            border: 2px solid #00C853;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            opacity: 0.5;
+          }
+          .scan-line {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: #00C853;
+            box-shadow: 0 0 15px #00C853;
+            z-index: 3;
+            animation: scan 2.5s ease-in-out infinite;
+          }
+          .loading-bar-container {
+            width: 250px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+          }
+          .loading-bar-progress {
+            width: 0%;
+            height: 100%;
+            background: #00C853;
+            animation: progress 5s linear forwards;
+          }
+          .loading-text {
+            color: #00C853;
+            font-size: 10px;
+            letter-spacing: 4px;
+            margin-top: 15px;
+            font-weight: 300;
+          }
+          @keyframes pulse { 0% { transform: scale(0.9); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+          @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
+          @keyframes progress { 100% { width: 100%; } }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
-    <main style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'Inter, sans-serif', overflowX: 'hidden' }}>
-      
-      {/* NAVBAR: LOGO IZQUIERDA + HAMBURGUESA DERECHA */}
-      <nav style={{ padding: '0 6%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0, 200, 83, 0.3)', position: 'fixed', top: 0, width: '100%', height: '90px', zIndex: 1000, backgroundColor: '#020406' }}>
-        
-        {/* LOGO IMPONENTE */}
-        <div style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer' }} onClick={() => window.location.href = '/'}>
-          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-1px', fontStyle: 'italic', color: '#FFF', lineHeight: '1' }}>
-            EL <span style={{ color: '#00C853' }}>GURÚ</span>
-          </h1>
-          <p style={{ margin: '4px 0 0 0', fontSize: '9px', letterSpacing: '3px', fontWeight: 800, color: '#00C853', textTransform: 'uppercase' }}>
-            ÉLITE INVESTMENTS
-          </p>
+    <div className="elite-landing">
+      {/* 2. HEADER PROFESIONAL */}
+      <nav className="navbar">
+        <div className="nav-logo">
+          <span className="logo-text">EL GURÚ <span className="neon-text">ÉLITE</span></span>
         </div>
-
-        {/* HAMBURGUESA (UBICACIÓN EXACTA) */}
-        <div style={{ cursor: 'pointer', color: '#00C853' }} onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen ? <X size={38} /> : <Menu size={38} />}
-        </div>
-
-        {/* DESPLEGABLE: 3 SECCIONES ORDENADAS */}
-        {menuOpen && (
-          <div style={{ position: 'fixed', top: '90px', left: 0, width: '100vw', height: 'calc(100vh - 90px)', backgroundColor: '#020406', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '40px', zIndex: 999 }}>
-            <Link href="/quienes-somos" style={{ color: '#FFF', textDecoration: 'none', fontSize: '24px', fontWeight: 800 }} onClick={() => setLoading(true)}>1. QUIÉNES SOMOS</Link>
-            <Link href="/proyecto-guru" style={{ color: '#FFF', textDecoration: 'none', fontSize: '24px', fontWeight: 800 }} onClick={() => setLoading(true)}>2. PROYECTO GURÚ</Link>
-            <Link href="/proyecto-inversionistas" style={{ color: '#FFF', textDecoration: 'none', fontSize: '24px', fontWeight: 800 }} onClick={() => setLoading(true)}>3. PROYECTO INVERSIONISTAS</Link>
-            <button onClick={() => setMenuOpen(false)} style={{ marginTop: '30px', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#555', padding: '12px 40px', borderRadius: '30px', fontSize: '12px' }}>CERRAR MENÚ</button>
-          </div>
-        )}
+        <button onClick={() => router.push('/unete')} className="btn-access">ACCESO PRIVADO</button>
       </nav>
 
-      {/* HERO SECTION */}
-      <section style={{ height: '85vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '0 8%' }}>
-        <h2 style={{ color: '#00C853', fontSize: '12px', fontWeight: 800, letterSpacing: '8px', marginBottom: '25px', textTransform: 'uppercase' }}>Protocolo de Alto Nivel</h2>
-        <h1 style={{ fontSize: 'clamp(3rem, 12vw, 7rem)', fontWeight: 900, fontStyle: 'italic', lineHeight: '0.85', margin: '0 0 45px 0', letterSpacing: '-3px' }}>
-          MÁXIMO<br /><span style={{ color: '#00C853' }}>RENDIMIENTO</span>
-        </h1>
-        
-        {/* ACCESO SOCIOS (NUEVA SECCIÓN REQUERIDA) */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
-          <button onClick={() => { setLoading(true); window.location.href = '/unete'; }} style={{ backgroundColor: '#00C853', color: '#000', padding: '22px 50px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>
-            ADQUIRIR MEMBRESÍA
-          </button>
-          <button onClick={() => { setLoading(true); window.location.href = '/login'; }} style={{ backgroundColor: 'transparent', color: '#FFF', padding: '22px 50px', borderRadius: '14px', border: '2px solid #333', fontWeight: 800, cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            ACCESO SOCIOS <ChevronRight size={18} />
-          </button>
-        </div>
-      </section>
-
-      {/* ESTADÍSTICAS INTERACTIVAS (BARRAS MÚLTIPLES) */}
-      <section style={{ padding: '100px 6%', background: '#05070a' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* 3. HERO SECTION - REEMPLAZA LAS GRÁFICAS FEAS */}
+      <section className="hero">
+        <div className="hero-content">
+          <div className="hero-tag">INVESTMENT TERMINAL V4.0</div>
+          <h1 className="hero-title">
+            LA CIENCIA DE LA <br/>
+            <span className="gradient-text">RENTABILIDAD</span>
+          </h1>
+          <p className="hero-description">
+            Plataforma exclusiva de gestión de capital institucional y deportiva. 
+            Algoritmos de alta frecuencia diseñados para el 1% de los inversores.
+          </p>
           
+          <div className="hero-buttons">
+            <button onClick={() => router.push('/unete')} className="btn-primary">
+              COMENZAR AHORA <ArrowUpRight size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="hero-visual">
+          {/* Aquí reemplazamos las barras feas por un visual de "Dashboard Futuro" */}
+          <div className="glass-card main-stat">
+            <Activity color="#00C853" size={32} />
+            <div className="stat-info">
+              <span className="stat-label">RENDIMIENTO PROMEDIO</span>
+              <span className="stat-num">+18.5% <small>MENSUAL</small></span>
+            </div>
+          </div>
+          <div className="glass-card secondary-stat">
+            <ShieldCheck color="#00C853" size={24} />
+            <span>OPERACIÓN PROTEGIDA</span>
+          </div>
+          <div className="glow-orb"></div>
+        </div>
+      </section>
+
+      {/* 4. PLANES REDISEÑADOS (Sin los cuadros planos verdes) */}
+      <section className="plans-section">
+        <h2 className="section-title">PORTAFOLIO DE INVERSIÓN</h2>
+        <div className="plans-grid">
           {[
-            { label: 'RENDIMIENTO MENSUAL', color: '#00C853', bars: [40, 65, 50, 85, 78] },
-            { label: 'PROFIT ACUMULADO', color: '#FFF', bars: [30, 45, 90, 70, 95] },
-            { label: 'EFECTIVIDAD DEPORTIVA', color: '#00C853', bars: [60, 55, 80, 75, 82] }
-          ].map((stat, idx) => (
-            <div key={idx} style={{ background: '#0a0c10', padding: '40px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <p style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '2px', color: '#555', marginBottom: '30px' }}>{stat.label}</p>
-              
-              {/* DISEÑO DE BARRAS INTERACTIVAS */}
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '120px', gap: '8px' }}>
-                {stat.bars.map((height, i) => (
-                  <div key={i} style={{ flex: 1, background: '#111', borderRadius: '4px', position: 'relative', height: '100%' }}>
-                    <div style={{ 
-                      position: 'absolute', 
-                      bottom: 0, 
-                      width: '100%', 
-                      height: showStats ? `${height}%` : '0%', 
-                      background: stat.color, 
-                      borderRadius: '4px',
-                      transition: `height 1.5s ease-out ${i * 0.1}s`,
-                      boxShadow: stat.color === '#00C853' ? '0 0 15px rgba(0, 200, 83, 0.3)' : 'none'
-                    }}></div>
-                  </div>
-                ))}
-              </div>
+            { name: 'Micro', price: '100', perk: '0.067% Utilidad' },
+            { name: 'Activo', price: '500', perk: '0.333% Utilidad' },
+            { name: 'Élite', price: '1500', perk: '1.0% Utilidad' }
+          ].map((plan) => (
+            <div key={plan.name} className="plan-card">
+              <div className="plan-name">{plan.name}</div>
+              <div className="plan-price"><span>$</span>{plan.price}</div>
+              <div className="plan-perk">{plan.perk}</div>
+              <button onClick={() => router.push('/unete')} className="btn-select">SELECCIONAR</button>
             </div>
           ))}
         </div>
       </section>
 
-      {/* MEMBRESÍAS ALINEADAS */}
-      <section style={{ padding: '100px 6%', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2.2rem', fontWeight: 900, fontStyle: 'italic', marginBottom: '60px' }}>MEMBRESÍAS ÉLITE</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', maxWidth: '1300px', margin: '0 auto' }}>
-          {[
-            { n: 'Micro', v: '100' }, { n: 'Inicial', v: '250' }, { n: 'Activo', v: '500' }, { n: 'Premium', v: '1000' }, { n: 'Elite', v: '1500' }
-          ].map(p => (
-            <div key={p.n} style={{ background: '#0a0c10', padding: '50px 20px', borderRadius: '24px', border: '1px solid #00C853' }}>
-              <span style={{ color: '#00C853', fontWeight: 800, letterSpacing: '2px' }}>{p.n}</span>
-              <h3 style={{ fontSize: '2.8rem', margin: '25px 0', fontWeight: 900 }}>${p.v}</h3>
-              <button onClick={() => { setLoading(true); window.location.href = '/registro'; }} style={{ width: '100%', background: '#00C853', color: '#000', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>SELECCIONAR</button>
-            </div>
-          ))}
-        </div>
-      </section>
+      <style jsx>{`
+        .elite-landing {
+          background-color: #020406;
+          color: white;
+          min-height: 100vh;
+          font-family: 'Inter', sans-serif;
+        }
+        .navbar {
+          padding: 30px 50px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .logo-text { font-weight: 900; font-size: 1.2rem; letter-spacing: -0.5px; }
+        .neon-text { color: #00C853; text-shadow: 0 0 10px rgba(0,200,83,0.5); }
+        .btn-access {
+          background: transparent;
+          border: 1px solid #00C853;
+          color: #00C853;
+          padding: 8px 20px;
+          border-radius: 5px;
+          font-size: 12px;
+          font-weight: bold;
+          cursor: pointer;
+        }
 
-      {/* FOOTER (SIN BOTÓN DE VOLVER ARRIBA) */}
-      <footer style={{ padding: '80px 6%', borderTop: '1px solid #111', textAlign: 'center', backgroundColor: '#020406' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '30px', marginBottom: '40px', color: '#555', fontSize: '12px', fontWeight: 700 }}>
-          <Link href="/terminos" style={{ textDecoration: 'none', color: 'inherit' }}>Términos de Servicio</Link>
-          <Link href="/privacidad" style={{ textDecoration: 'none', color: 'inherit' }}>Política de Privacidad</Link>
-          <Link href="/confidencialidad" style={{ textDecoration: 'none', color: 'inherit' }}>Confidencialidad</Link>
-        </div>
-        <div style={{ opacity: 0.2 }}>
-          <p style={{ fontSize: '12px', margin: 0 }}>© 2026 EL GURÚ ÉLITE.</p>
-          <p style={{ fontSize: '10px', marginTop: '5px' }}>INGENIERÍA DIGITAL POR DEVX.</p>
-        </div>
-      </footer>
+        .hero {
+          max-width: 1200px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: 1.2fr 0.8fr;
+          padding: 100px 50px;
+          gap: 40px;
+        }
+        .hero-tag { color: #00C853; font-size: 11px; font-weight: 900; letter-spacing: 3px; margin-bottom: 20px; }
+        .hero-title { font-size: 4.5rem; font-weight: 900; line-height: 0.9; margin-bottom: 30px; }
+        .gradient-text { background: linear-gradient(180deg, #fff 0%, #00C853 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-description { color: #888; font-size: 1.1rem; line-height: 1.6; margin-bottom: 40px; max-width: 500px; }
 
-      <style jsx global>{`
-        body { margin: 0; padding: 0; overflow-x: hidden; }
-        * { box-sizing: border-box; }
+        .btn-primary {
+          background: #00C853;
+          color: black;
+          border: none;
+          padding: 18px 40px;
+          border-radius: 5px;
+          font-weight: 900;
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+
+        .hero-visual { position: relative; display: flex; justify-content: center; align-items: center; }
+        .glass-card {
+          background: rgba(255,255,255,0.03);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255,255,255,0.05);
+          padding: 25px;
+          border-radius: 20px;
+          z-index: 5;
+        }
+        .main-stat { display: flex; gap: 20px; align-items: center; width: 300px; }
+        .stat-label { font-size: 10px; color: #555; display: block; }
+        .stat-num { font-size: 24px; font-weight: 900; color: white; display: block; }
+        .glow-orb {
+          position: absolute;
+          width: 300px; height: 300px;
+          background: #00C853;
+          filter: blur(120px);
+          opacity: 0.2;
+        }
+
+        .plans-section { padding: 100px 50px; text-align: center; }
+        .section-title { font-size: 10px; letter-spacing: 5px; color: #555; margin-bottom: 50px; }
+        .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .plan-card {
+          background: #0a0c10;
+          border: 1px solid #111;
+          padding: 40px 20px;
+          border-radius: 5px;
+          transition: 0.3s;
+        }
+        .plan-card:hover { border-color: #00C853; transform: translateY(-10px); }
+        .plan-name { color: #555; font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; }
+        .plan-price { font-size: 48px; font-weight: 900; margin-bottom: 10px; }
+        .plan-price span { font-size: 20px; color: #00C853; }
+        .plan-perk { color: #888; font-size: 13px; margin-bottom: 30px; }
+        .btn-select {
+          background: transparent;
+          border: 1px solid #222;
+          color: white;
+          width: 100%;
+          padding: 12px;
+          font-weight: bold;
+          cursor: pointer;
+        }
+        .btn-select:hover { background: white; color: black; }
+
+        @media (max-width: 900px) {
+          .hero { grid-template-columns: 1fr; text-align: center; padding: 50px 20px; }
+          .hero-title { font-size: 2.8rem; }
+          .hero-buttons { display: flex; justify-content: center; }
+          .plans-grid { grid-template-columns: 1fr; }
+        }
       `}</style>
-    </main>
+    </div>
   );
 }
