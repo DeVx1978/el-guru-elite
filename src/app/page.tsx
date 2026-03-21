@@ -2,41 +2,54 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, ArrowUpRight, Lock, FileText, Scale, Activity, Zap, TrendingUp, Globe
+  ShieldCheck, ArrowUpRight, Lock, FileText, Scale, Activity, Zap, TrendingUp 
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false); // Solución 2: Estado de navegación
   const router = useRouter();
 
-  // --- BLINDAJE DE ENTRADA (SPLASH SCREEN) ---
+  // --- SOLUCIÓN 1: PRECARGA Y BLOQUEO DE SPLASH ---
   useEffect(() => {
+    // Forzamos la precarga de la ruta de destino en segundo plano
+    router.prefetch('/panel');
     const timer = setTimeout(() => setLoading(false), 5000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [router]);
 
-  // --- CORRECCIÓN DEFINITIVA: NAVEGACIÓN SIN PARPADEO ---
-  const navegarPrivado = async () => {
-    // 1. Activamos una capa de bloqueo visual instantánea
-    setIsNavigating(true); 
-    // 2. Ejecutamos la navegación
-    router.push('/panel');
+  // --- SOLUCIÓN 2: CONTROL DE NAVEGACIÓN SIN PARPADEO INTERMEDIO ---
+  const navegarPrivado = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true); // Ocultamos todo el contenido antes de saltar
+    
+    // Pequeño delay de 50ms para asegurar que el DOM se limpie antes del push
+    setTimeout(() => {
+      router.push('/panel');
+    }, 50);
   };
 
-  // Si estamos cargando inicialmente o navegando, mostramos negro absoluto
+  // --- RENDERIZADO DEL LOADER (SOLUCIÓN 1 INTEGRADA) ---
   if (loading || isNavigating) {
     return (
       <div className="splash-master">
         <div className="loader-container">
           <div className="pulse-ring"></div>
           <div className="image-wrapper">
-            <img src="/images/guru.jpg" alt="El Guru Elite" fetchPriority="high" />
+            {/* Imagen con prioridad alta y carga inmediata solo dentro del loader */}
+            <img 
+              src="/images/guru.jpg" 
+              alt="El Guru Elite" 
+              loading="eager" 
+              fetchPriority="high" 
+            />
           </div>
           <div className="scan-line"></div>
         </div>
         <div className="loading-text-wrapper">
-          <h2 className="loading-text">SISTEMA ÉLITE: {isNavigating ? 'ACCEDIENDO...' : 'IDENTIFICANDO INVERSOR...'}</h2>
+          <h2 className="loading-text">
+            {isNavigating ? "ESTABLECIENDO CONEXIÓN SEGURA..." : "SISTEMA ÉLITE: IDENTIFICANDO INVERSOR..."}
+          </h2>
         </div>
 
         <style jsx global>{`
@@ -50,20 +63,19 @@ export default function LandingPage() {
           .image-wrapper {
             width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
             border: 2px solid #00C853; box-shadow: 0 0 80px rgba(0, 200, 83, 0.4);
-            position: relative; z-index: 2;
+            position: relative; z-index: 2; background: #000;
           }
           .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
           .pulse-ring {
             position: absolute; top: -20%; left: -20%; width: 140%; height: 140%;
-            border: 1px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.3;
+            border: 2px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.3;
           }
           .scan-line {
             position: absolute; top: 0; left: 0; width: 100%; height: 10px;
             background: linear-gradient(to right, transparent, #00C853, transparent);
             box-shadow: 0 0 25px #00C853; z-index: 3; animation: scan-master 3s ease-in-out infinite;
           }
-          .loading-text-wrapper { width: 100%; text-align: center; }
-          .loading-text { color: #00C853; font-size: 11px; letter-spacing: 8px; margin-top: 25px; font-weight: 300; text-transform: uppercase; }
+          .loading-text { color: #00C853; font-size: 11px; letter-spacing: 8px; margin-top: 25px; font-weight: 300; text-transform: uppercase; text-align: center; }
           @keyframes pulse-master { 0% { transform: scale(0.7); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
           @keyframes scan-master { 0%, 100% { top: 0%; } 50% { top: 100%; } }
         `}</style>
@@ -71,6 +83,7 @@ export default function LandingPage() {
     );
   }
 
+  // --- DATOS Y ESTRUCTURA PRESERVADA AL 100% ---
   const membresias = [
     { name: 'Micro', price: '100', perk: 'Nivel 1: Acceso Base', delay: '0.1s' },
     { name: 'Inicial', price: '250', perk: 'Nivel 2: Gestión Activa', delay: '0.2s' },
@@ -92,10 +105,11 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      {/* Hero Section Restaurada */}
       <section className="hero-section">
         <div className="hero-layout">
           <div className="hero-content-left">
-            <div className="elite-tag">ELITE INVESTMENT NETWORK V5.5</div>
+            <div className="elite-tag">ELITE INVESTMENT NETWORK V5.7</div>
             <h1 className="hero-title-main">
               ARQUITECTURA DE <br/>
               <span className="text-gradient-neon">RENTABILIDAD</span>
@@ -130,6 +144,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Portafolio de Membresías Restaurado */}
       <section id="proyecto-inversionistas" className="plans-master-section">
         <div className="section-header-elite">
           <span className="header-tag">MERCADO DE CAPITAL PRIVADO</span>
@@ -167,13 +182,13 @@ export default function LandingPage() {
       </footer>
 
       <style jsx global>{`
-        :root { --neon: #00C853; --glass: rgba(15, 15, 15, 0.7); }
+        :root { --neon: #00C853; --glass: rgba(15, 15, 15, 0.75); }
         .elite-landing-master { background: #000; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; scroll-behavior: smooth; padding-top: 100px; }
-        .navbar-elite { position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(0,0,0,0.9); backdrop-filter: blur(30px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .navbar-elite { position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(0,0,0,0.95); backdrop-filter: blur(30px); border-bottom: 1px solid rgba(255,255,255,0.05); }
         .nav-container { max-width: 1400px; margin: 0 auto; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; }
-        .logo-main { font-weight: 900; font-size: 1.4rem; letter-spacing: -1px; }
+        .logo-main { font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; }
         .logo-neon { color: var(--neon); text-shadow: 0 0 20px rgba(0, 200, 83, 0.5); }
-        .btn-access-priv { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 10px 24px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.4s; }
+        .btn-access-priv { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 12px 28px; border-radius: 4px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.4s; }
         .btn-access-priv:hover { background: var(--neon); color: black; box-shadow: 0 0 20px rgba(0,200,83,0.4); }
 
         .hero-section { max-width: 1400px; margin: 0 auto; padding: 120px 30px; }
@@ -198,10 +213,8 @@ export default function LandingPage() {
         .plan-card-inner { padding: 60px 35px; text-align: center; }
         .p-name-title { color: var(--neon); font-size: 1.9rem; font-weight: 900; text-transform: uppercase; margin-bottom: 35px; }
         .p-num { font-size: 4.5rem; font-weight: 900; color: white; line-height: 1; }
-
-        .footer-elite-master { padding: 120px 30px 80px; background: #050505; text-align: center; border-top: 1px solid #111; }
-        .footer-legal-links { display: flex; justify-content: center; gap: 60px; margin-bottom: 50px; flex-wrap: wrap; }
-        .f-legal-item { color: #333; text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 12px; }
+        .btn-plan-select { background: transparent; border: 1px solid #1a1a1a; color: white; padding: 18px; width: 100%; border-radius: 4px; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: auto; }
+        .btn-plan-select:hover { background: white; color: black; }
 
         @keyframes float-master { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         .fade-up-anim { opacity: 0; animation: fadeUpMaster 1.2s ease forwards; }
