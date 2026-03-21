@@ -1,138 +1,150 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { 
-  Users, ShieldCheck, CheckCircle, XCircle, Search, 
-  Lock, ArrowLeft, RefreshCw, Mail, User
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+import { Trash2, Eye, EyeOff, CheckCircle, PowerOff, ShieldCheck, Image as ImageIcon, Mail, Phone } from 'lucide-react';
 
-export default function AdminBunker() {
-  const supabase = createClientComponentClient();
-  const router = useRouter();
-  const [inversores, setInversores] = useState([]);
-  const [loading, setLoading] = useState(true);
+const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
-  // --- 1. RECONEXIÓN CON LA TABLA 'SOCIOS' ---
-  const fetchSocios = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('socios') // Tabla exacta de tu captura
-      .select('id, nombre, email, password') 
-      .order('id', { ascending: true });
+export default function AdminControlMasterV4() {
+  const [bloqueado, setBloqueado] = useState(true);
+  const [claveMaestra, setClaveMaestra] = useState("");
+  const [verClave, setVerClave] = useState(false);
+  const [listaSocios, setListaSocios] = useState<any[]>([]);
+  const [cargando, setCargando] = useState(false);
 
-    if (error) {
-      console.error("Error en el búnker:", error.message);
-    } else {
-      setInversores(data || []);
-    }
-    setLoading(false);
+  const KEY_ACCESO = "GURU2026";
+
+  // --- OBTENER DATOS DE LA TABLA CORRECTA ---
+  const obtenerDatos = async () => {
+    setCargando(true);
+    // Cambiado de 'socios_elite' a 'socios'
+    const { data, error } = await clientSupabase
+      .from('socios')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) console.error("Error al obtener socios:", error.message);
+    setListaSocios(data || []);
+    setCargando(false);
   };
 
-  useEffect(() => {
-    fetchSocios();
-  }, []);
+  useEffect(() => { if (!bloqueado) obtenerDatos(); }, [bloqueado]);
+
+  // --- ACTIVAR / DESACTIVAR SOCIO ---
+  const alternarEstado = async (id: any, actual: string) => {
+    const nuevoEstado = actual === 'activo' ? 'pendiente' : 'activo';
+    const { error } = await clientSupabase
+      .from('socios')
+      .update({ estado: nuevoEstado })
+      .eq('id', id);
+    
+    if (!error) obtenerDatos();
+  };
+
+  // --- ELIMINAR REGISTRO ---
+  const eliminarRegistro = async (id: any, nombre: string) => {
+    if (confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE A ${nombre}?`)) {
+      await clientSupabase.from('socios').delete().eq('id', id);
+      obtenerDatos();
+    }
+  };
+
+  if (bloqueado) {
+    return (
+      <div style={{ backgroundColor: '#020406', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', fontFamily: 'sans-serif' }}>
+        <div style={{ textAlign: 'center', background: '#0a0c10', padding: '50px', borderRadius: '30px', border: '2px solid #00C853', width: '380px' }}>
+          <ShieldCheck size={60} color="#00C853" style={{ marginBottom: '20px' }} />
+          <h2 style={{ marginBottom: '25px', fontWeight: 900 }}>CENTRO DE MANDO V4</h2>
+          <div style={{ position: 'relative', marginBottom: '25px' }}>
+            <input 
+              type={verClave ? "text" : "password"} 
+              placeholder="LLAVE MAESTRA" 
+              onKeyDown={(e) => e.key === 'Enter' && (claveMaestra === KEY_ACCESO ? setBloqueado(false) : alert("LLAVE ERRÓNEA"))}
+              onChange={(e) => setClaveMaestra(e.target.value)}
+              style={{ padding: '18px', borderRadius: '15px', border: '1px solid #222', backgroundColor: '#020406', color: '#00C853', textAlign: 'center', width: '100%', outline: 'none' }}
+            />
+            <button type="button" onClick={() => setVerClave(!verClave)} style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#444', cursor: 'pointer' }}>
+              {verClave ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+          <button onClick={() => claveMaestra === KEY_ACCESO ? setBloqueado(false) : alert("LLAVE ERRÓNEA")} style={{ width: '100%', padding: '18px', background: '#00C853', color: 'black', borderRadius: '15px', fontWeight: 900, cursor: 'pointer' }}>DESBLOQUEAR</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="admin-master-container">
-      <nav className="top-command-bar">
-        <div className="brand-admin">
-          <Lock size={18} color="#00C853" />
-          <span>GURÚ ÉLITE <span className="tag-admin">SISTEMA CENTRAL</span></span>
-        </div>
-        <div className="nav-actions">
-          <button onClick={fetchSocios} className="btn-refresh">
-            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-            ACTUALIZAR DATOS
-          </button>
-          <button onClick={() => router.push('/')} className="back-to-web">
-            <ArrowLeft size={14} /> SITIO PÚBLICO
-          </button>
-        </div>
-      </nav>
+    <main style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', padding: '40px', fontFamily: 'sans-serif' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ color: '#00C853', fontWeight: 900, margin: 0 }}>DIRECTORIO GURÚ ÉLITE V4</h1>
+        <button onClick={obtenerDatos} style={{ background: '#111', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>
+          {cargando ? 'ACTUALIZANDO...' : 'REFRESCAR LISTA'}
+        </button>
+      </div>
 
-      <main className="dashboard-layout">
-        <section className="content-vault">
-          <header className="content-header">
-            <h1>Control Maestro de Socios</h1>
-            <p>Visualización directa de la tabla <span className="neon-text">public.socios</span> en Supabase</p>
-          </header>
-
-          <div className="table-wrapper">
-            <table className="management-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th><User size={12} /> NOMBRE COMPLETO</th>
-                  <th><Mail size={12} /> CORREO ELECTRÓNICO</th>
-                  <th>CONTRASEÑA (SISTEMA)</th>
-                  <th>ESTADO DE ACCESO</th>
+      <div style={{ background: '#0a0c10', borderRadius: '25px', border: '1px solid #111', marginTop: '30px', overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ background: '#111', color: '#555', fontSize: '11px', textTransform: 'uppercase' }}>
+              <th style={{ padding: '25px', textAlign: 'left' }}>Socio / Contacto</th>
+              <th style={{ padding: '25px', textAlign: 'center' }}>Plan / Pago</th>
+              <th style={{ padding: '25px', textAlign: 'center' }}>Estado</th>
+              <th style={{ padding: '25px', textAlign: 'center' }}>Acciones Ejecutivas</th>
+            </tr>
+          </thead>
+          <tbody>
+            {listaSocios.length === 0 ? (
+              <tr><td colSpan={4} style={{padding: '50px', textAlign: 'center', color: '#444'}}>No hay registros en la tabla 'socios'</td></tr>
+            ) : (
+              listaSocios.map((s) => (
+                <tr key={s.id} style={{ borderBottom: '1px solid #111' }}>
+                  <td style={{ padding: '25px' }}>
+                    <b style={{fontSize: '16px', color: 'white'}}>{s.nombre}</b>
+                    <div style={{display: 'flex', gap: '10px', marginTop: '5px', color: '#666', fontSize: '12px'}}>
+                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Mail size={12}/> {s.email}</span>
+                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Phone size={12}/> {s.telefono}</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '25px', textAlign: 'center' }}>
+                    <span style={{ color: '#888', display: 'block', fontSize: '13px', fontWeight: 'bold' }}>{s.plan?.toUpperCase()}</span>
+                    <a href={s.comprobante_url} target="_blank" rel="noreferrer" style={{ color: '#00C853', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginTop: '5px' }}>
+                      <ImageIcon size={14}/> VER PAGO
+                    </a>
+                  </td>
+                  <td style={{ padding: '25px', textAlign: 'center' }}>
+                    <span style={{ 
+                      backgroundColor: s.estado === 'activo' ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 152, 0, 0.1)', 
+                      color: s.estado === 'activo' ? '#00C853' : '#ff9800', 
+                      padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' 
+                    }}>
+                      {s.estado || 'PENDIENTE'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '25px' }}>
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                      <button 
+                        onClick={() => alternarEstado(s.id, s.estado)} 
+                        title={s.estado === 'activo' ? "Desactivar" : "Activar Socio"} 
+                        style={{ background: s.estado === 'activo' ? '#1a1005' : '#051a0b', border: '1px solid #222', color: s.estado === 'activo' ? '#ff9800' : '#00C853', padding: '12px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 'bold' }}
+                      >
+                        {s.estado === 'activo' ? <PowerOff size={16} /> : <CheckCircle size={16} />}
+                        {s.estado === 'activo' ? 'DESACTIVAR' : 'ACTIVAR'}
+                      </button>
+                      <button 
+                        onClick={() => eliminarRegistro(s.id, s.nombre)} 
+                        title="Eliminar Socio" 
+                        style={{ background: '#1a0505', border: '1px solid #300', color: '#ff4444', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {inversores.map((socio) => (
-                  <tr key={socio.id}>
-                    <td className="id-cell">#{socio.id}</td>
-                    <td className="bold-white">{socio.nombre}</td>
-                    <td className="email-cell">{socio.email}</td>
-                    <td className="pass-cell"><code>{socio.password}</code></td>
-                    <td>
-                      <div className="action-group">
-                        <span className="status-pill active">AUTORIZADO</span>
-                        <button className="btn-manage">GESTIONAR</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {inversores.length === 0 && !loading && (
-              <div className="empty-state text-glow">
-                Sincronizando con Supabase... Verifica la conexión.
-              </div>
+              ))
             )}
-          </div>
-        </section>
-      </main>
-
-      <style jsx global>{`
-        .admin-master-container { background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; }
-        .top-command-bar { display: flex; justify-content: space-between; padding: 20px 40px; border-bottom: 1px solid #111; background: #050505; align-items: center; }
-        .brand-admin { display: flex; align-items: center; gap: 12px; font-weight: 900; letter-spacing: 1px; }
-        .tag-admin { background: #00C853; color: #000; font-size: 10px; padding: 2px 8px; border-radius: 3px; font-weight: 900; }
-        .nav-actions { display: flex; gap: 20px; }
-        
-        .btn-refresh { background: rgba(0, 200, 83, 0.1); border: 1px solid #00C853; color: #00C853; padding: 10px 18px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 800; }
-        .back-to-web { background: transparent; border: 1px solid #222; color: #666; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 8px; font-weight: 800; }
-        
-        .dashboard-layout { padding: 60px 40px; max-width: 1400px; margin: 0 auto; }
-        .content-header h1 { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 10px; }
-        .content-header p { color: #555; font-size: 15px; }
-        .neon-text { color: #00C853; font-weight: 800; }
-
-        .table-wrapper { background: #080808; border: 1px solid #111; border-radius: 20px; overflow: hidden; margin-top: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .management-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .management-table th { background: #0c0c0c; padding: 20px; font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 2px; font-weight: 900; border-bottom: 1px solid #111; }
-        .management-table td { padding: 25px 20px; border-bottom: 1px solid #111; font-size: 14px; color: #999; }
-        
-        .id-cell { color: #00C853; font-weight: 800; font-family: monospace; }
-        .bold-white { color: #fff; font-weight: 800; font-size: 15px; }
-        .email-cell { color: #00E5FF; text-decoration: underline; opacity: 0.8; }
-        .pass-cell code { background: #111; padding: 4px 8px; border-radius: 4px; color: #666; font-size: 12px; }
-
-        .status-pill { padding: 6px 14px; border-radius: 6px; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
-        .status-pill.active { background: rgba(0, 200, 83, 0.1); color: #00C853; border: 1px solid rgba(0, 200, 83, 0.2); }
-        
-        .action-group { display: flex; align-items: center; gap: 20px; }
-        .btn-manage { background: #111; border: 1px solid #222; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.3s; }
-        .btn-manage:hover { background: #fff; color: #000; }
-
-        .empty-state { padding: 100px; text-align: center; color: #333; font-weight: 800; font-size: 18px; text-transform: uppercase; letter-spacing: 4px; }
-        .text-glow { text-shadow: 0 0 20px rgba(255,255,255,0.1); }
-        .animate-spin { animation: spin 2s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
-    </div>
+          </tbody>
+        </table>
+      </div>
+    </main>
   );
 }
