@@ -11,7 +11,7 @@ export default function LandingPage() {
   const [seccionExpandida, setSeccionExpandida] = useState<string | null>(null);
   const router = useRouter();
 
-  // --- BLINDAJE DE SPLASH (5 SEGUNDOS CRUCIALES - DISEÑO ORIGINAL) ---
+  // --- BLINDAJE DE SPLASH (5 SEGUNDOS CRUCIALES - DISEÑO ORIGINAL V1.0) ---
   useEffect(() => {
     setLoading(true); 
     const timer = setTimeout(() => setLoading(false), 5000);
@@ -53,7 +53,7 @@ export default function LandingPage() {
           .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
           .pulse-ring {
             position: absolute; top: -20%; left: -20%; width: 140%; height: 140%;
-            border: 1px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.3;
+            border: 2px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.3;
           }
           .scan-line {
             position: absolute; top: 0; left: 0; width: 100%; height: 10px;
@@ -123,7 +123,7 @@ export default function LandingPage() {
               </div>
             ))}
             <div className="menu-divider"></div>
-            <p className="terminal-status">SISTEMA ÉLITE ACTIVO</p>
+            <p className="terminal-status">SISTEMA ÉLITE ACTIVO // VERSIÓN FINAL</p>
           </div>
         )}
       </nav>
@@ -134,8 +134,9 @@ export default function LandingPage() {
           <div className="hero-info">
             <div className="hero-status-tag"><Zap size={14} color="#00C853" /> NETWORK DE INVERSIÓN INSTITUCIONAL</div>
             <h1 className="hero-main-title">
-              <span className="text-glow-neon">LA CIENCIA DE</span> <br/>
-              RENTABILIZAR
+              <span className="text-glow-neon">ARQUITECTURA</span> <br/>
+              DE <br/>
+              <span className="text-glow-neon">RENTABILIDAD</span>
             </h1>
             <p className="hero-subtext">
               Plataforma exclusiva de gestión de capital institucional y deportiva. 
@@ -162,7 +163,7 @@ export default function LandingPage() {
             </div>
             <div className="floating-stat-card glass-morphism card-pos-2">
               <ShieldCheck color="#00C853" size={22} />
-              <span className="shield-text">CAPITAL 100% PROTEGIDO</span>
+              <span className="shield-text">CAPITAL 100% PROTEGIDO // SSL 256</span>
             </div>
           </div>
         </div>
@@ -175,7 +176,7 @@ export default function LandingPage() {
           <p className="plans-subtitle-master">Membresías exclusivas para la gestión de utilidades institucionales.</p>
         </div>
         
-        <div className="plans-grid-elite">
+        <div className="plans-grid-master">
           {membresias.map((plan) => (
             <div key={plan.name} className="membership-card-master fade-up-card" style={{animationDelay: plan.delay}}>
               <div className="membership-inner">
@@ -203,10 +204,11 @@ export default function LandingPage() {
       <footer className="footer-elite-master">
         <div className="footer-wrap">
           <div className="footer-links-row">
-            <a href="/terminos" className="f-item"><Scale size={14}/> Términos</a>
+            <a href="/terminos" className="f-item"><Scale size={14}/> Términos Legales</a>
             <a href="/privacidad" className="f-item"><FileText size={14}/> Privacidad</a>
             <a href="/confidencialidad" className="f-item"><Lock size={14}/> Confidencialidad</a>
           </div>
+          <div className="f-divider-master-elite"></div>
           <p className="f-copyright">&copy; 2026 EL GURÚ ÉLITE. TODOS LOS DERECHOS RESERVADOS.</p>
         </div>
       </footer>
@@ -216,7 +218,7 @@ export default function LandingPage() {
         :root { --neon: #00C853; --glass: rgba(15, 15, 15, 0.7); }
         .elite-landing-master { background-color: #000; color: white; min-height: 100vh; font-family: 'Inter', -apple-system, sans-serif; overflow-x: hidden; scroll-behavior: smooth; padding-top: 100px; }
         
-        /* NAVBAR RESPONSIVE BLINDADO */
+        /* NAVBAR RESPONSIVE BLINDADO CON CIRUGÍA DE POSICIÓN */
         .navbar-elite { width: 100%; position: fixed; top: 0; z-index: 1000; backdrop-filter: blur(30px); background: rgba(0, 0, 0, 0.95); border-bottom: 1px solid rgba(255,255,255,0.05); }
         .nav-container-master { max-width: 1300px; margin: 0 auto; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; }
         .brand-text { font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; }
@@ -232,31 +234,33 @@ export default function LandingPage() {
         @media (min-width: 1024px) { .btn-menu-master { display: none; } }
         @media (max-width: 600px) { .brand-text { font-size: 1.2rem; } .nav-container-master { padding: 15px 20px; } .btn-access-master { padding: 10px 20px; font-size: 10px; } }
 
-        /* MENÚ MÓVIL ACORDEÓN */
+        /* MENÚ MÓVIL ACORDEÓN (CUIDANDO EL DETALLE) */
         .mobile-dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: #080808; padding: 40px; text-align: left; border-bottom: 1px solid #111; }
         @media (max-width: 600px) { .mobile-dropdown { padding: 30px 20px; } }
-        .accordion-trigger { width: 100%; background: transparent; border: none; color: white; display: flex; justify-content: space-between; align-items: center; padding: 20px 0; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #111; cursor: pointer; }
+        .accordion-item { border-bottom: 1px solid #111; }
+        .accordion-trigger { width: 100%; background: transparent; border: none; color: white; display: flex; justify-content: space-between; align-items: center; padding: 20px 0; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border: none; cursor: pointer; }
         .accordion-content { padding: 20px 0; color: #666; font-size: 13px; line-height: 1.8; }
         .rotate { transform: rotate(180deg); color: var(--neon); transition: 0.3s; }
         .menu-divider { width: 40px; height: 1px; background: #1a1a1a; margin: 30px 0 20px; }
         .terminal-status { font-size: 9px; color: #222; letter-spacing: 4px; font-weight: 900; }
 
-        /* HERO RESPONSIVE Y RESTAURADO */
+        /* HERO RESPONSIVE Y RESTAURADO (TAMAÑO DE TÍTULO CORREGIDO) */
         .hero-elite { max-width: 1300px; margin: 0 auto; padding: 120px 30px; }
         .hero-layout { display: grid; grid-template-columns: 1fr; gap: 80px; }
         @media (min-width: 1024px) { .hero-layout { grid-template-columns: 1.2fr 0.8fr; align-items: center; } }
         .hero-status-tag { color: var(--neon); font-size: 11px; font-weight: 900; letter-spacing: 4px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
         .hero-main-title { font-size: 3.5rem; font-weight: 900; line-height: 0.95; margin-bottom: 35px; letter-spacing: -3px; }
         @media (min-width: 768px) { .hero-main-title { font-size: 5.5rem; } }
+        /* CORRECCIÓN DE TAMAÑO DE TÍTULO PARA MÓVIL */
         @media (max-width: 600px) { .hero-main-title { font-size: 2.8rem; letter-spacing: -1px; } .hero-elite { padding: 80px 20px; } }
-        .text-glow-neon { background: linear-gradient(180deg, #fff 40%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .text-glow-neon { background: linear-gradient(180deg, #fff 40%, #00C853 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .hero-subtext { color: #666; font-size: 1.25rem; line-height: 1.7; margin-bottom: 50px; max-width: 550px; }
         @media (max-width: 600px) { .hero-subtext { font-size: 1rem; } }
         .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 22px 50px; border-radius: 4px; font-weight: 900; font-size: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.4s; }
         .btn-hero-primary:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0, 200, 83, 0.4); }
         @media (max-width: 600px) { .btn-hero-primary { width: 100%; justify-content: center; } }
 
-        /* VISUALES ORIGINALES RESPONSIVE */
+        /* VISUALES ORIGINALES RESPONSIVE (Glow y estadísticas flotantes) */
         .hero-visuals { position: relative; display: flex; justify(center); align-items: center; height: 450px; }
         @media (max-width: 1024px) { .hero-visuals { height: 350px; margin-top: 50px; } }
         .master-glow-orb { position: absolute; width: 450px; height: 450px; background: var(--neon); filter: blur(160px); opacity: 0.15; z-index: 1; }
@@ -269,6 +273,7 @@ export default function LandingPage() {
         .stat-value-master { font-size: 30px; font-weight: 900; color: white; display: block; margin-top: 6px; }
         .stat-value-master small { font-size: 12px; color: var(--neon); }
         .card-pos-2 { bottom: 15%; left: 0; display: flex; gap: 14px; align-items: center; font-size: 12px; font-weight: 900; color: #888; }
+        /* AJUSTES RESPONSIVE PARA ESTADÍSTICAS */
         @media (max-width: 768px) { .card-pos-1 { width: 250px; right: 0; padding: 25px; gap: 15px; } .card-pos-2 { left: 0; bottom: 0; } }
 
         /* PLANES RESTAURADOS Y RESPONSIVE */
