@@ -96,7 +96,7 @@ export default function LandingPage() {
 
   return (
     <div className="elite-landing-master">
-      {/* 💉 MODAL LEGAL (NUEVO ÓRGANO AGREGADO) */}
+      {/* 💉 MODAL LEGAL (ADICIONAL, NO SUSTITUYE NADA) */}
       {modalAbierto && (
         <div className="legal-overlay" onClick={() => setModalAbierto(null)}>
           <div className="legal-modal glass-effect" onClick={(e) => e.stopPropagation()}>
@@ -115,6 +115,7 @@ export default function LandingPage() {
           <div className="nav-brand">
             <span className="brand-text">EL GURÚ <span className="brand-neon">ÉLITE</span></span>
           </div>
+          {/* SECCIÓN CORREGIDA: Oculta links en móvil para evitar amontonamiento */}
           <div className="nav-links-desktop">
             <a href="#quienes-somos" className="link-elite">Quiénes Somos</a>
             <a href="#proyecto-guru" className="link-elite">Proyecto Gurú</a>
@@ -217,36 +218,56 @@ export default function LandingPage() {
         .nav-container-master { max-width: 1400px; margin: 0 auto; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; }
         .brand-text { font-weight: 900; font-size: 1.5rem; }
         .brand-neon { color: var(--neon); text-shadow: 0 0 20px rgba(0, 200, 83, 0.5); }
+        
+        .nav-links-desktop { display: none; gap: 40px; }
+        @media (min-width: 1024px) { .nav-links-desktop { display: flex; } }
+        
         .link-elite { color: #444; text-decoration: none; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
         .link-elite:hover { color: var(--neon); }
         .btn-access-master { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 12px 28px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
         .btn-access-master:hover { background: var(--neon); color: black; box-shadow: 0 0 15px var(--neon); }
+
         .hero-elite { max-width: 1400px; margin: 0 auto; padding: 100px 30px; }
+        .hero-layout { display: flex; flex-direction: column; align-items: flex-start; }
         .hero-main-title { font-size: 3.5rem; font-weight: 900; line-height: 0.95; margin-bottom: 35px; letter-spacing: -3px; }
         @media (min-width: 768px) { .hero-main-title { font-size: 5.5rem; } }
+        @media (max-width: 600px) { .hero-main-title { font-size: 2.8rem; letter-spacing: -1px; } .hero-elite { padding: 60px 20px; } }
         .text-glow-neon { background: linear-gradient(180deg, #fff 40%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-subtext { color: #888; font-size: 1.25rem; line-height: 1.7; margin-bottom: 50px; }
+        .hero-subtext { color: #888; font-size: 1.25rem; line-height: 1.7; margin-bottom: 50px; max-width: 700px; }
         .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 22px 50px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+
         .hero-visuals-horizontal { max-width: 1400px; margin: 0 auto; padding: 80px 30px; display: flex; flex-direction: column; align-items: center; gap: 25px; position: relative; }
         @media (min-width: 1024px) { .hero-visuals-horizontal { flex-direction: row; justify-content: center; gap: 20px; margin-top: 100px; } }
         .master-glow-orb { position: absolute; width: 500px; height: 500px; background: var(--neon); filter: blur(160px); opacity: 0.1; z-index: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .stat-card-horizontal { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(0, 200, 83, 0.1); border-radius: 12px; padding: 25px; display: flex; align-items: center; gap: 20px; width: 100%; position: relative; z-index: 10; transition: 0.5s; }
         .stat-card-horizontal:hover { border-color: var(--neon); transform: translateY(-5px); }
-        .stat-label { font-size: 11px; color: #444; font-weight: 900; letter-spacing: 1px; }
+        @media (min-width: 1024px) { .stat-card-horizontal { width: auto; flex: 1; max-width: 320px; } }
+        .stat-icon-glow { background: rgba(0, 200, 83, 0.1); padding: 16px; border-radius: 10px; }
+        .stat-label { font-size: 11px; color: #444; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
         .stat-value { font-size: 24px; font-weight: 900; color: white; display: block; margin-top: 6px; }
+        .stat-value small { font-size: 12px; color: var(--neon); }
+
         .plans-section-luxe { padding: 140px 30px; max-width: 1600px; margin: 0 auto; }
+        .section-header-luxe { text-align: center; margin-bottom: 80px; }
+        .header-tag-luxe { color: #444; font-size: 11px; font-weight: 900; letter-spacing: 5px; margin-bottom: 15px; display: block; }
+        .header-title-luxe { font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -2px; }
+        .header-line-luxe { width: 60px; height: 1px; background: var(--neon); margin: 30px auto 0; box-shadow: 0 0 15px var(--neon); }
+        .plans-grid-luxe { display: grid; grid-template-columns: repeat(1, 1fr); gap: 20px; }
+        @media (min-width: 1024px) { .plans-grid-luxe { grid-template-columns: repeat(5, 1fr); gap: 15px; } }
         .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; position: relative; overflow: hidden; transition: 0.5s; display: flex; flex-direction: column; }
         .membership-card-luxe:hover { border-color: var(--card-color); transform: translateY(-15px); }
         .card-energy-bar { width: 100%; height: 5px; background: var(--card-color); position: absolute; top: 0; left: 0; box-shadow: 0 0 15px var(--card-color); z-index: 5; }
+        .m-card-inner { padding: 50px 20px 35px; text-align: center; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 2; }
         .btn-m-acquire { background: transparent; border: 1px solid var(--card-color); color: var(--card-color); padding: 14px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
-
-        /* --- STYLES MODAL & FOOTER VISIBILITY --- */
+        .btn-m-acquire:hover { background: var(--card-color); color: black; box-shadow: 0 0 20px var(--card-color); }
+        
+        /* --- ESTILOS MODAL & FOOTER VISIBILITY --- */
         .legal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
         .legal-modal { background: #0a0a0a; border: 1px solid var(--neon); padding: 40px; border-radius: 20px; max-width: 500px; width: 90%; position: relative; box-shadow: 0 0 40px rgba(0, 200, 83, 0.2); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h3 { color: white; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
         .modal-header button { background: transparent; border: none; cursor: pointer; }
-        .legal-modal p { color: #ccc; line-height: 1.6; font-size: 14px; }
+        .legal-modal p { color: #ccc; line-height: 1.6; font-size: 14px; text-align: left; }
         .modal-accent { width: 40px; height: 2px; background: var(--neon); margin-top: 25px; box-shadow: 0 0 10px var(--neon); }
 
         .footer-elite-master { padding: 100px 30px 60px; background: #050505; text-align: center; border-top: 1px solid #111; margin-top: 50px; }
