@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Trash2, Eye, EyeOff, CheckCircle, PowerOff, ShieldCheck, Image as ImageIcon, Mail, Phone } from 'lucide-react';
+import { Trash2, Eye, EyeOff, CheckCircle, PowerOff, ShieldCheck, Image as ImageIcon, Mail, Phone, Loader2 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
@@ -14,10 +14,9 @@ export default function AdminControlMasterV4() {
 
   const KEY_ACCESO = "GURU2026";
 
-  // --- OBTENER DATOS DE LA TABLA CORRECTA ---
+  // --- OBTENER DATOS ---
   const obtenerDatos = async () => {
     setCargando(true);
-    // Cambiado de 'socios_elite' a 'socios'
     const { data, error } = await clientSupabase
       .from('socios')
       .select('*')
@@ -41,11 +40,29 @@ export default function AdminControlMasterV4() {
     if (!error) obtenerDatos();
   };
 
-  // --- ELIMINAR REGISTRO ---
+  // --- ELIMINAR REGISTRO (CIRUGÍA QUIRÚRGICA) ---
   const eliminarRegistro = async (id: any, nombre: string) => {
-    if (confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE A ${nombre}?`)) {
-      await clientSupabase.from('socios').delete().eq('id', id);
-      obtenerDatos();
+    const confirmacion = window.confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE A ${nombre.toUpperCase()}?\nEsta acción borrará al socio de la base de datos para siempre.`);
+    
+    if (confirmacion) {
+      setCargando(true);
+      try {
+        const { error } = await clientSupabase
+          .from('socios')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+        
+        // Refresco inmediato de la lista
+        await obtenerDatos();
+        alert("Socio eliminado con éxito.");
+      } catch (error: any) {
+        alert("ERROR: No se pudo eliminar. Probablemente Supabase tiene el RLS (seguridad) activado para borrados.");
+        console.error("Error detallado:", error.message);
+      } finally {
+        setCargando(false);
+      }
     }
   };
 
@@ -77,8 +94,9 @@ export default function AdminControlMasterV4() {
     <main style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', padding: '40px', fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1 style={{ color: '#00C853', fontWeight: 900, margin: 0 }}>DIRECTORIO GURÚ ÉLITE V4</h1>
-        <button onClick={obtenerDatos} style={{ background: '#111', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>
-          {cargando ? 'ACTUALIZANDO...' : 'REFRESCAR LISTA'}
+        <button onClick={obtenerDatos} style={{ background: '#111', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {cargando && <Loader2 size={16} className="animate-spin" />}
+          {cargando ? 'PROCESANDO...' : 'REFRESCAR LISTA'}
         </button>
       </div>
 
@@ -124,7 +142,6 @@ export default function AdminControlMasterV4() {
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                       <button 
                         onClick={() => alternarEstado(s.id, s.estado)} 
-                        title={s.estado === 'activo' ? "Desactivar" : "Activar Socio"} 
                         style={{ background: s.estado === 'activo' ? '#1a1005' : '#051a0b', border: '1px solid #222', color: s.estado === 'activo' ? '#ff9800' : '#00C853', padding: '12px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 'bold' }}
                       >
                         {s.estado === 'activo' ? <PowerOff size={16} /> : <CheckCircle size={16} />}
@@ -132,7 +149,6 @@ export default function AdminControlMasterV4() {
                       </button>
                       <button 
                         onClick={() => eliminarRegistro(s.id, s.nombre)} 
-                        title="Eliminar Socio" 
                         style={{ background: '#1a0505', border: '1px solid #300', color: '#ff4444', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}
                       >
                         <Trash2 size={16} />
@@ -145,6 +161,10 @@ export default function AdminControlMasterV4() {
           </tbody>
         </table>
       </div>
+      <style jsx global>{`
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </main>
   );
 }
