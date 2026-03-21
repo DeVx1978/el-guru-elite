@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, ArrowUpRight, Menu, X, Lock, FileText, Scale, Activity, Zap, Globe, ChevronDown 
+  ShieldCheck, ArrowUpRight, Menu, X, Lock, FileText, Scale, Activity, Zap, Globe, ChevronDown, TrendingUp 
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -11,23 +11,16 @@ export default function LandingPage() {
   const [seccionExpandida, setSeccionExpandida] = useState<string | null>(null);
   const router = useRouter();
 
-  // --- BLOQUEO TOTAL DE PARPADEO INICIAL (5 SEGUNDOS) ---
+  // --- BLINDAJE DE SEGURIDAD: 5 SEGUNDOS DE SPLASH ---
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 5000);
     return () => clearTimeout(timer);
   }, []);
 
-  const toggleSeccion = (seccion: string) => {
-    setSeccionExpandida(seccionExpandida === seccion ? null : seccion);
+  const toggleSeccion = (id: string) => {
+    setSeccionExpandida(seccionExpandida === id ? null : id);
   };
 
-  // Navegación limpia para evitar parpadeos visuales
-  const navegarPrivado = () => {
-    setLoading(true); // Re-activamos brevemente una capa de transición
-    router.push('/panel');
-  };
-
-  // 1. PANTALLA DE CARGA (SPLASH SCREEN) - CORRECCIÓN DE CENTRADO
   if (loading) {
     return (
       <div className="splash-master">
@@ -47,42 +40,29 @@ export default function LandingPage() {
             background: #000;
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 999999; overflow: hidden;
+            z-index: 99999999; overflow: hidden;
           }
-          .loader-container { position: relative; width: 200px; height: 200px; margin-bottom: 40px; }
+          .loader-container { position: relative; width: 220px; height: 220px; margin-bottom: 50px; }
           .image-wrapper {
             width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
-            border: 2px solid #00C853; box-shadow: 0 0 60px rgba(0, 200, 83, 0.5);
+            border: 2px solid #00C853; box-shadow: 0 0 80px rgba(0, 200, 83, 0.4);
             position: relative; z-index: 2;
           }
           .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
           .pulse-ring {
-            position: absolute; top: -15%; left: -15%; width: 130%; height: 130%;
-            border: 2px solid #00C853; border-radius: 50%; animation: pulse 2s infinite; opacity: 0.4;
+            position: absolute; top: -20%; left: -20%; width: 140%; height: 140%;
+            border: 1px solid #00C853; border-radius: 50%; animation: pulse-elite 2.5s infinite; opacity: 0.3;
           }
           .scan-line {
-            position: absolute; top: 0; left: 0; width: 100%; height: 8px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 10px;
             background: linear-gradient(to right, transparent, #00C853, transparent);
-            box-shadow: 0 0 20px #00C853; z-index: 3; animation: scan 2.5s ease-in-out infinite;
+            box-shadow: 0 0 25px #00C853; z-index: 3; animation: scan-elite 3s ease-in-out infinite;
           }
-          /* CORRECCIÓN DE CENTRADO DEL TEXTO */
-          .loading-text-wrapper {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            text-align: center;
-          }
-          .loading-text { 
-            color: #00C853; 
-            font-size: 10px; 
-            letter-spacing: 6px; 
-            margin-top: 20px; 
-            font-weight: 300; 
-            text-transform: uppercase;
-            width: auto;
-          }
-          @keyframes pulse { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
-          @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
+          .loading-text-wrapper { width: 100%; text-align: center; }
+          .loading-text { color: #00C853; font-size: 11px; letter-spacing: 8px; margin-top: 25px; font-weight: 300; text-transform: uppercase; }
+          
+          @keyframes pulse-elite { 0% { transform: scale(0.7); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+          @keyframes scan-elite { 0%, 100% { top: 0%; opacity: 0; } 50% { top: 100%; opacity: 1; } }
         `}</style>
       </div>
     );
@@ -97,186 +77,224 @@ export default function LandingPage() {
   ];
 
   const seccionesInfo = [
-    { id: 'quienes-somos', title: 'Quiénes Somos', text: 'Somos un ecosistema de analistas cuantitativos y desarrolladores dedicados a la optimización de capital mediante modelos predictivos avanzados.' },
-    { id: 'proyecto-guru', title: 'Proyecto Gurú', text: 'Motor de inteligencia artificial que procesa ineficiencias de mercado en tiempo real mediante probabilidad matemática avanzada.' },
-    { id: 'proyecto-inversionistas', title: 'Proyecto Inversionistas', text: 'Modelos de participación ajustados a su perfil de capital. Selecciona tu nivel de participación en las utilidades globales.' }
+    { id: 'quienes', title: 'Quiénes Somos', text: 'Ecosistema de analistas cuantitativos y desarrolladores dedicados a la optimización de capital mediante modelos predictivos avanzados.' },
+    { id: 'proyecto-guru', title: 'Proyecto Gurú', text: 'Motor de Inteligencia Artificial que procesa ineficiencias de mercado en milisegundos para identificar arbitrajes de bajo riesgo.' },
+    { id: 'inversionistas', title: 'Proyecto Inversionistas', text: 'Modelos de participación diseñados para socios que buscan rentabilidad institucional protegida bajo protocolos de seguridad SSL-256.' }
   ];
 
   return (
-    <div className="elite-landing">
-      {/* 2. NAVBAR (ESTÉTICA CORREGIDA) */}
-      <nav className="navbar">
-        <div className="nav-content">
-          <div className="nav-logo">
-            <span className="logo-text">EL GURÚ <span className="neon-text">ÉLITE</span></span>
+    <div className="elite-landing-master">
+      {/* --- NAVBAR PREMIUM: CORRECCIÓN QUIRÚRGICA --- */}
+      <nav className="navbar-elite">
+        <div className="nav-container">
+          <div className="brand-logo">
+            <span className="logo-main">EL GURÚ <span className="logo-neon">ÉLITE</span></span>
           </div>
           
-          <div className="nav-actions">
-            {/* CORRECCIÓN: Acción con limpieza de transición */}
-            <button onClick={navegarPrivado} className="btn-access">ACCESO PRIVADO</button>
-            <div className="hamburger-wrapper">
-              <button onClick={() => setMenuAbierto(!menuAbierto)} className="btn-hamburger">
-                {menuAbierto ? <X size={28} color="white" /> : <Menu size={28} color="white" />}
+          <div className="nav-controls">
+            <button onClick={() => router.push('/panel')} className="btn-access-priv">ACCESO PRIVADO</button>
+            <div className="hamburger-box">
+              <button onClick={() => setMenuAbierto(!menuAbierto)} className="btn-menu-trigger">
+                {menuAbierto ? <X size={32} color="white" /> : <Menu size={32} color="white" />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* MENÚ HAMBURGUESA INTERACTIVO */}
+        {/* --- MENÚ ACORDEÓN: TEXTOS OCULTOS --- */}
         {menuAbierto && (
-          <div className="mobile-menu fade-in">
-            {seccionesInfo.map((seccion) => (
-              <div key={seccion.id} className="menu-item-wrapper">
-                <button onClick={() => toggleSeccion(seccion.id)} className="mobile-link-accordion">
-                  {seccion.title}
-                  <ChevronDown size={18} className={`accordion-icon ${seccionExpandida === seccion.id ? 'rotate' : ''}`} />
-                </button>
-                {seccionExpandida === seccion.id && (
-                  <div className="seccion-texto-desplegado fade-in-down">
-                    <p>{seccion.text}</p>
-                  </div>
-                )}
+          <div className="mobile-dropdown fade-in-nav">
+            <div className="dropdown-inner">
+              {seccionesInfo.map((sec) => (
+                <div key={sec.id} className="accordion-wrapper">
+                  <button onClick={() => toggleSeccion(sec.id)} className="accordion-btn">
+                    {sec.title}
+                    <ChevronDown size={20} className={`chevron-anim ${seccionExpandida === sec.id ? 'active' : ''}`} />
+                  </button>
+                  {seccionExpandida === sec.id && (
+                    <div className="accordion-content-box fade-down-fast">
+                      <p>{sec.text}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="dropdown-footer">
+                <span className="terminal-id">SISTEMA_ÉLITE_V5.1_ACTIVO</span>
               </div>
-            ))}
-            <div className="menu-divider"></div>
-            <p className="menu-subtext">TERMINAL DE ALTA SEGURIDAD</p>
+            </div>
           </div>
         )}
       </nav>
 
-      {/* 3. HERO SECTION */}
-      <section className="hero">
-        <div className="hero-grid">
-          <div className="hero-text-content">
-            <div className="hero-badge">INVESTMENT NETWORK V4.6</div>
-            <h1 className="hero-main-title">
+      {/* --- HERO SECTION: RESTAURADA LA DENSIDAD VISUAL --- */}
+      <section className="hero-section">
+        <div className="hero-layout">
+          <div className="hero-content-left">
+            <div className="elite-tag">ELITE INVESTMENT NETWORK V5.1</div>
+            <h1 className="hero-title-main">
               ARQUITECTURA DE <br/>
-              <span className="gradient-text">RENTABILIDAD</span>
+              <span className="text-gradient-neon">RENTABILIDAD</span>
             </h1>
-            <p className="hero-description">
+            <p className="hero-description-premium">
               Plataforma exclusiva de gestión de capital institucional y deportiva. 
               Algoritmos de alta frecuencia diseñados para el 1% de los inversores globales.
             </p>
-            <div className="hero-cta-group">
-              <button onClick={() => router.push('/unete')} className="btn-main-cta">
-                COMENZAR AHORA <ArrowUpRight size={20} />
+            <div className="hero-cta-box">
+              <button onClick={() => router.push('/unete')} className="btn-hero-glow">
+                COMENZAR AHORA <ArrowUpRight size={22} />
               </button>
             </div>
           </div>
 
-          <div className="hero-visual-container">
-            <div className="glow-orb-bg"></div>
-            <div className="floating-card-1 glass-effect">
-              <div className="icon-box-green"><Activity size={24} /></div>
-              <div className="card-data">
-                <span className="card-label">PROFIT PROMEDIO</span>
-                <span className="card-val">+18.5% <small>MES</small></span>
+          {/* --- VISUALES FLOTANTES CON BLUR Y GLOW (RESTAURADOS) --- */}
+          <div className="hero-visual-right">
+            <div className="master-glow-orb"></div>
+            
+            <div className="floating-stat-card glass-morphism card-pos-1">
+              <div className="stat-icon-wrapper">
+                <Activity size={28} color="#00C853" />
+              </div>
+              <div className="stat-text-box">
+                <span className="label-top">PROFIT PROMEDIO</span>
+                <span className="value-main">+18.5% <small>MES</small></span>
               </div>
             </div>
-            <div className="floating-card-2 glass-effect">
-              <ShieldCheck color="#00C853" size={20} />
-              <span>CAPITAL 100% PROTEGIDO</span>
+
+            <div className="floating-stat-card glass-morphism card-pos-2">
+              <ShieldCheck size={22} color="#00C853" />
+              <span className="shield-text">CAPITAL 100% PROTEGIDO</span>
+            </div>
+
+            <div className="floating-stat-card glass-morphism card-pos-3">
+              <TrendingUp size={22} color="#00C853" />
+              <span className="shield-text">AUDITADO POR IA</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. PORTAFOLIO DE 5 MEMBRESÍAS */}
-      <section id="proyecto-inversionistas" className="plans-area">
-        <div className="plans-header">
-          <h2 className="tag-line">MERCADO PRIVADO</h2>
-          <h3 className="title-section">PORTAFOLIO DE INVERSIÓN</h3>
-          <p className="plans-sub">Selecciona tu nivel de participación global.</p>
+      {/* --- PORTAFOLIO DE 5 MEMBRESÍAS: RESTAURADO --- */}
+      <section id="proyecto-inversionistas" className="plans-master-section">
+        <div className="section-header-elite">
+          <span className="header-tag">MERCADO DE CAPITAL PRIVADO</span>
+          <h2 className="header-title">PROYECTO INVERSIONISTAS</h2>
+          <div className="header-line"></div>
         </div>
         
-        <div className="plans-grid-master">
+        <div className="plans-grid-elite">
           {membresias.map((plan) => (
-            <div key={plan.name} className="membership-card fade-in-up" style={{animationDelay: plan.delay}}>
-              <div className="card-header">
-                <span className="s-tag">SOCIO</span>
-                <h4 className="s-name">{plan.name}</h4>
-              </div>
-              <div className="card-body">
-                <div className="s-price">
-                  <span className="s-currency">$</span>
-                  <span className="s-amount">{plan.price}</span>
-                  <span className="s-usd">USD</span>
+            <div key={plan.name} className="plan-card-elite fade-up-anim" style={{animationDelay: plan.delay}}>
+              <div className="plan-card-inner">
+                <div className="plan-top">
+                  <span className="p-type">SOCIO FUNDADOR</span>
+                  <h4 className="p-name-title">{plan.name}</h4>
                 </div>
-                <div className="s-divider"></div>
-                <p className="s-perk">{plan.perk}</p>
-                <p className="s-desc">Acceso a terminal de señales Élite.</p>
+                <div className="plan-middle">
+                  <div className="p-price-box">
+                    <span className="p-curr">$</span>
+                    <span className="p-num">{plan.price}</span>
+                    <span className="p-tag-usd">USD</span>
+                  </div>
+                  <div className="p-sep-line"></div>
+                  <p className="p-perk-text">{plan.perk}</p>
+                  <p className="p-legal-note">Acceso a terminal de señales Élite y reportes certificados.</p>
+                </div>
+                <button onClick={() => router.push('/unete')} className="btn-plan-select">SELECCIONAR</button>
               </div>
-              <button onClick={() => router.push('/unete')} className="s-btn">SELECCIONAR</button>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 5. FOOTER LEGAL */}
-      <footer className="footer-master">
-        <div className="footer-wrap">
-          <div className="f-legal">
-            <a href="/terminos" className="f-link"><Scale size={14}/> Términos</a>
-            <a href="/privacidad" className="f-link"><FileText size={14}/> Privacidad</a>
-            <a href="/confidencialidad" className="f-link"><Lock size={14}/> Confidencialidad</a>
+      {/* --- FOOTER LEGAL RESTAURADO --- */}
+      <footer className="footer-elite-master">
+        <div className="footer-container">
+          <div className="footer-legal-links">
+            <a href="/terminos" className="f-legal-item"><Scale size={16}/> Términos Legales</a>
+            <a href="/privacidad" className="f-legal-item"><FileText size={16}/> Privacidad</a>
+            <a href="/confidencialidad" className="f-legal-item"><Lock size={16}/> Confidencialidad</a>
           </div>
-          <div className="f-divider"></div>
-          <p className="f-copy">&copy; 2026 EL GURÚ ÉLITE. TODOS LOS DERECHOS RESERVADOS.</p>
+          <div className="footer-hr"></div>
+          <p className="f-copy-txt">&copy; 2026 EL GURÚ ÉLITE. TODOS LOS DERECHOS RESERVADOS.</p>
         </div>
       </footer>
 
       <style jsx global>{`
-        :root { --neon: #00C853; --dark: #020406; --glass: rgba(20, 20, 20, 0.5); }
-        .elite-landing { background: #000; color: white; font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        /* --- ARQUITECTURA MAESTRA (500+ LÍNEAS) --- */
+        :root { --neon: #00C853; --glass: rgba(15, 15, 15, 0.75); }
+        .elite-landing-master { background: #000; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
         
-        .navbar { position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .nav-content { max-width: 1200px; margin: 0 auto; padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; }
-        .logo-text { font-weight: 900; font-size: 1.2rem; }
-        .neon-text { color: var(--neon); text-shadow: 0 0 15px rgba(0,200,83,0.3); }
+        .navbar-elite { position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(0,0,0,0.9); backdrop-filter: blur(30px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .nav-container { max-width: 1400px; margin: 0 auto; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-main { font-weight: 900; font-size: 1.4rem; letter-spacing: -1px; }
+        .logo-neon { color: var(--neon); text-shadow: 0 0 20px rgba(0, 200, 83, 0.5); }
         
-        /* CORRECCIÓN DE POSICIÓN DE ACCIONES */
-        .nav-actions { display: flex; align-items: center; gap: 25px; }
-        .btn-access { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 8px 18px; border-radius: 4px; font-weight: 900; font-size: 10px; cursor: pointer; transition: 0.3s; }
-        .btn-access:hover { background: var(--neon); color: black; }
-        .hamburger-wrapper { display: flex; align-items: center; }
-        .btn-hamburger { background: transparent; border: none; cursor: pointer; padding: 0; }
+        /* NAVBAR CORRECCIÓN POSICIÓN */
+        .nav-controls { display: flex; align-items: center; gap: 45px; }
+        .btn-access-priv { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 10px 24px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.4s; }
+        .btn-access-priv:hover { background: var(--neon); color: black; box-shadow: 0 0 20px rgba(0, 200, 83, 0.4); }
+        .btn-menu-trigger { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; }
 
-        .mobile-menu { position: absolute; top: 100%; left: 0; width: 100%; background: #080808; padding: 40px; display: flex; flex-direction: column; gap: 15px; border-bottom: 1px solid #111; }
-        .mobile-link-accordion { background: transparent; border: none; color: white; width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; padding: 12px 0; border-bottom: 1px solid #111; }
-        .accordion-icon { transition: transform 0.3s ease; }
-        .accordion-icon.rotate { transform: rotate(180deg); color: var(--neon); }
-        .seccion-texto-desplegado { color: #666; font-size: 13px; line-height: 1.6; padding: 10px 0; }
-        .menu-divider { width: 30px; height: 1px; background: #222; margin: 20px auto; }
-        .menu-subtext { color: #222; font-size: 10px; font-weight: 900; letter-spacing: 3px; text-align: center; }
+        /* ACORDEÓN DESPLEGABLE */
+        .mobile-dropdown { position: absolute; top: 100%; left: 0; width: 100%; background: rgba(5, 5, 5, 0.98); backdrop-filter: blur(35px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .dropdown-inner { max-width: 1200px; margin: 0 auto; padding: 40px 30px; }
+        .accordion-wrapper { border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .accordion-btn { width: 100%; background: transparent; border: none; color: white; display: flex; justify-content: space-between; align-items: center; padding: 22px 0; font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; }
+        .chevron-anim { transition: 0.4s; color: #333; }
+        .chevron-anim.active { transform: rotate(180deg); color: var(--neon); }
+        .accordion-content-box { padding: 0 0 30px 0; color: #777; font-size: 14px; line-height: 1.8; max-width: 600px; }
+        .dropdown-footer { margin-top: 40px; text-align: center; }
+        .terminal-id { color: #111; font-size: 10px; font-weight: 900; letter-spacing: 5px; }
 
-        .hero { max-width: 1200px; margin: 0 auto; padding: 120px 25px 80px; }
-        .hero-main-title { font-size: 3.2rem; font-weight: 900; line-height: 0.95; margin-bottom: 30px; }
-        @media (min-width: 768px) { .hero-main-title { font-size: 4.8rem; } }
-        .gradient-text { background: linear-gradient(180deg, #fff 40%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-description { color: #666; font-size: 1.1rem; line-height: 1.6; margin-bottom: 40px; }
-        .btn-main-cta { background: var(--neon); color: black; border: none; padding: 18px 40px; border-radius: 4px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+        /* HERO SECTION */
+        .hero-section { max-width: 1400px; margin: 0 auto; padding: 170px 30px 100px; }
+        .hero-layout { display: grid; grid-template-columns: 1fr; gap: 80px; }
+        @media (min-width: 1100px) { .hero-layout { grid-template-columns: 1.2fr 0.8fr; align-items: center; } }
+        .elite-tag { color: var(--neon); font-size: 11px; font-weight: 900; letter-spacing: 6px; margin-bottom: 25px; }
+        .hero-title-main { font-size: 3.5rem; font-weight: 900; line-height: 0.95; margin-bottom: 35px; letter-spacing: -3px; }
+        @media (min-width: 768px) { .hero-title-main { font-size: 5.5rem; } }
+        .text-gradient-neon { background: linear-gradient(180deg, #fff 40%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-description-premium { color: #888; font-size: 1.25rem; line-height: 1.7; margin-bottom: 50px; max-width: 550px; }
+        .btn-hero-glow { background: var(--neon); color: black; border: none; padding: 20px 45px; border-radius: 4px; font-weight: 900; cursor: pointer; transition: 0.4s; display: flex; align-items: center; gap: 15px; }
+        .btn-hero-glow:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 200, 83, 0.4); }
 
-        .plans-area { padding: 100px 25px; max-width: 1400px; margin: 0 auto; }
-        .plans-grid-master { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media (min-width: 768px) { .plans-grid-master { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1100px) { .plans-grid-master { grid-template-columns: repeat(5, 1fr); } }
-        .membership-card { background: #080808; border: 1px solid #111; padding: 40px 25px; border-radius: 8px; text-align: center; transition: 0.4s; }
-        .membership-card:hover { border-color: var(--neon); transform: translateY(-10px); }
-        .s-name { font-size: 1.6rem; font-weight: 900; color: var(--neon); margin: 5px 0 25px; text-transform: uppercase; }
-        .s-amount { font-size: 3.5rem; font-weight: 900; color: white; }
-        .s-btn { background: transparent; border: 1px solid #222; color: white; padding: 14px; width: 100%; border-radius: 4px; font-weight: 900; cursor: pointer; }
-        .s-btn:hover { background: white; color: black; }
+        /* VISUALES DE IMPACTO */
+        .hero-visual-right { position: relative; height: 450px; display: flex; justify-content: center; align-items: center; }
+        .master-glow-orb { position: absolute; width: 450px; height: 450px; background: var(--neon); filter: blur(160px); opacity: 0.15; z-index: 1; }
+        .glass-morphism { background: var(--glass); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; z-index: 10; padding: 25px; }
+        .floating-stat-card { position: absolute; transition: 0.3s; }
+        .card-pos-1 { top: 0; right: 0; width: 300px; display: flex; gap: 20px; align-items: center; animation: float-elite 6s ease-in-out infinite; }
+        .card-pos-2 { bottom: 20%; left: 0; display: flex; gap: 12px; align-items: center; animation: float-elite 7s ease-in-out infinite reverse; font-size: 11px; font-weight: 900; color: #888; }
+        .card-pos-3 { top: 50%; right: -20px; display: flex; gap: 12px; align-items: center; font-size: 11px; font-weight: 900; color: var(--neon); animation: float-elite 5s ease-in-out infinite; }
+        .stat-icon-wrapper { background: rgba(0, 200, 83, 0.1); padding: 15px; border-radius: 15px; }
+        .label-top { display: block; font-size: 10px; color: #555; font-weight: 900; margin-bottom: 5px; }
+        .value-main { font-size: 28px; font-weight: 900; color: white; }
+        .value-main small { font-size: 12px; color: var(--neon); }
 
-        .footer-master { padding: 80px 25px 50px; background: #050505; border-top: 1px solid #111; text-align: center; }
-        .f-legal { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 30px; }
-        .f-link { color: #444; text-decoration: none; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .f-link:hover { color: var(--neon); }
+        /* PLANES */
+        .plans-master-section { padding: 150px 30px; max-width: 1550px; margin: 0 auto; }
+        .header-title { font-size: 3rem; font-weight: 900; text-align: center; margin-top: 20px; }
+        .header-line { width: 80px; height: 2px; background: var(--neon); margin: 30px auto 90px; }
+        .plans-grid-elite { display: grid; grid-template-columns: 1fr; gap: 25px; }
+        @media (min-width: 650px) { .plans-grid-elite { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1200px) { .plans-grid-elite { grid-template-columns: repeat(5, 1fr); } }
+        .plan-card-elite { background: #080808; border: 1px solid #111; border-radius: 12px; transition: 0.5s; position: relative; overflow: hidden; }
+        .plan-card-elite:hover { border-color: var(--neon); transform: translateY(-15px); background: #0c0c0c; box-shadow: 0 30px 60px rgba(0,200,83,0.15); }
+        .plan-card-inner { padding: 50px 30px; text-align: center; display: flex; flex-direction: column; height: 100%; }
+        .p-name-title { font-size: 1.8rem; font-weight: 900; color: var(--neon); margin: 10px 0 40px; text-transform: uppercase; }
+        .p-num { font-size: 4rem; font-weight: 900; line-height: 1; }
+        .btn-plan-select { background: transparent; border: 1px solid #222; color: white; padding: 15px; width: 100%; border-radius: 4px; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: auto; }
+        .btn-plan-select:hover { background: white; color: black; }
 
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        .fade-in-up { opacity: 0; animation: fadeInUp 0.8s ease forwards; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.4s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* FOOTER */
+        .footer-elite-master { padding: 100px 30px 60px; background: #050505; border-top: 1px solid #111; text-align: center; }
+        .footer-legal-links { display: flex; justify-content: center; gap: 50px; margin-bottom: 50px; flex-wrap: wrap; }
+        .f-legal-item { color: #444; text-decoration: none; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .f-legal-item:hover { color: var(--neon); }
+
+        @keyframes float-elite { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .fade-up-anim { opacity: 0; animation: fadeUpElite 1s ease forwards; }
+        @keyframes fadeUpElite { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
