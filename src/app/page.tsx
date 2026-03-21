@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, ArrowUpRight, Menu, X, Lock, FileText, Scale, Activity, Zap, Globe, ChevronDown, TrendingUp 
+  ShieldCheck, ArrowUpRight, Menu, X, Lock, FileText, Scale, Activity, ChevronDown 
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -80,164 +80,157 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="elite-landing">
-      {/* NAVBAR ORIGINAL CON CIRUGÍA DE POSICIÓN */}
-      <nav className="navbar-blur">
-        <div className="nav-content">
-          <div className="nav-logo">
-            <span className="logo-text">EL GURÚ <span className="neon-green">ÉLITE</span></span>
+    <div className="elite-landing-restored">
+      {/* NAVBAR POSICIÓN QUIRÚRGICA */}
+      <nav className="navbar-custom">
+        <div className="nav-inner">
+          <div className="brand">
+            <span className="brand-text">EL GURÚ <span className="green-accent">ÉLITE</span></span>
           </div>
           <div className="nav-actions">
-            <button onClick={() => router.push('/panel')} className="btn-access">ACCESO PRIVADO</button>
-            <div className="hamburger-container">
+            <button onClick={() => router.push('/panel')} className="btn-privado">ACCESO PRIVADO</button>
+            <div className="hamburger-wrap">
               <button onClick={() => setMenuAbierto(!menuAbierto)} className="btn-hamburger">
-                {menuAbierto ? <X size={28} color="white" /> : <Menu size={28} color="white" />}
+                {menuAbierto ? <X size={30} color="white" /> : <Menu size={30} color="white" />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* MENÚ ACORDEÓN (TEXTOS OCULTOS) */}
+        {/* MENÚ ACORDEÓN INTERACTIVO */}
         {menuAbierto && (
-          <div className="mobile-menu fade-in">
+          <div className="menu-desplegable fade-in">
             {seccionesInfo.map((sec) => (
-              <div key={sec.id} className="accordion-item">
-                <button onClick={() => toggleSeccion(sec.id)} className="accordion-trigger">
+              <div key={sec.id} className="accordion-group">
+                <button onClick={() => toggleSeccion(sec.id)} className="accordion-head">
                   {sec.title}
-                  <ChevronDown size={18} className={seccionExpandida === sec.id ? 'rotate' : ''} />
+                  <ChevronDown size={18} className={seccionExpandida === sec.id ? 'active' : ''} />
                 </button>
                 {seccionExpandida === sec.id && (
-                  <div className="accordion-content fade-in-down">
+                  <div className="accordion-body fade-down">
                     <p>{sec.text}</p>
                   </div>
                 )}
               </div>
             ))}
-            <div className="menu-divider"></div>
-            <p className="menu-subtext">TERMINAL DE ALTA SEGURIDAD</p>
+            <div className="menu-line"></div>
+            <p className="menu-footer">TERMINAL ÉLITE V5.2</p>
           </div>
         )}
       </nav>
 
-      {/* HERO ORIGINAL: ESTADÍSTICAS Y GLOW RECUPERADOS */}
-      <section className="hero">
-        <div className="hero-grid">
-          <div className="hero-text-content">
-            <div className="hero-badge">VERSION 4.0 LIVE</div>
-            <h1 className="hero-title">
-              ARQUITECTURA DE <br/>
+      {/* HERO SECTION: RESTAURADO EXACTAMENTE COMO LA IMAGEN */}
+      <section className="hero-main">
+        <div className="hero-content">
+          <div className="hero-left">
+            <div className="tag-version">INVESTMENT NETWORK V4.0</div>
+            <h1 className="main-title">
+              ARQUITECTURA <br/>
+              DE <br/>
               <span className="gradient-text">RENTABILIDAD</span>
             </h1>
-            <p className="hero-description">
+            <p className="main-description">
               Plataforma exclusiva de gestión de capital institucional y deportiva. 
-              Algoritmos de alta frecuencia diseñados para el 1% de los inversores.
+              Algoritmos de alta frecuencia diseñados para el 1% de los inversores globales.
             </p>
-            <div className="hero-actions">
-              <button onClick={() => router.push('/unete')} className="btn-primary-glow">
-                COMENZAR AHORA <ArrowUpRight size={20} />
-              </button>
-            </div>
+            <button onClick={() => router.push('/unete')} className="btn-cta">
+              COMENZAR AHORA <ArrowUpRight size={22} />
+            </button>
           </div>
 
-          <div className="hero-visual">
-            <div className="main-orb"></div>
-            <div className="stat-card card-1 floating-1 glass">
-              <Activity color="#00C853" size={30} />
-              <div>
-                <p className="stat-label">UTILIDAD MENSUAL</p>
-                <p className="stat-value">+24.8%</p>
-              </div>
-            </div>
-            <div className="stat-card card-2 floating-2 glass">
-              <ShieldCheck color="#00C853" size={24} />
-              <p className="stat-value-sm">CAPITAL PROTEGIDO</p>
+          <div className="hero-right">
+            <div className="glow-effect"></div>
+            <div className="stat-pill glass">
+              <ShieldCheck size={18} color="#00C853" />
+              <span>CAPITAL PROTEGIDO</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* PORTAFOLIO DE 5 MEMBRESÍAS ORIGINAL */}
-      <section id="portafolio" className="plans-section">
-        <div className="plans-header">
-          <h2 className="tag-line">MERCADO PRIVADO</h2>
-          <h3 className="section-title">PROYECTO INVERSIONISTAS</h3>
+      {/* PORTAFOLIO DE MEMBRESÍAS RESTAURADO */}
+      <section className="portfolio-section">
+        <div className="portfolio-header">
+          <span className="sub-tag">PORTAFOLIO DE MEMBRESÍAS</span>
+          <h2 className="title-alt">Selecciona tu nivel de participación</h2>
         </div>
-        <div className="plans-grid">
-          {membresias.map((plan) => (
-            <div key={plan.name} className="plan-card fade-up" style={{animationDelay: plan.delay}}>
-              <div className="plan-name">{plan.name}</div>
-              <div className="plan-price"><span>$</span>{plan.price}</div>
-              <div className="plan-perk">{plan.perk}</div>
-              <button onClick={() => router.push('/unete')} className="btn-select">SELECCIONAR</button>
+        <div className="plans-grid-custom">
+          {membresias.map((p) => (
+            <div key={p.name} className="p-card-elite fade-up">
+              <div className="p-card-name">SOCIO {p.name}</div>
+              <div className="p-card-price"><span>$</span>{p.price}</div>
+              <div className="p-card-perk">{p.perk}</div>
+              <button onClick={() => router.push('/unete')} className="p-card-btn">SELECCIONAR</button>
             </div>
           ))}
         </div>
       </section>
 
-      <footer className="footer-master">
-        <div className="footer-links">
-          <a href="/terminos" className="f-link"><Scale size={14}/> Términos</a>
-          <a href="/privacidad" className="f-link"><FileText size={14}/> Privacidad</a>
-          <a href="/confidencialidad" className="f-link"><Lock size={14}/> Confidencialidad</a>
+      <footer className="footer-elite">
+        <div className="f-links-row">
+          <a href="/terminos" className="f-link-item"><Scale size={14}/> Términos</a>
+          <a href="/privacidad" className="f-link-item"><FileText size={14}/> Privacidad</a>
+          <a href="/confidencialidad" className="f-link-item"><Lock size={14}/> Confidencialidad</a>
         </div>
-        <p className="footer-copy">&copy; 2026 EL GURÚ ÉLITE. TODOS LOS DERECHOS RESERVADOS.</p>
+        <div className="f-line"></div>
+        <p className="f-copy">&copy; 2026 EL GURÚ ÉLITE. TODOS LOS DERECHOS RESERVADOS.</p>
       </footer>
 
       <style jsx global>{`
-        /* --- EL DISEÑO ORIGINAL QUE TE CAUTIVÓ --- */
-        .elite-landing { background-color: #020406; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        /* --- ESTILOS BASADOS 100% EN TU CAPTURA --- */
+        .elite-landing-restored { background-color: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
         
-        .navbar-blur { position: fixed; top: 0; width: 100%; z-index: 100; backdrop-filter: blur(10px); background: rgba(2, 4, 6, 0.7); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-        .nav-content { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .logo-text { font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; }
-        .neon-green { color: #00C853; }
-        .nav-actions { display: flex; align-items: center; gap: 35px; }
-        .btn-access { background: transparent; border: 1px solid #00C853; color: #00C853; padding: 8px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        /* NAVBAR POSICIONADA */
+        .navbar-custom { position: fixed; top: 0; width: 100%; z-index: 1000; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .nav-inner { max-width: 1400px; margin: 0 auto; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .brand-text { font-weight: 900; font-size: 1.4rem; letter-spacing: -1px; }
+        .green-accent { color: #00C853; }
+        .nav-actions { display: flex; align-items: center; gap: 40px; }
+        .btn-privado { background: transparent; border: 1px solid #00C853; color: #00C853; padding: 8px 18px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
+        .btn-privado:hover { background: #00C853; color: black; }
+        .btn-hamburger { background: transparent; border: none; cursor: pointer; padding: 0; }
 
-        .mobile-menu { position: absolute; top: 100%; left: 0; width: 100%; background: rgba(10, 12, 16, 0.95); padding: 30px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #222; }
-        .accordion-trigger { width: 100%; background: transparent; border: none; color: white; display: flex; justify-content: space-between; align-items: center; padding: 15px 0; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #111; cursor: pointer; }
-        .accordion-content { padding: 15px 0; color: #666; font-size: 13px; line-height: 1.6; }
-        .rotate { transform: rotate(180deg); color: #00C853; transition: 0.3s; }
+        /* ACORDEÓN */
+        .menu-desplegable { position: absolute; top: 100%; left: 0; width: 100%; background: #080808; padding: 30px; border-bottom: 1px solid #111; }
+        .accordion-head { width: 100%; background: transparent; border: none; color: white; display: flex; justify-content: space-between; align-items: center; padding: 15px 0; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #111; }
+        .accordion-body { padding: 15px 0; color: #666; font-size: 13px; line-height: 1.6; }
+        .active { transform: rotate(180deg); color: #00C853; transition: 0.3s; }
 
-        .hero { padding: 150px 20px 100px; max-width: 1200px; margin: 0 auto; }
-        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
-        @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; text-align: center; } }
-        .hero-badge { background: rgba(0, 200, 83, 0.1); color: #00C853; padding: 5px 15px; border-radius: 20px; display: inline-block; font-size: 12px; font-weight: bold; margin-bottom: 20px; border: 1px solid rgba(0, 200, 83, 0.2); }
-        .hero-title { font-size: 4rem; line-height: 1; font-weight: 900; margin-bottom: 25px; }
-        .gradient-text { background: linear-gradient(90deg, #00C853, #b2ffce); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-description { color: #888; font-size: 1.2rem; max-width: 500px; margin-bottom: 40px; line-height: 1.6; }
-        .btn-primary-glow { background: white; color: black; border: none; padding: 20px 40px; border-radius: 15px; font-size: 1.1rem; font-weight: 900; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.3s; margin: 0 auto; }
-        @media (min-width: 900px) { .btn-primary-glow { margin: 0; } }
+        /* HERO IDENTICO A LA IMAGEN */
+        .hero-main { max-width: 1400px; margin: 0 auto; padding: 140px 30px 100px; }
+        .hero-content { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 40px; }
+        @media (max-width: 900px) { .hero-content { grid-template-columns: 1fr; } }
+        .tag-version { color: #00C853; font-size: 10px; font-weight: 900; letter-spacing: 4px; margin-bottom: 30px; }
+        .main-title { font-size: 4rem; font-weight: 900; line-height: 0.9; margin-bottom: 40px; }
+        @media (min-width: 900px) { .main-title { font-size: 6rem; } }
+        .gradient-text { background: linear-gradient(180deg, #fff 40%, #00C853 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .main-description { color: #555; font-size: 1.2rem; line-height: 1.6; margin-bottom: 50px; max-width: 500px; }
+        .btn-cta { background: #00C853; color: black; border: none; padding: 20px 45px; border-radius: 5px; font-weight: 900; font-size: 14px; display: flex; align-items: center; gap: 15px; cursor: pointer; }
 
-        .hero-visual { position: relative; display: flex; justify-content: center; align-items: center; }
-        .main-orb { width: 400px; height: 400px; background: radial-gradient(circle, rgba(0, 200, 83, 0.2) 0%, transparent 70%); border-radius: 50%; filter: blur(40px); animation: pulse 4s infinite; }
-        .glass { background: rgba(10, 12, 16, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 20px; }
-        .stat-card { position: absolute; display: flex; align-items: center; gap: 15px; width: 220px; }
-        .floating-1 { top: 10%; right: 0; animation: float 5s ease-in-out infinite; }
-        .floating-2 { bottom: 20%; left: 0; animation: float 6s ease-in-out infinite reverse; }
-        .stat-label { font-size: 10px; color: #555; margin: 0; font-weight: bold; }
-        .stat-value { font-size: 20px; font-weight: 900; color: white; margin: 0; }
-        .stat-value-sm { font-size: 12px; font-weight: 900; color: white; margin: 0; }
+        .hero-right { position: relative; height: 400px; display: flex; justify-content: center; align-items: center; }
+        .glow-effect { position: absolute; width: 400px; height: 400px; background: #00C853; filter: blur(140px); opacity: 0.15; }
+        .stat-pill { background: rgba(20,20,20,0.6); border: 1px solid rgba(255,255,255,0.05); padding: 12px 25px; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-size: 11px; font-weight: 900; color: #888; z-index: 10; }
 
-        .plans-section { max-width: 1200px; margin: 0 auto; padding: 100px 20px; text-align: center; }
-        .section-title { font-size: 2.2rem; font-weight: 900; margin-bottom: 50px; }
-        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .plan-card { background: #0a0c10; padding: 40px 20px; border-radius: 20px; border: 1px solid #111; transition: 0.3s; }
-        .plan-card:hover { border-color: #00C853; transform: translateY(-10px); }
-        .plan-name { font-size: 1.2rem; font-weight: 900; color: #00C853; margin-bottom: 20px; }
-        .plan-price { font-size: 3rem; font-weight: 900; margin-bottom: 10px; }
-        .plan-price span { font-size: 1.5rem; color: #00C853; }
-        .plan-perk { color: #888; font-size: 0.9rem; margin-bottom: 30px; }
-        .btn-select { background: transparent; border: 1px solid #222; color: white; padding: 12px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .btn-select:hover { background: white; color: black; }
+        /* PLANES */
+        .portfolio-section { padding: 100px 30px; max-width: 1400px; margin: 0 auto; }
+        .portfolio-header { text-align: center; margin-bottom: 70px; }
+        .sub-tag { font-size: 10px; color: #444; letter-spacing: 5px; font-weight: 900; }
+        .title-alt { font-size: 1.5rem; margin-top: 10px; }
+        .plans-grid-custom { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .p-card-elite { background: #0a0a0a; border: 1px solid #111; padding: 40px 20px; border-radius: 8px; text-align: center; transition: 0.3s; }
+        .p-card-elite:hover { border-color: #00C853; transform: translateY(-10px); }
+        .p-card-name { font-size: 11px; color: #444; font-weight: 900; margin-bottom: 25px; text-transform: uppercase; }
+        .p-card-price { font-size: 4rem; font-weight: 900; color: white; margin-bottom: 10px; }
+        .p-card-price span { font-size: 1.5rem; color: #00C853; }
+        .p-card-btn { background: transparent; border: 1px solid #222; color: white; padding: 12px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .p-card-btn:hover { background: white; color: black; }
 
-        .footer-master { padding: 60px 20px; border-top: 1px solid #111; text-align: center; }
-        .footer-links { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap; }
-        .f-link { color: #444; text-decoration: none; font-size: 12px; display: flex; align-items: center; gap: 8px; }
-        .footer-copy { color: #222; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
+        .footer-elite { padding: 60px 30px; text-align: center; border-top: 1px solid #111; }
+        .f-links-row { display: flex; justify-content: center; gap: 40px; margin-bottom: 30px; flex-wrap: wrap; }
+        .f-link-item { color: #444; text-decoration: none; font-size: 11px; display: flex; align-items: center; gap: 8px; }
 
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.1); opacity: 0.3; } 100% { transform: scale(1); opacity: 0.2; } }
-        @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
       `}</style>
     </div>
   );
