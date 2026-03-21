@@ -1,148 +1,245 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { Trash2, Eye, EyeOff, CheckCircle, ShieldCheck, Image as ImageIcon, Mail, Phone, Lock, Globe, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { 
+  TrendingUp, ShieldCheck, Zap, Globe, ChevronRight, 
+  BarChart3, PieChart, Users, Star 
+} from 'lucide-react';
 
-const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+export default function LandingPage() {
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-export default function AdminControlMasterV4() {
-  const [bloqueado, setBloqueado] = useState(true);
-  const [claveMaestra, setClaveMaestra] = useState("");
-  const [verClave, setVerClave] = useState(false);
-  const [listaSocios, setListaSocios] = useState<any[]>([]);
-  const [cargando, setCargando] = useState(false);
+  // EFECTO DE CARGA DE 5 SEGUNDOS
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const KEY_ACCESO = "GURU2026";
-
-  const obtenerDatos = async () => {
-    setCargando(true);
-    const { data, error } = await clientSupabase
-      .from('socios')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (error) alert("Error al cargar: " + error.message);
-    setListaSocios(data || []);
-    setCargando(false);
-  };
-
-  useEffect(() => { if (!bloqueado) obtenerDatos(); }, [bloqueado]);
-
-  const activarSocio = async (id: any) => {
-    const { error } = await clientSupabase
-      .from('socios')
-      .update({ estado: 'activo' })
-      .eq('id', id);
-    
-    if (error) {
-      alert("Error al activar: " + error.message);
-    } else {
-      obtenerDatos(); // Recarga la lista para mostrar el cambio
-    }
-  };
-
-  const eliminarRegistro = async (id: any, nombre: string) => {
-    if (confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE A ${nombre}?`)) {
-      await clientSupabase.from('socios').delete().eq('id', id);
-      obtenerDatos();
-    }
-  };
-
-  if (bloqueado) {
+  if (loading) {
     return (
-      <div style={{ backgroundColor: '#020406', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', fontFamily: 'sans-serif' }}>
-        <div style={{ textAlign: 'center', background: '#0a0c10', padding: '50px', borderRadius: '30px', border: '2px solid #00C853', width: '380px', boxShadow: '0 0 50px rgba(0,200,83,0.1)' }}>
-          <ShieldCheck size={60} color="#00C853" style={{ marginBottom: '20px' }} />
-          <h2 style={{ marginBottom: '25px', fontWeight: 900, letterSpacing: '2px' }}>CENTRO DE MANDO V4</h2>
-          <div style={{ position: 'relative', marginBottom: '20px' }}>
-            <input 
-              type={verClave ? "text" : "password"} 
-              placeholder="LLAVE MAESTRA" 
-              onChange={(e) => setClaveMaestra(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (claveMaestra === KEY_ACCESO ? setBloqueado(false) : alert("LLAVE ERRÓNEA"))}
-              style={{ padding: '18px', borderRadius: '15px', border: '1px solid #222', backgroundColor: '#020406', color: '#00C853', textAlign: 'center', width: '100%', outline: 'none', fontSize: '1rem' }}
-            />
+      <div className="splash-container">
+        <div className="loader-wrapper">
+          <div className="loader-ring"></div>
+          <div className="loader-scan"></div>
+          <div className="logo-center">
+            <img src="/images/guru.jpg" alt="Guru Logo" />
           </div>
-          <button onClick={() => claveMaestra === KEY_ACCESO ? setBloqueado(false) : alert("LLAVE ERRÓNEA")} style={{ width: '100%', padding: '18px', background: '#00C853', color: 'black', borderRadius: '15px', fontWeight: 900, cursor: 'pointer', border: 'none' }}>ACCEDER AL SISTEMA</button>
         </div>
+        <div className="loading-text">
+          <span className="letter">C</span>
+          <span className="letter">O</span>
+          <span className="letter">N</span>
+          <span className="letter">E</span>
+          <span className="letter">C</span>
+          <span className="letter">T</span>
+          <span className="letter">A</span>
+          <span className="letter">N</span>
+          <span className="letter">D</span>
+          <span className="letter">O</span>
+          <span className="dots">...</span>
+        </div>
+        <style jsx>{`
+          .splash-container {
+            background: radial-gradient(circle at center, #0a0c10 0%, #020406 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+          }
+          .loader-wrapper {
+            position: relative;
+            width: 180px;
+            height: 180px;
+          }
+          .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 200, 83, 0.1);
+            border-top: 2px solid #00C853;
+            animation: spin 2s linear infinite;
+          }
+          .loader-scan {
+            position: absolute;
+            width: 110%;
+            height: 110%;
+            top: -5%;
+            left: -5%;
+            border-radius: 50%;
+            border: 1px solid #00C853;
+            opacity: 0.3;
+            animation: pulse 1.5s ease-in-out infinite;
+          }
+          .logo-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #0a0c10;
+            box-shadow: 0 0 30px rgba(0, 200, 83, 0.4);
+          }
+          .logo-center img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            animation: float 3s ease-in-out infinite;
+          }
+          .loading-text {
+            margin-top: 40px;
+            color: #00C853;
+            font-family: 'monospace';
+            letter-spacing: 5px;
+            font-weight: bold;
+            display: flex;
+          }
+          @keyframes spin { 100% { transform: rotate(360deg); } }
+          @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.1; } 50% { transform: scale(1.05); opacity: 0.5; } }
+          @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        `}</style>
       </div>
     );
   }
 
   return (
-    <main style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', padding: '40px', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-        <div>
-          <h1 style={{ color: '#00C853', fontWeight: 900, fontSize: '2rem', margin: 0 }}>DIRECTORIO GURÚ ÉLITE V4</h1>
-          <p style={{ color: '#555', margin: '5px 0 0 0' }}>Gestión de membresías y verificación de pagos</p>
+    <div className="main-landing">
+      {/* NAVBAR */}
+      <nav className="nav-blur">
+        <div className="nav-content">
+          <div className="brand">EL GURÚ <span className="text-green">ÉLITE</span></div>
+          <div className="nav-links">
+            <button onClick={() => router.push('/unete')} className="btn-main">UNIRSE AHORA</button>
+          </div>
         </div>
-        <button onClick={obtenerDatos} style={{ background: '#0a0c10', color: '#00C853', border: '1px solid #00C853', padding: '12px 25px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <RefreshCw size={18} className={cargando ? 'animate-spin' : ''} /> REFRESCAR LISTA
-        </button>
-      </div>
+      </nav>
 
-      <div style={{ background: '#0a0c10', borderRadius: '25px', border: '1px solid #111', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: '#111', color: '#555', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              <th style={{ padding: '25px', textAlign: 'left' }}>Socio e Información de Acceso</th>
-              <th style={{ padding: '25px', textAlign: 'center' }}>Detalles de Compra</th>
-              <th style={{ padding: '25px', textAlign: 'center' }}>Estado Actual</th>
-              <th style={{ padding: '25px', textAlign: 'center' }}>Acciones Ejecutivas</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listaSocios.map((s) => (
-              <tr key={s.id} style={{ borderBottom: '1px solid #111', transition: '0.3s' }}>
-                <td style={{ padding: '25px' }}>
-                  <b style={{fontSize: '18px', color: 'white', display: 'block', marginBottom: '8px'}}>{s.nombre}</b>
-                  <div style={{ fontSize: '13px', color: '#888', display: 'grid', gap: '6px' }}>
-                    <span style={{display: 'flex', alignItems: 'center', gap: '8px'}}><Mail size={14} color="#00C853"/> {s.email}</span>
-                    <span style={{display: 'flex', alignItems: 'center', gap: '8px'}}><Lock size={14} color="#ff4444"/> <b style={{color: '#ff4444'}}>Pass:</b> <span style={{color: '#fff', background: '#222', padding: '2px 6px', borderRadius: '4px'}}>{s.password}</span></span>
-                    <span style={{display: 'flex', alignItems: 'center', gap: '8px'}}><Phone size={14} color="#00C853"/> {s.telefono}</span>
-                    <span style={{display: 'flex', alignItems: 'center', gap: '8px'}}><Globe size={14} color="#00C853"/> {s.pais || 'No especificado'}</span>
-                  </div>
-                </td>
-                <td style={{ padding: '25px', textAlign: 'center' }}>
-                  <div style={{ background: '#020406', padding: '15px', borderRadius: '15px', border: '1px solid #111' }}>
-                    <b style={{ color: '#00C853', fontSize: '14px', display: 'block', marginBottom: '8px' }}>{s.plan?.toUpperCase()}</b>
-                    <a href={s.comprobante_url} target="_blank" rel="noreferrer" style={{ color: 'white', textDecoration: 'none', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', background: '#111', padding: '6px', borderRadius: '6px' }}>
-                      <ImageIcon size={14}/> VER COMPROBANTE
-                    </a>
-                  </div>
-                </td>
-                <td style={{ padding: '25px', textAlign: 'center' }}>
-                  <span style={{ 
-                    background: s.estado === 'activo' ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 152, 0, 0.1)', 
-                    color: s.estado === 'activo' ? '#00C853' : '#ff9800', 
-                    padding: '10px 20px', borderRadius: '12px', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', border: s.estado === 'activo' ? '1px solid #00C85330' : '1px solid #ff980030' 
-                  }}>
-                    {s.estado || 'PENDIENTE'}
-                  </span>
-                </td>
-                <td style={{ padding: '25px' }}>
-                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                    {s.estado !== 'activo' ? (
-                      <button onClick={() => activarSocio(s.id)} style={{ background: '#00C853', color: 'black', border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
-                        <CheckCircle size={18} /> ACTIVAR SOCIO
-                      </button>
-                    ) : (
-                      <div style={{ color: '#555', fontSize: '12px', fontWeight: 'bold' }}>YA ACTIVADO</div>
-                    )}
-                    <button onClick={() => eliminarRegistro(s.id, s.nombre)} style={{ background: '#1a0505', border: '1px solid #300', color: '#ff4444', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}>
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <style jsx global>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animate-spin { animation: spin 1s linear infinite; }
+      {/* HERO SECTION */}
+      <section className="hero">
+        <div className="hero-grid">
+          <div className="hero-text">
+            <div className="badge">VERSION 4.0 LIVE</div>
+            <h1 className="main-title">
+              DOMINA EL MERCADO CON <br />
+              <span className="gradient-text">INTELIGENCIA ÉLITE</span>
+            </h1>
+            <p className="hero-sub">
+              Únete a la red exclusiva de socios fundadores. Tecnología de punta, 
+              análisis en tiempo real y rentabilidad de alto impacto.
+            </p>
+            <div className="hero-actions">
+              <button onClick={() => router.push('/unete')} className="btn-primary">
+                COMENZAR MIEMBRESÍA <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+          
+          <div className="hero-visual">
+            <div className="stat-card floating-1">
+              <BarChart3 color="#00C853" size={30} />
+              <div>
+                <p className="stat-label">UTILIDAD MENSUAL</p>
+                <p className="stat-value">+24.8%</p>
+              </div>
+            </div>
+            <div className="stat-card floating-2">
+              <Users color="#00C853" size={30} />
+              <div>
+                <p className="stat-label">SOCIOS ACTIVOS</p>
+                <p className="stat-value">1,240</p>
+              </div>
+            </div>
+            <div className="main-orb"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section className="features">
+        <div className="feature-card">
+          <Zap className="text-green" size={40} />
+          <h3>Rapidez</h3>
+          <p>Ejecuciones en milisegundos para capturar cada oportunidad.</p>
+        </div>
+        <div className="feature-card">
+          <ShieldCheck className="text-green" size={40} />
+          <h3>Seguridad</h3>
+          <p>Protección de activos bajo estándares de nivel bancario.</p>
+        </div>
+        <div className="feature-card">
+          <Globe className="text-green" size={40} />
+          <h3>Global</h3>
+          <p>Acceso desde cualquier lugar del mundo sin restricciones.</p>
+        </div>
+      </section>
+
+      <style jsx>{`
+        .main-landing {
+          background-color: #020406;
+          color: white;
+          min-height: 100vh;
+          font-family: 'Inter', sans-serif;
+        }
+        .nav-blur {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          z-index: 100;
+          backdrop-filter: blur(10px);
+          background: rgba(2, 4, 6, 0.7);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .brand { font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; }
+        .text-green { color: #00C853; }
+        .btn-main { background: #00C853; color: black; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+        .hero { padding: 150px 20px 100px; max-width: 1200px; margin: 0 auto; }
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+        .badge { background: rgba(0, 200, 83, 0.1); color: #00C853; padding: 5px 15px; border-radius: 20px; display: inline-block; font-size: 12px; font-weight: bold; margin-bottom: 20px; border: 1px solid rgba(0, 200, 83, 0.2); }
+        .main-title { font-size: 4rem; line-height: 1; font-weight: 900; margin-bottom: 25px; }
+        .gradient-text { background: linear-gradient(90deg, #00C853, #b2ffce); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-sub { color: #888; font-size: 1.2rem; max-width: 500px; margin-bottom: 40px; line-height: 1.6; }
+        
+        .btn-primary { background: white; color: black; border: none; padding: 20px 40px; border-radius: 15px; font-size: 1.1rem; font-weight: 900; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.3s; }
+        .btn-primary:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,255,255,0.2); }
+
+        .hero-visual { position: relative; display: flex; justify-content: center; align-items: center; }
+        .main-orb { width: 400px; height: 400px; background: radial-gradient(circle, rgba(0, 200, 83, 0.2) 0%, transparent 70%); border-radius: 50%; filter: blur(40px); animation: pulse 4s infinite; }
+        .stat-card { position: absolute; background: rgba(10, 12, 16, 0.8); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); width: 220px; }
+        .floating-1 { top: 10%; right: 0; animation: float 5s ease-in-out infinite; }
+        .floating-2 { bottom: 20%; left: 0; animation: float 6s ease-in-out infinite reverse; }
+        .stat-label { font-size: 10px; color: #555; margin: 0; font-weight: bold; }
+        .stat-value { font-size: 20px; font-weight: 900; color: white; margin: 0; }
+
+        .features { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; padding: 100px 20px; }
+        .feature-card { background: #0a0c10; padding: 40px; border-radius: 30px; border: 1px solid #111; transition: 0.3s; }
+        .feature-card:hover { border-color: #00C853; transform: translateY(-10px); }
+        .feature-card h3 { margin: 20px 0 10px; font-size: 1.5rem; }
+        .feature-card p { color: #666; font-size: 0.9rem; line-height: 1.6; }
+
+        @media (max-width: 900px) {
+          .hero-grid { grid-template-columns: 1fr; text-align: center; }
+          .hero-text { display: flex; flex-direction: column; align-items: center; }
+          .main-title { font-size: 2.5rem; }
+          .hero-visual { margin-top: 50px; }
+          .features { grid-template-columns: 1fr; }
+        }
       `}</style>
-    </main>
+    </div>
   );
 }
