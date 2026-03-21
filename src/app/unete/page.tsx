@@ -4,37 +4,55 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   User, Mail, Lock, Phone, Target, Zap, Award, Star, 
-  MapPin, DollarSign, UploadCloud, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff 
+  MapPin, DollarSign, UploadCloud, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Briefcase
 } from 'lucide-react';
 
-// --- DATOS DE MEMBRESÍAS (ACTUALIZADOS SEGÚN IMAGEN) ---
+// --- DATOS DE MEMBRESÍAS (ACTUALIZADOS A 5 PLANES EXACTOS) ---
 const planes = [
   { 
-    id: 'plan', 
-    nombre: 'PLAN PLAN', 
-    precio: 50, 
-    porcentaje: '4%', 
+    id: 'micro', 
+    nombre: 'MICRO SOCIO', 
+    precio: 100, 
+    porcentaje: '0.067% de utilidades netas', 
     icon: Target, 
-    color: '#81D4FA', 
+    color: '#E0E0E0', // Gris Plata
     detalles: ['Acceso Básico', 'Señales Diarias', 'Soporte Estándar'] 
   },
   { 
-    id: 'pro', 
-    nombre: 'PLAN PRO', 
-    precio: 100, 
-    porcentaje: '7%', 
+    id: 'inicial', 
+    nombre: 'SOCIO INICIAL', 
+    precio: 250, 
+    porcentaje: '0.167% de utilidades netas', 
+    icon: Briefcase, 
+    color: '#81D4FA', // Azul Claro
+    detalles: ['Acceso Intermedio', 'Señales Diarias', 'Soporte Estándar'] 
+  },
+  { 
+    id: 'activo', 
+    nombre: 'SOCIO ACTIVO', 
+    precio: 500, 
+    porcentaje: '0.333% de utilidades netas', 
     icon: Zap, 
-    color: '#FFD54F', 
+    color: '#FFD54F', // Amarillo Oro
     detalles: ['Acceso Intermedio', 'Señales Prioritarias', 'Soporte 24/7', 'Análisis Semanal'] 
   },
   { 
-    id: 'expert', 
-    nombre: 'PLAN EXPERT', 
-    precio: 150, 
-    porcentaje: '10%', 
+    id: 'premium', 
+    nombre: 'SOCIO PREMIUM', 
+    precio: 1000, 
+    porcentaje: '0.667% de utilidades netas', 
     icon: Award, 
-    color: '#00C853', 
-    detalles: ['Acceso Total', 'Señales VIP', 'Soporte VIP Directo', 'Análisis Diario', 'Mentoría Mensual'] 
+    color: '#FF8A65', // Naranja Premium
+    detalles: ['Acceso VIP', 'Señales VIP', 'Soporte VIP 24/7', 'Análisis Diario'] 
+  },
+  { 
+    id: 'elite', 
+    nombre: 'SOCIO ÉLITE', 
+    precio: 1500, 
+    porcentaje: '1.0% de utilidades netas', 
+    icon: Star, 
+    color: '#00C853', // Verde Élite
+    detalles: ['Acceso Total VIP', 'Señales VIP Exclusivas', 'Soporte VIP Directo', 'Análisis Diario', 'Mentoría Mensual'] 
   },
 ];
 
@@ -51,9 +69,11 @@ const paises = [
   { nombre: 'Otros', codigo: '', flag: '🌐' },
 ];
 
-// --- DATOS DE MÉTODOS DE PAGO (CON INFO DETALLADA) ---
+// --- DATOS DE MÉTODOS DE PAGO (ACTUALIZADOS A 5 MÉTODOS PARA COLOMBIA) ---
 const metodosPago = [
   { id: 'nequi', nombre: 'Nequi (Colombia)', info: 'Número de Celular: [INSERTAR TU CELULAR NEQUI AQUÍ] - Nombre: [INSERTAR TU NOMBRE AQUÍ]' },
+  { id: 'bancolombia', nombre: 'Cuenta Bancolombia (Colombia)', info: 'Número de Cuenta (Ahorros): [INSERTAR NÚMERO AQUÍ] - Nombre Titular: [INSERTAR NOMBRE COMPLETO AQUÍ] - Cédula: [INSERTAR CÓDIGO AQUÍ]' },
+  { id: 'davivienda', nombre: 'Cuenta Davivienda (Colombia)', info: 'Número de Cuenta (Ahorros/Corriente): [INSERTAR NÚMERO AQUÍ] - Nombre Titular: [INSERTAR NOMBRE COMPLETO AQUÍ] - Cédula: [INSERTAR CÓDIGO AQUÍ]' },
   { id: 'western', nombre: 'Western Union', info: 'Beneficiario: [INSERTAR NOMBRE COMPLETO AQUÍ] - Cédula/DNI: [INSERTAR CÓDIGO AQUÍ] - Ciudad/País: [INSERTAR AQUÍ]' },
   { id: 'usdt', nombre: 'USDT (Red TRC20)', info: 'Dirección de Billetera (Wallet Address): [INSERTAR DIRECCIÓN TRC20 AQUÍ] - Asegúrate de usar la RED TRC20.' },
 ];
@@ -66,10 +86,10 @@ export default function UnetePage() {
   const [paso, setPaso] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPass, setShowPass] = useState(false); // Estado para el Ojo
+  const [showPass, setShowPass] = useState(false); 
   const [comprobante, setComprobante] = useState<File | null>(null);
   const [comprobanteUrl, setComprobanteUrl] = useState<string | null>(null);
-  const [globalLoading, setGlobalLoading] = useState(false); // Estado para el Balón
+  const [globalLoading, setGlobalLoading] = useState(false); 
 
   // --- ESTADO DEL FORMULARIO ---
   const [formData, setFormData] = useState({
@@ -80,7 +100,7 @@ export default function UnetePage() {
     pais: 'Colombia',
     codigoArea: '+57', 
     telefono: '', 
-    plan: 'plan',
+    plan: 'micro', // Plan por defecto actualizado
     metodoPago: 'nequi',
     tyc: false, 
     politicas: false, 
@@ -219,6 +239,7 @@ export default function UnetePage() {
     }
   };
 
+  // --- ESTILOS COMUNES ---
   const inputStyle = {
     width: '100%', padding: '15px', background: '#0a0c10', border: '1px solid #111', 
     borderRadius: '12px', color: 'white', fontSize: '1rem', outline: 'none', marginBottom: '15px'
@@ -226,6 +247,7 @@ export default function UnetePage() {
 
   const labelStyle = { color: '#888', fontSize: '0.9rem', marginBottom: '8px', display: 'block', fontWeight: 'bold' };
 
+  // --- RENDERIZADO DE PASOS ---
   const renderPaso = () => {
     switch (paso) {
       case 1:
@@ -242,7 +264,7 @@ export default function UnetePage() {
             
             <label style={labelStyle}><Phone size={16} style={{marginRight: '5px'}}/> Número de Teléfono</label>
             <div style={{display: 'flex', gap: '10px', marginBottom: '15px'}}>
-                <select name="codigoArea" value={formData.codigoArea} onChange={handleInputChange} style={{...inputStyle, width: '30%', marginBottom: 0}}>
+                <select name="codigoArea" value={formData.codigoArea} onChange={handleInputChange} style={{...inputStyle, width: '35%', marginBottom: 0}}>
                     {paises.map(p => (
                         <option key={p.nombre} value={p.codigo}>{p.flag} {p.codigo}</option>
                     ))}
@@ -277,7 +299,7 @@ export default function UnetePage() {
             </button>
           </div>
         );
-      case 2:
+      case 2: // SELECCIÓN DE PLAN (ACTUALIZADO A 5 PLANES)
         return (
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Selecciona tu Plan Élite</h2>
@@ -297,7 +319,10 @@ export default function UnetePage() {
                         <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: esSeleccionado ? 'white' : '#ccc' }}>{plan.nombre}</h3>
                         <div style={{textAlign: 'right'}}><span style={{ fontSize: '1.5rem', fontWeight: 900, color: plan.color }}>${plan.precio}</span></div>
                       </div>
-                      <p style={{ color: '#00C853', margin: '5px 0', fontWeight: 'bold' }}>Rentabilidad: {plan.porcentaje}</p>
+                      <p style={{ color: '#00C853', margin: '5px 0', fontWeight: 'bold' }}>Participación: {plan.porcentaje}</p>
+                      <ul style={{margin: '10px 0 0 0', padding: 0, listStyle: 'none', fontSize: '0.9rem', color: '#888', display: 'flex', flexWrap: 'wrap', gap: '5px 15px'}}>
+                        {plan.detalles.map(d => <li key={d} style={{display: 'flex', alignItems: 'center', gap: '5px'}}><CheckCircle size={14} color="#333"/> {d}</li>)}
+                      </ul>
                     </div>
                   </div>
                 );
@@ -309,7 +334,7 @@ export default function UnetePage() {
             </div>
           </div>
         );
-      case 3:
+      case 3: // MÉTODO DE PAGO (ACTUALIZADO A 5 MÉTODOS COLOMBIA)
         return (
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Método de Pago</h2>
@@ -323,6 +348,7 @@ export default function UnetePage() {
                 {metodosPago.find(m => m.id === formData.metodoPago)?.info.split(' - ').map(infoLine => (
                     <p key={infoLine} style={{margin: '0 0 5px 0'}}>{infoLine}</p>
                 ))}
+                <p style={{margin: '15px 0 0 0', color: '#888', fontSize: '0.85rem'}}>Asegúrate de copiar los datos exactamente y realizar el pago antes de continuar.</p>
             </div>
             <div style={{ display: 'flex', gap: '15px' }}>
               <button onClick={pasoAnterior} style={{ flex: 1, padding: '18px', background: '#111', color: '#888', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Atrás</button>
@@ -330,24 +356,34 @@ export default function UnetePage() {
             </div>
           </div>
         );
-      case 4:
+      case 4: // SUBIR COMPROBANTE (AJUSTE VISUAL DE ERROR)
         const planFinal = planes.find(p => p.id === formData.plan);
         return (
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Verificación de Pago</h2>
+            <p style={{ color: '#888', marginBottom: '30px' }}>Paso 4: Sube una captura de tu comprobante de pago.</p>
             <div style={{ background: '#0a0c10', border: '1px solid #111', padding: '20px', borderRadius: '15px', marginBottom: '20px' }}>
                 <p style={{margin: 0, color: '#555', fontSize: '0.8rem'}}>TOTAL A PAGAR:</p>
                 <p style={{margin: 0, fontSize: '2rem', fontWeight: 900, color: planFinal?.color}}>${planFinal?.precio} USD</p>
+                <p style={{margin: '5px 0 0 0', color: '#888'}}>Plan: {planFinal?.nombre} ({planFinal?.porcentaje})</p>
             </div>
-            <div onClick={() => fileInputRef.current?.click()} style={{ width: '100%', height: '180px', background: '#0a0c10', border: '2px dashed #222', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginBottom: '30px', overflow: 'hidden' }}>
-              {comprobanteUrl ? <img src={comprobanteUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <UploadCloud size={40} color="#555"/>}
+            <label style={labelStyle}><UploadCloud size={16} style={{marginRight: '5px'}}/> Captura del Comprobante (Máx 5MB)</label>
+            <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
+            <div onClick={() => fileInputRef.current?.click()} style={{ width: '100%', height: '180px', background: '#0a0c10', border: '2px dashed #222', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginBottom: '20px', overflow: 'hidden', color: '#555' }}>
+              {comprobanteUrl ? <img src={comprobanteUrl} alt="Comprobante" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <> <UploadCloud size={40} style={{ marginBottom: '10px' }} /> <span>Click para subir imagen</span> </>}
             </div>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
-            {error && <p style={{color: '#ff4444', marginBottom: '15px'}}>⚠️ {error}</p>}
+            
+            {/* CORRECCIÓN VISUAL: El error aparece debajo del cuadro de carga */}
+            {error && (
+              <div style={{ background: 'rgba(255,68,68,0.1)', color: '#ff4444', padding: '15px', borderRadius: '12px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
+                <AlertTriangle size={20} /> {error}
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '15px' }}>
               <button onClick={pasoAnterior} style={{ flex: 1, padding: '18px', background: '#111', color: '#888', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Atrás</button>
-              <button onClick={finalizarRegistro} disabled={loading} style={{ flex: 2, padding: '18px', background: '#00C853', color: 'black', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>
-                {loading ? 'Procesando...' : 'Finalizar Registro'}
+              <button onClick={finalizarRegistro} disabled={loading} style={{ flex: 2, padding: '18px', background: '#00C853', color: 'black', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                {loading ? <><Loader2 className="animate-spin" size={20}/> Procesando...</> : 'Finalizar Registro'}
               </button>
             </div>
           </div>
@@ -359,7 +395,7 @@ export default function UnetePage() {
   return (
     <div style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif' }}>
       
-      {/* BALÓN GIRATORIO */}
+      {/* BALÓN GIRATORIO GLOBAL (Nativo de esta página) */}
       {globalLoading && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(2,4,6,0.9)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
           <div style={{ position: 'relative', width: '120px', height: '120px' }}>
@@ -380,7 +416,7 @@ export default function UnetePage() {
           <div style={{position: 'absolute', top: '20px', left: '0', width: '100%', height: '2px', background: '#111', zIndex: 1}}></div>
           <div style={{position: 'absolute', top: '20px', left: '0', width: `${(paso - 1) * 33.33}%`, height: '2px', background: '#00C853', zIndex: 1, transition: '0.3s'}}></div>
           {[1, 2, 3, 4].map(p => (
-            <div key={p} style={{ width: '40px', height: '40px', borderRadius: '50%', background: paso >= p ? '#00C853' : '#0a0c10', color: paso >= p ? 'black' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', position: 'relative', zIndex: 2, border: paso >= p ? 'none' : '2px solid #111' }}>{p}</div>
+            <div key={p} style={{ width: '40px', height: '40px', borderRadius: '50%', background: paso >= p ? '#00C853' : '#0a0c10', color: paso >= p ? 'black' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', position: 'relative', zIndex: 2, border: paso >= p ? 'none' : '2px solid #111', transition: '0.3s' }}>{p}</div>
           ))}
         </div>
         {renderPaso()}
