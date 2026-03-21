@@ -41,7 +41,7 @@ export default function LandingPage() {
     { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
   ];
 
-  // --- 3. LÓGICA LEGAL ---
+  // --- 3. LÓGICA LEGAL E INFORMACIÓN DE PESTAÑAS (INYECTADA) ---
   const abrirLegal = (tipo: string) => {
     const textos: {[key: string]: {t: string, c: string}} = {
       terminos: { t: "Términos de Servicio", c: "Al participar en nuestros fondos, el inversor reconoce que la gestión algorítmica busca maximizar la eficiencia. El Gurú Élite opera bajo protocolos de transparencia institucional." },
@@ -49,6 +49,16 @@ export default function LandingPage() {
       confidencialidad: { t: "Confidencialidad", c: "Toda estrategia de arbitraje y análisis cuantitativo compartido en esta plataforma es propiedad intelectual protegida y no debe ser divulgada a terceros." }
     };
     setModalAbierto({titulo: textos[tipo].t, contenido: textos[tipo].c});
+  };
+
+  // NUEVA FUNCIÓN PARA PESTAÑAS SUPERIORES
+  const abrirInfoSeccion = (seccion: string) => {
+    const info: {[key: string]: {t: string, c: string}} = {
+      quienes: { t: "Quiénes Somos", c: "Somos un colectivo de analistas y desarrolladores de IA enfocados en la optimización de capital. Nuestra misión es proporcionar herramientas de inversión institucional al inversor privado." },
+      proyecto: { t: "Proyecto Gurú", c: "Un ecosistema tecnológico de alta frecuencia que utiliza redes neuronales para predecir movimientos de mercado con precisión matemática superior." },
+      inversionistas: { t: "Inversionistas", c: "Diseñamos portafolios blindados para capitales que buscan rentabilidad constante. Nuestra infraestructura permite una gestión de activos auditada y segura." }
+    };
+    setModalAbierto({titulo: info[seccion].t, contenido: info[seccion].c});
   };
 
   // --- 4. LOADER DUAL ---
@@ -96,7 +106,7 @@ export default function LandingPage() {
 
   return (
     <div className="elite-landing-master">
-      {/* 💉 MODAL LEGAL (ADICIONAL, NO SUSTITUYE NADA) */}
+      {/* 💉 MODAL DE INFORMACIÓN (ÓRGANO INYECTADO) */}
       {modalAbierto && (
         <div className="legal-overlay" onClick={() => setModalAbierto(null)}>
           <div className="legal-modal glass-effect" onClick={(e) => e.stopPropagation()}>
@@ -115,11 +125,10 @@ export default function LandingPage() {
           <div className="nav-brand">
             <span className="brand-text">EL GURÚ <span className="brand-neon">ÉLITE</span></span>
           </div>
-          {/* SECCIÓN CORREGIDA: Oculta links en móvil para evitar amontonamiento */}
           <div className="nav-links-desktop">
-            <a href="#quienes-somos" className="link-elite">Quiénes Somos</a>
-            <a href="#proyecto-guru" className="link-elite">Proyecto Gurú</a>
-            <a href="#proyecto-inversionistas" className="link-elite">Inversionistas</a>
+            <span onClick={() => abrirInfoSeccion('quienes')} className="link-elite pointer">Quiénes Somos</span>
+            <span onClick={() => abrirInfoSeccion('proyecto')} className="link-elite pointer">Proyecto Gurú</span>
+            <span onClick={() => abrirInfoSeccion('inversionistas')} className="link-elite pointer">Inversionistas</span>
           </div>
           <div className="nav-actions-master">
             <button onClick={(e) => ejecutarTransicion(e, '/panel')} className="btn-access-master">ACCESO EXCLUSIVO</button>
@@ -220,10 +229,11 @@ export default function LandingPage() {
         .brand-neon { color: var(--neon); text-shadow: 0 0 20px rgba(0, 200, 83, 0.5); }
         
         .nav-links-desktop { display: none; gap: 40px; }
-        @media (min-width: 1024px) { .nav-links-desktop { display: flex; } }
+        @media (min-width: 1024px) { .nav-links-desktop { display: flex; align-items: center; } }
         
-        .link-elite { color: #444; text-decoration: none; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+        .link-elite { color: #444; text-decoration: none; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
         .link-elite:hover { color: var(--neon); }
+        .pointer { cursor: pointer; }
         .btn-access-master { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 12px 28px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
         .btn-access-master:hover { background: var(--neon); color: black; box-shadow: 0 0 15px var(--neon); }
 
@@ -239,7 +249,7 @@ export default function LandingPage() {
         .hero-visuals-horizontal { max-width: 1400px; margin: 0 auto; padding: 80px 30px; display: flex; flex-direction: column; align-items: center; gap: 25px; position: relative; }
         @media (min-width: 1024px) { .hero-visuals-horizontal { flex-direction: row; justify-content: center; gap: 20px; margin-top: 100px; } }
         .master-glow-orb { position: absolute; width: 500px; height: 500px; background: var(--neon); filter: blur(160px); opacity: 0.1; z-index: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .stat-card-horizontal { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(0, 200, 83, 0.1); border-radius: 12px; padding: 25px; display: flex; align-items: center; gap: 20px; width: 100%; position: relative; z-index: 10; transition: 0.5s; }
+        .stat-card-horizontal { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(0, 200, 83, 0.1); border-radius: 12px; padding: 25px; display: flex; align-items: center; gap: 20px; width: 100%; position: relative; z-index: 10; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1); }
         .stat-card-horizontal:hover { border-color: var(--neon); transform: translateY(-5px); }
         @media (min-width: 1024px) { .stat-card-horizontal { width: auto; flex: 1; max-width: 320px; } }
         .stat-icon-glow { background: rgba(0, 200, 83, 0.1); padding: 16px; border-radius: 10px; }
