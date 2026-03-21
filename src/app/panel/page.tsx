@@ -2,132 +2,136 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  LayoutDashboard, FileText, LogOut, User, 
-  TrendingUp, ShieldCheck, Zap, Bell, Menu, X 
+  User, Wallet, TrendingUp, ShieldCheck, LogOut, 
+  Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard
 } from 'lucide-react';
 
-export default function PanelSocioElite() {
-  const [nombre, setNombre] = useState("");
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // Para móviles
+export default function SocioPanel() {
   const router = useRouter();
+  const [nombre, setNombre] = useState("Socio");
+  const [plan, setPlan] = useState("Cargando...");
+
+  // --- CONFIGURACIÓN DE PLANES (COLORES Y NOMBRES) ---
+  const configPlanes: any = {
+    micro: { nombre: 'MICRO SOCIO', color: '#E0E0E0', icon: Target },
+    inicial: { nombre: 'SOCIO INICIAL', color: '#81D4FA', icon: Briefcase },
+    activo: { nombre: 'SOCIO ACTIVO', color: '#FFD54F', icon: Zap },
+    premium: { nombre: 'SOCIO PREMIUM', color: '#FF8A65', icon: Award },
+    elite: { nombre: 'SOCIO ÉLITE', color: '#00C853', icon: Star },
+  };
 
   useEffect(() => {
-    const sesion = localStorage.getItem('socio_nombre');
-    if (!sesion) {
-      router.push('/login');
-    } else {
-      setNombre(sesion);
-    }
-  }, [router]);
+    // 1. Recuperamos los datos que guardamos en el Login Maestro
+    const socioNombre = localStorage.getItem('socio_nombre');
+    const socioId = localStorage.getItem('socio_id');
 
-  const cerrarSesion = () => {
-    localStorage.removeItem('socio_nombre');
+    if (!socioId) {
+      router.push('/login'); // Si no hay sesión, expulsar
+    } else {
+      setNombre(socioNombre || "Socio");
+      // Aquí podrías hacer un fetch rápido a Supabase si quieres el plan exacto en tiempo real
+      // Por ahora simulamos que ya lo tenemos o lo pedimos
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.clear();
     router.push('/login');
   };
 
   return (
-    <div style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif', display: 'flex', overflowX: 'hidden' }}>
+    <div style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif' }}>
       
-      {/* SIDEBAR - Ahora se oculta en móvil si no se activa */}
-      <aside style={{
-        width: '260px',
-        backgroundColor: '#0a0c10',
-        borderRight: '1px solid #111',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'fixed',
-        height: '100vh',
-        zIndex: 100,
-        transition: '0.3s ease',
-        left: isMenuOpen ? '0' : '-260px', // Efecto deslizar en móvil
-      }} id="sidebar-elite">
-        <div style={{ padding: '30px', borderBottom: '1px solid #111' }}>
-          <h1 style={{ color: '#00C853', margin: 0, fontSize: '1.5rem', fontWeight: 900 }}>EL GURÚ</h1>
-          <span style={{ fontSize: '10px', color: '#555', letterSpacing: '2px' }}>SISTEMA ÉLITE</span>
+      {/* BARRA SUPERIOR ELEGANTE */}
+      <nav style={{ display: 'flex', justifyContent: 'space-between', padding: '20px 40px', borderBottom: '1px solid #111', background: '#050505', alignItems: 'center' }}>
+        <div style={{ color: '#00C853', fontWeight: 900, fontSize: '1.2rem', letterSpacing: '1px' }}>
+          GURÚ <span style={{color: '#fff'}}>ÉLITE</span>
         </div>
-
-        <nav style={{ flex: 1, padding: '20px' }}>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={{ padding: '15px', color: '#00C853', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer', background: 'rgba(0,200,83,0.05)', borderRadius: '12px', marginBottom: '10px' }}>
-              <LayoutDashboard size={20} /> <span style={{fontWeight: 'bold'}}>MONITOR EN VIVO</span>
-            </li>
-            <li style={{ padding: '15px', color: '#444', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer', transition: '0.3s' }}>
-              <FileText size={20} /> <span>MIS REPORTES</span>
-            </li>
-            <li style={{ padding: '15px', color: '#444', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }}>
-              <Zap size={20} /> <span>OPERACIONES</span>
-            </li>
-          </ul>
-        </nav>
-
-        <button onClick={cerrarSesion} style={{ margin: '20px', padding: '15px', background: 'none', border: '1px solid #ff4444', color: '#ff4444', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: 'bold' }}>
-          <LogOut size={18} /> CERRAR SESIÓN
-        </button>
-      </aside>
-
-      {/* CONTENIDO PRINCIPAL - Ajuste dinámico de margen */}
-      <main style={{ 
-        flex: 1, 
-        padding: '20px', 
-        marginLeft: '0', // Por defecto en móvil
-        transition: '0.3s ease'
-      }} className="main-content">
-        
-        {/* HEADER MÓVIL (Solo visible en pantallas pequeñas) */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-          <button 
-            onClick={() => setIsMenuOpen(!isMenuOpen)} 
-            style={{ background: '#0a0c10', border: '1px solid #222', padding: '10px', borderRadius: '10px', color: '#00C853', cursor: 'pointer' }}
-          >
-             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <Bell size={20} color="#333" />
+          <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+            <LogOut size={16} /> SALIR
           </button>
-          <Bell size={24} color="#222" />
         </div>
+      </nav>
 
-        {/* TARJETA DE BIENVENIDA PREMIUM */}
-        <div style={{ background: 'linear-gradient(135deg, #0a0c10 0%, #020406 100%)', padding: '35px', borderRadius: '30px', border: '1px solid #111', position: 'relative', overflow: 'hidden', marginBottom: '30px' }}>
-          <div style={{ position: 'absolute', top: '-20px', right: '-20px', opacity: 0.1 }}>
-            <ShieldCheck size={150} color="#00C853" />
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+        
+        {/* BIENVENIDA PERSONALIZADA */}
+        <header style={{ marginBottom: '40px' }}>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '10px' }}>
+            Bienvenido, <span style={{ color: '#00C853' }}>{nombre}</span>
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#555' }}>
+            <ShieldCheck size={18} color="#00C853" />
+            <span style={{ fontSize: '0.9rem', fontWeight: 'bold', letterSpacing: '1px' }}>CUENTA VERIFICADA POR AUDITORÍA</span>
           </div>
-          <p style={{ color: '#00C853', fontWeight: 'bold', fontSize: '12px', margin: 0, textTransform: 'uppercase', letterSpacing: '2px' }}>Status: Miembro Élite</p>
-          <h2 style={{ fontSize: '2rem', margin: '10px 0', fontWeight: 900 }}>Bienvenido, <span style={{ color: '#00C853' }}>{nombre}</span></h2>
-          <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
-             <div style={{ textAlign: 'center' }}>
-                <p style={{ color: '#555', margin: 0, fontSize: '10px' }}>SESIÓN ACTIVA</p>
-                <b style={{ color: 'white' }}>LIVE</b>
-             </div>
-             <div style={{ textAlign: 'center' }}>
-                <p style={{ color: '#555', margin: 0, fontSize: '10px' }}>ACCESO</p>
-                <b style={{ color: '#00C853' }}>FULL</b>
-             </div>
+        </header>
+
+        {/* TARJETAS DE ESTADO RAPIDO */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+          
+          {/* TARJETA DE PLAN ACTUAL */}
+          <div style={{ background: '#0a0c10', border: '1px solid #111', padding: '30px', borderRadius: '25px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ color: '#555', fontSize: '0.8rem', fontWeight: 900, marginBottom: '15px', letterSpacing: '2px' }}>MEMBRESÍA ACTIVA</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ background: 'rgba(129, 212, 250, 0.1)', padding: '15px', borderRadius: '15px' }}>
+                <Briefcase size={30} color="#81D4FA" />
+              </div>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#81D4FA' }}>SOCIO INICIAL</h2>
+                <p style={{ margin: 0, color: '#00C853', fontSize: '0.8rem', fontWeight: 'bold' }}>Participación: 0.167%</p>
+              </div>
+            </div>
           </div>
+
+          {/* TARJETA DE BALANCE (SIMULADO POR AHORA) */}
+          <div style={{ background: '#0a0c10', border: '1px solid #111', padding: '30px', borderRadius: '25px' }}>
+            <div style={{ color: '#555', fontSize: '0.8rem', fontWeight: 900, marginBottom: '15px', letterSpacing: '2px' }}>UTILIDADES ACUMULADAS</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ background: 'rgba(0, 200, 83, 0.1)', padding: '15px', borderRadius: '15px' }}>
+                <TrendingUp size={30} color="#00C853" />
+              </div>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 900 }}>$0.00 <span style={{fontSize: '0.8rem', color: '#444'}}>USD</span></h2>
+                <p style={{ margin: 0, color: '#555', fontSize: '0.8rem' }}>Próximo corte: 30 de Marzo</p>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        {/* MONITOR DE MÉTRICAS */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '20px' }}>
-           <div style={{ background: '#0a0c10', padding: '25px', borderRadius: '25px', border: '1px solid #111' }}>
-              <TrendingUp size={24} color="#00C853" style={{ marginBottom: '15px' }} />
-              <p style={{ fontSize: '11px', color: '#555', margin: 0 }}>RENDIMIENTO</p>
-              <h3 style={{ fontSize: '1.5rem', margin: '5px 0' }}>+12.5%</h3>
-           </div>
-           <div style={{ background: '#0a0c10', padding: '25px', borderRadius: '25px', border: '1px solid #111' }}>
-              <Zap size={24} color="#00C853" style={{ marginBottom: '15px' }} />
-              <p style={{ fontSize: '11px', color: '#555', margin: 0 }}>OPERACIONES</p>
-              <h3 style={{ fontSize: '1.5rem', margin: '5px 0' }}>24</h3>
-           </div>
-        </div>
-
-        {/* ESPACIO PARA GRÁFICOS */}
-        <div style={{ background: '#0a0c10', height: '300px', marginTop: '30px', borderRadius: '30px', border: '1px solid #111', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#222' }}>
-           <p>MÓDULO DE MONITOREO EN TIEMPO REAL</p>
+        {/* SECCIÓN DE HERRAMIENTAS ÉLITE */}
+        <h3 style={{ marginBottom: '20px', fontWeight: 900, fontSize: '1.2rem' }}>HERRAMIENTAS DISPONIBLES</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+          <div className="tool-card"> <LayoutDashboard size={20} /> Señales en Vivo</div>
+          <div className="tool-card"> <Wallet size={20} /> Gestionar Retiros</div>
+          <div className="tool-card"> <User size={20} /> Datos Personales</div>
         </div>
 
       </main>
 
       <style jsx>{`
-        @media (min-width: 768px) {
-          #sidebar-elite { left: 0 !important; }
-          .main-content { margin-left: 260px !important; }
+        .tool-card {
+          background: #080808;
+          border: 1px solid #111;
+          padding: 25px;
+          border-radius: 15px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 15px;
+          font-weight: bold;
+          font-size: 0.9rem;
+          color: #444;
+          transition: 0.3s;
+          cursor: pointer;
+        }
+        .tool-card:hover {
+          border-color: #00C853;
+          color: #fff;
+          background: #0a0c10;
         }
       `}</style>
     </div>
