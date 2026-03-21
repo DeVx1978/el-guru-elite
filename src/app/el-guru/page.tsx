@@ -66,7 +66,7 @@ export default function ElGuruInfo() {
         {/* BOTÓN DE ACCIÓN */}
         <div style={{ marginTop: '80px', textAlign: 'center', padding: '60px', background: '#0a0c10', borderRadius: '30px', border: '1px solid #00C853' }}>
           <h2 style={{ marginBottom: '30px', fontSize: '28px' }}>¿LISTO PARA EL MUNDIAL?</h2>
-          <button onClick={() => window.location.href = '/registro'} style={{ backgroundColor: '#00C853', color: 'black', padding: '20px 50px', borderRadius: '12px', border: 'none', fontWeight: '900', fontSize: '18px', cursor: 'pointer', textTransform: 'uppercase' }}>
+          <button onClick={() => window.location.href = '/unete'} style={{ backgroundColor: '#00C853', color: 'black', padding: '20px 50px', borderRadius: '12px', border: 'none', fontWeight: '900', fontSize: '18px', cursor: 'pointer', textTransform: 'uppercase' }}>
             Registrarme como Gurú
           </button>
         </div>

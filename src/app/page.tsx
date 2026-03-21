@@ -64,7 +64,7 @@ export default function HomePage() {
         
         {/* ACCESO SOCIOS (NUEVA SECCIÓN REQUERIDA) */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', justifyContent: 'center' }}>
-          <button onClick={() => { setLoading(true); window.location.href = '/registro'; }} style={{ backgroundColor: '#00C853', color: '#000', padding: '22px 50px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>
+          <button onClick={() => { setLoading(true); window.location.href = '/unete'; }} style={{ backgroundColor: '#00C853', color: '#000', padding: '22px 50px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '14px' }}>
             ADQUIRIR MEMBRESÍA
           </button>
           <button onClick={() => { setLoading(true); window.location.href = '/login'; }} style={{ backgroundColor: 'transparent', color: '#FFF', padding: '22px 50px', borderRadius: '14px', border: '2px solid #333', fontWeight: 800, cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
