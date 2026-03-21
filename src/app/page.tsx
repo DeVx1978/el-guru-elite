@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, ArrowUpRight, ImageIcon, Menu, X, Lock, FileText, Scale 
+  ShieldCheck, ArrowUpRight, Menu, X, Lock, FileText, Scale, Activity 
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -10,22 +10,18 @@ export default function LandingPage() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const router = useRouter();
 
-  // --- EFECTO DE CARGA EXCLUSIVO DE 5 SEGUNDOS (AJUSTADO PARA CERO PARPADEO) ---
   useEffect(() => {
-    // Forzamos el estado inicial de carga antes de montar
     setLoading(true); 
     const timer = setTimeout(() => setLoading(false), 5000);
     return () => clearTimeout(timer);
   }, []);
 
-  // 1. PANTALLA DE CARGA (SPLASH SCREEN) - IMPACTO INICIAL SIN PARPADEO
   if (loading) {
     return (
       <div className="splash">
         <div className="loader-container">
           <div className="pulse-ring"></div>
           <div className="image-wrapper">
-            {/* CORRECCIÓN 1: Imagen precargada y optimizada para evitar parpadeo previo */}
             <img src="/images/guru.jpg" alt="El Guru Elite" fetchPriority="high" />
           </div>
           <div className="scan-line"></div>
@@ -36,7 +32,6 @@ export default function LandingPage() {
         <h2 className="loading-text">IDENTIFICANDO INVERSOR ÉLITE...</h2>
 
         <style jsx global>{`
-          /* Estilos del Splash resguardados al 100% */
           .splash {
             background: radial-gradient(circle at center, #0a0c10 0%, #000 100%);
             height: 100vh;
@@ -83,46 +78,46 @@ export default function LandingPage() {
 
   return (
     <div className="elite-landing">
-      {/* 2. HEADER PROFESIONAL - CORRECCIÓN 2: MENÚ HAMBURGUESA RESTAURADO */}
+      {/* 2. HEADER - AJUSTE DE RUTAS Y MENÚ HAMBURGUESA ACTUALIZADO */}
       <nav className="navbar">
         <div className="nav-content">
           <div className="nav-logo">
             <span className="logo-text">EL GURÚ <span className="neon-text">ÉLITE</span></span>
           </div>
           
-          {/* Links de escritorio (ocultos en móvil) */}
           <div className="nav-links-desktop">
-            <a href="#portafolio" className="nav-link">Portafolio</a>
-            <a href="#nosotros" className="nav-link">Nosotros</a>
-            <a href="#soporte" className="nav-link">Soporte</a>
+            <a href="#quienes-somos" className="nav-link">Quiénes Somos</a>
+            <a href="#proyecto-guru" className="nav-link">Proyecto Gurú</a>
+            <a href="#proyecto-inversionistas" className="nav-link">Proyecto Inversionistas</a>
           </div>
 
           <div className="nav-actions">
-            <button onClick={() => router.push('/unete')} className="btn-access">ACCESO PRIVADO</button>
-            {/* BOTÓN HAMBURGUESA (Solo visible en móvil) */}
+            {/* CORRECCIÓN: Acceso Privado ahora va al Login (Panel) */}
+            <button onClick={() => router.push('/panel')} className="btn-access">ACCESO PRIVADO</button>
             <button onClick={() => setMenuAbierto(!menuAbierto)} className="btn-hamburger">
               {menuAbierto ? <X size={24} color="white" /> : <Menu size={24} color="white" />}
             </button>
           </div>
         </div>
 
-        {/* MENÚ MÓVIL DESPLEGABLE */}
+        {/* MENÚ MÓVIL ACTUALIZADO CON TUS NUEVAS SECCIONES */}
         {menuAbierto && (
           <div className="mobile-menu fade-in-menu">
-            <a href="#portafolio" onClick={() => setMenuAbierto(false)} className="mobile-link">Portafolio Élite</a>
-            <a href="#nosotros" onClick={() => setMenuAbierto(false)} className="mobile-link">Nuestra Filosofía</a>
-            <a href="#soporte" onClick={() => setMenuAbierto(false)} className="mobile-link">Soporte VIP</a>
+            <a href="#quienes-somos" onClick={() => setMenuAbierto(false)} className="mobile-link">Quiénes Somos</a>
+            <a href="#proyecto-guru" onClick={() => setMenuAbierto(false)} className="mobile-link">Proyecto Gurú</a>
+            <a href="#proyecto-inversionistas" onClick={() => setMenuAbierto(false)} className="mobile-link">Proyecto Inversionistas</a>
             <div className="menu-divider"></div>
-            <button onClick={() => { router.push('/unete'); setMenuAbierto(false); }} className="btn-access-mobile">REGISTRO DE SOCIO</button>
+            {/* BOTÓN VERDE ELIMINADO SEGÚN INSTRUCCIÓN */}
+            <p className="menu-footer-text">EL GURÚ ÉLITE TERMINAL</p>
           </div>
         )}
       </nav>
 
-      {/* 3. HERO SECTION - SIN TOCAR NADA */}
+      {/* 3. HERO SECTION - REDUNDANCIA ELIMINADA */}
       <section className="hero">
         <div className="hero-grid">
           <div className="hero-text-block">
-            <div className="hero-tag">NETWORK DE INVERSIÓN V4.1</div>
+            <div className="hero-tag">NETWORK DE INVERSIÓN V4.2</div>
             <h1 className="hero-title">
               ARQUITECTURA DE <br/>
               <span className="gradient-text">RENTABILIDAD</span>
@@ -132,6 +127,7 @@ export default function LandingPage() {
               Algoritmos de alta frecuencia diseñados para el 1% de los inversores globales.
             </p>
             <div className="hero-buttons">
+              {/* CORRECCIÓN: Comenzar Ahora va al registro de nuevos socios */}
               <button onClick={() => router.push('/unete')} className="btn-primary">
                 COMENZAR AHORA <ArrowUpRight size={18} />
               </button>
@@ -142,7 +138,7 @@ export default function LandingPage() {
             <div className="glow-orb"></div>
             <div className="glass-card stat-card-1">
               <div className="stat-icon-bg">
-                <ShieldCheck color="#00C853" size={24} />
+                <Activity color="#00C853" size={24} />
               </div>
               <div className="stat-data">
                 <span className="stat-label">RENDIMIENTO <br/>PROMEDIO</span>
@@ -150,15 +146,15 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="glass-card stat-card-2">
-              <Lock color="#00C853" size={18} />
+              <ShieldCheck color="#00C853" size={18} />
               <span>CAPITAL TOTALMENTE PROTEGIDO</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. SECCIÓN DE PLANES - SIN TOCAR NADA (5 PLANES) */}
-      <section id="portafolio" className="plans-section">
+      {/* 4. SECCIÓN DE PLANES */}
+      <section id="proyecto-inversionistas" className="plans-section">
         <div className="section-header">
           <h2 className="section-title">PORTAFOLIO DE MEMBRESÍAS</h2>
           <p className="section-subtitle">Selecciona tu nivel de participación en las utilidades globales.</p>
@@ -189,7 +185,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 5. FOOTER PROFESIONAL - CORRECCIÓN 3: LINKS LEGALES RESTAURADOS */}
+      {/* 5. FOOTER PROFESIONAL CON LINKS LEGALES */}
       <footer className="footer">
         <div className="footer-content">
           <div className="footer-links">
@@ -204,14 +200,11 @@ export default function LandingPage() {
       </footer>
 
       <style jsx global>{`
-        /* ESTILOS RESGUARDADOS AL 100% (Solo añadidos los necesarios para las correcciones) */
         .elite-landing {
           background-color: #000; color: white; min-height: 100vh;
           font-family: 'Inter', -apple-system, sans-serif; overflow-x: hidden;
-          padding-top: 80px; /* Espacio para el navbar fixed */
+          padding-top: 80px;
         }
-        
-        /* NAVBAR RESPONSIVE MEJORADO */
         .navbar {
           width: 100%; position: fixed; top: 0; z-index: 100;
           backdrop-filter: blur(20px); background: rgba(0, 0, 0, 0.9);
@@ -224,8 +217,6 @@ export default function LandingPage() {
         @media (min-width: 768px) { .nav-content { padding: 20px 50px; } }
         .logo-text { font-weight: 900; font-size: 1.1rem; letter-spacing: -0.5px; }
         .neon-text { color: #00C853; text-shadow: 0 0 10px rgba(0,200,83,0.3); }
-        
-        /* Links escritorio */
         .nav-links-desktop { display: none; gap: 30px; }
         @media (min-width: 992px) { .nav-links-desktop { display: flex; } }
         .nav-link {
@@ -233,7 +224,6 @@ export default function LandingPage() {
           transition: 0.2s; text-transform: uppercase; letter-spacing: 1px;
         }
         .nav-link:hover { color: white; }
-
         .nav-actions { display: flex; align-items: center; gap: 15px; }
         .btn-access {
           background: transparent; border: 1px solid #00C853;
@@ -241,23 +231,18 @@ export default function LandingPage() {
           font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
         .btn-access:hover { background: #00C853; color: black; }
-        
-        /* Botón Hamburguesa */
         .btn-hamburger { display: block; background: transparent; border: none; cursor: pointer; padding: 0; }
         @media (min-width: 992px) { .btn-hamburger { display: none; } }
-
-        /* Menú Móvil */
         .mobile-menu {
           position: absolute; top: 100%; left: 0; width: 100%;
           background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(20px);
           padding: 30px; border-bottom: 1px solid rgba(255,255,255,0.05);
           display: flex; flex-direction: column; gap: 20px; text-align: center;
         }
-        .mobile-link { color: white; text-decoration: none; font-size: 16px; font-weight: bold; text-transform: uppercase; }
+        .mobile-link { color: white; text-decoration: none; font-size: 15px; font-weight: bold; text-transform: uppercase; }
         .menu-divider { width: 40px; height: 1px; background: rgba(255,255,255,0.1); margin: 10px auto; }
-        .btn-access-mobile { background: #00C853; color: black; border: none; padding: 15px; border-radius: 4px; font-weight: 900; font-size: 14px; }
+        .menu-footer-text { color: #222; font-size: 10px; font-weight: bold; letter-spacing: 2px; }
 
-        /* HERO RESPONSIVE (Resguardado) */
         .hero { max-width: 1200px; margin: 0 auto; padding: 60px 20px; }
         @media (min-width: 768px) { .hero { padding: 100px 50px; } }
         .hero-grid { display: grid; grid-template-columns: 1fr; gap: 40px; }
@@ -286,7 +271,6 @@ export default function LandingPage() {
         .stat-card-2 { display: flex; gap: 10px; align-items: center; padding: 12px 20px; font-size: 11px; color: #ccc; font-weight: bold; position: absolute; bottom: 15%; left: 5%; animation: float 6s ease-in-out infinite reverse; }
         .glow-orb { position: absolute; width: 250px; height: 250px; background: #00C853; filter: blur(100px); opacity: 0.15; }
 
-        /* PLANES (Resguardado) */
         .plans-section { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
         @media (min-width: 768px) { .plans-section { padding: 100px 50px; } }
         .section-header { text-align: center; margin-bottom: 50px; }
@@ -302,32 +286,27 @@ export default function LandingPage() {
         .plan-category { color: #555; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
         .plan-name { color: #00C853; font-size: 1.4rem; font-weight: 900; margin: 5px 0 0; text-transform: uppercase; }
         .plan-body { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        .plan-divider { width: 40px; height: 1px; background: rgba(255,255,255,0.05); margin: 0 auto 20px; }
         .plan-price { margin-bottom: 20px; color: white; display: flex; align-items: baseline; justify-content: center; gap: 2px; }
         .plan-price .currency { font-size: 18px; color: #00C853; font-weight: bold; }
         .plan-price .amount { font-size: 3rem; font-weight: 900; line-height: 1; }
         .plan-price .usd { font-size: 10px; color: #555; font-weight: bold; }
-        .plan-divider { width: 40px; height: 1px; background: rgba(255,255,255,0.05); margin: 0 auto 20px; }
         .plan-perk { color: #fff; font-size: 14px; font-weight: bold; margin-bottom: 8px; }
         .plan-desc { color: #666; font-size: 12px; line-height: 1.4; margin-bottom: 30px; }
         .btn-select { background: transparent; border: 1px solid #222; color: white; width: 100%; padding: 12px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
         .btn-select:hover { background: white; color: black; border-color: white; }
 
-        /* FOOTER PROFESIONAL (Restaurado y mejorado) */
         .footer { padding: 60px 20px 40px; border-top: 1px solid rgba(255,255,255,0.02); background: #050505; }
         @media (min-width: 768px) { .footer { padding: 80px 50px 40px; } }
         .footer-content { max-width: 1200px; margin: 0 auto; text-align: center; }
         .footer-links { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-bottom: 30px; }
         @media (min-width: 768px) { .footer-links { flex-direction: row; justify-content: center; gap: 40px; } }
-        .footer-link {
-          color: #666; text-decoration: none; font-size: 12px; font-weight: 500;
-          transition: 0.2s; display: flex; align-items: center; gap: 8px;
-        }
+        .footer-link { color: #666; text-decoration: none; font-size: 12px; font-weight: 500; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
         .footer-link:hover { color: #00C853; }
         .footer-divider { width: 50px; height: 1px; background: rgba(255,255,255,0.03); margin: 0 auto 30px; }
         .footer-copy { color: #444; font-size: 10px; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
         .footer-disclaimer { color: #222; font-size: 9px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* ANIMACIONES (Resguardado) */
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         .fade-in-card { opacity: 0; animation: fadeInCard 0.8s ease forwards; }
         @keyframes fadeInCard { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
