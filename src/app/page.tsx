@@ -133,7 +133,7 @@ export default function LandingPage() {
             <div className="hero-status-tag"><Zap size={14} color="#00C853" /> NETWORK DE INVERSIÓN INSTITUCIONAL</div>
             <h1 className="hero-main-title">
               <span className="text-glow-neon">LA CIENCIA DE</span> <br/>
-              RENTABILIZAR
+              PREDECIR
             </h1>
             <p className="hero-subtext">
               Optimización estratégica de activos mediante algoritmos de IA de alta frecuencia. 
