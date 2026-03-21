@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'navigation';
+import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, ArrowUpRight, Lock, FileText, Scale, Activity, Zap, TrendingUp, Globe, ChevronDown 
 } from 'lucide-react';
@@ -8,7 +8,6 @@ import {
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
-  const [seccionExpandida, setSeccionExpandida] = useState<string | null>(null);
   const router = useRouter();
 
   // --- 1. CARGA INICIAL (5 SEGUNDOS) ---
@@ -19,17 +18,14 @@ export default function LandingPage() {
     return () => clearTimeout(timer);
   }, [router]);
 
-  // --- 2. NAVEGACIÓN BLINDADA ---
+  // --- 2. CIRUGÍA DE NAVEGACIÓN BLINDADA (4 SEGUNDOS) ---
   const ejecutarTransicion = (e: React.MouseEvent, ruta: string) => {
     e.preventDefault(); 
     setIsNavigating(true); 
+    
     setTimeout(() => {
       router.push(ruta);
     }, 4000); 
-  };
-
-  const toggleSeccion = (id: string) => {
-    setSeccionExpandida(seccionExpandida === id ? null : id);
   };
 
   const membresias = [
@@ -40,7 +36,7 @@ export default function LandingPage() {
     { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
   ];
 
-  // --- 3. LOADER DUAL ---
+  // --- 3. RENDERIZADO DEL LOADER DUAL (SIN PARPADEOS) ---
   if (loading || isNavigating) {
     return (
       <div className="splash-master">
@@ -51,6 +47,7 @@ export default function LandingPage() {
           </div>
           <div className="scan-line"></div>
         </div>
+        
         <div className="welcome-container-luxe">
           <div className="loading-bar-master">
             <div className="loading-bar-fill"></div>
@@ -62,10 +59,17 @@ export default function LandingPage() {
             {isNavigating ? "ABRIENDO PUERTA DE ENLACE SEGURO" : "LA PUERTA AL CAPITAL GLOBAL SE ESTÁ ABRIENDO"}
           </p>
         </div>
+
         <style jsx global>{`
-          .splash-master { background: radial-gradient(circle at center, #0a0c10 0%, #000 100%) !important; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; }
+          .splash-master {
+            background: radial-gradient(circle at center, #0a0c10 0%, #000 100%) !important;
+            height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999;
+          }
           .loader-container { position: relative; width: 220px; height: 220px; margin-bottom: 40px; transition: all 0.5s ease; }
-          .nav-mode { width: 160px; height: 160px; }
+          .nav-mode { width: 160px; height: 160px; filter: brightness(1.2); } 
+          @media (max-width: 768px) { .loader-container { width: 180px; height: 180px; } .nav-mode { width: 130px; height: 130px; } }
           .image-wrapper { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid #00C853; box-shadow: 0 0 60px rgba(0, 200, 83, 0.5); position: relative; z-index: 2; }
           .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
           .pulse-ring { position: absolute; top: -15%; left: -15%; width: 130%; height: 130%; border: 2px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.4; }
@@ -118,7 +122,6 @@ export default function LandingPage() {
                 COMENZAR AHORA <ArrowUpRight size={20} />
               </button>
             </div>
-            {/* Estadística móvil */}
             <div className="mobile-stat-wrapper">
               <div className="stat-card-luxe glass-effect">
                 <div className="stat-header"><Activity size={24} color="#00C853" /> RENDIMIENTO AUDITADO</div>
@@ -127,7 +130,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* COLUMNA DERECHA OPERADA (PC) */}
+          {/* COLUMNA DERECHA: REDISTRIBUCIÓN MAESTRA */}
           <div className="hero-visuals-right">
             <div className="master-glow-orb"></div>
             
@@ -206,7 +209,7 @@ export default function LandingPage() {
         .text-glow-neon { background: linear-gradient(180deg, #fff 40%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 22px 50px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; gap: 15px; cursor: pointer; }
 
-        /* --- REDISTRIBUCIÓN HERO VISUALS (PC) --- */
+        /* --- REDISTRIBUCIÓN MAESTRA DEL HERO VISUALS --- */
         .hero-visuals-right { display: none; position: relative; height: 550px; }
         @media (min-width: 1024px) { 
           .hero-visuals-right { 
@@ -214,13 +217,23 @@ export default function LandingPage() {
             flex-direction: column; 
             justify-content: center; 
             align-items: center; 
-            gap: 40px; /* Espaciado generoso entre estadísticas */
+            gap: 40px; /* Espacio negro entre elementos */
           } 
         }
         .master-glow-orb { position: absolute; width: 500px; height: 500px; background: var(--neon); filter: blur(160px); opacity: 0.12; z-index: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 
-        .stat-card-master { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(0, 200, 83, 0.2); border-radius: 20px; padding: 35px; position: relative; z-index: 10; transition: 0.5s; }
-        .stat-card-master:hover { border-color: var(--neon); box-shadow: 0 0 30px rgba(0, 200, 83, 0.2); }
+        .stat-card-master { 
+          background: var(--glass); 
+          backdrop-filter: blur(40px); 
+          border: 1px solid rgba(0, 200, 83, 0.2); 
+          border-radius: 20px; 
+          padding: 35px; 
+          position: relative; 
+          z-index: 10; 
+          transition: 0.5s; 
+          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .stat-card-master:hover { border-color: var(--neon); box-shadow: 0 0 30px rgba(0, 200, 83, 0.2); transform: translateY(-5px); }
         .glass-depth-1 { width: 320px; }
         .stat-icon-glow { background: rgba(0, 200, 83, 0.1); padding: 18px; border-radius: 15px; display: inline-block; margin-bottom: 15px; }
         .stat-label-master { font-size: 11px; color: #444; font-weight: 900; line-height: 1.4; display: block; }
@@ -228,14 +241,12 @@ export default function LandingPage() {
         .stat-value-master small { font-size: 12px; color: var(--neon); }
         .glass-depth-2 { padding: 18px 28px; font-size: 12px; font-weight: 900; color: #888; display: flex; align-items: center; gap: 14px; width: fit-content; }
 
-        /* Móvil */
         .mobile-stat-wrapper { margin-top: 60px; }
         @media (min-width: 1024px) { .mobile-stat-wrapper { display: none; } }
         .stat-card-luxe { padding: 35px; border-radius: 20px; background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 30px 70px rgba(0, 200, 83, 0.15); }
         .stat-header { display: flex; align-items: center; gap: 15px; font-size: 11px; font-weight: 900; color: #444; letter-spacing: 2px; }
         .stat-value { font-size: 36px; font-weight: 900; margin-top: 15px; }
 
-        /* Membresías */
         .plans-section-luxe { padding: 140px 30px; max-width: 1600px; margin: 0 auto; }
         .section-header-luxe { text-align: center; margin-bottom: 80px; }
         .header-tag-luxe { color: #444; font-size: 11px; font-weight: 900; letter-spacing: 5px; margin-bottom: 15px; display: block; }
@@ -250,7 +261,6 @@ export default function LandingPage() {
         .btn-m-acquire { background: transparent; border: 1px solid var(--card-color); color: var(--card-color); padding: 14px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
         .btn-m-acquire:hover { background: var(--card-color); color: black; }
 
-        /* Footer */
         .footer-elite-master { padding: 80px 30px; background: #050505; text-align: center; border-top: 1px solid #111; }
         .footer-links-row { display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; }
         .f-item-elite { color: #444; font-size: 13px; font-weight: 900; display: flex; align-items: center; gap: 10px; }
