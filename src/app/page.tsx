@@ -38,6 +38,7 @@ export default function LandingPage() {
     { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
   ];
 
+  // --- 2. LOADER TERMINAL SEGURA (CON MICRO-CIRUGÍA DE CENTRADO MÓVIL) ---
   if (loading || isNavigating) {
     return (
       <div className="splash-master">
@@ -48,28 +49,94 @@ export default function LandingPage() {
           </div>
           <div className="scan-line"></div>
         </div>
-        <div className="loading-bar-master">
-          <div className="loading-bar-fill"></div>
+        
+        {/* Nuevo Contenedor de Bienvenida Centrado Matemáticamente */}
+        <div className="welcome-container-luxe">
+          <div className="loading-bar-master">
+            <div className="loading-bar-fill"></div>
+          </div>
+          <h2 className="loading-text-elite">
+            {isNavigating ? "AUTENTICANDO ACCESO..." : "IDENTIFICANDO INVERSOR ÉLITE..."}
+          </h2>
+          <p className="welcome-subtext">LA PUERTA AL CAPITAL GLOBAL SE ESTÁ ABRIENDO</p>
         </div>
-        <h2 className="loading-text-elite">
-          {isNavigating ? "ACCEDIENDO A TERMINAL SEGURA..." : "IDENTIFICANDO INVERSOR ÉLITE..."}
-        </h2>
+
         <style jsx global>{`
           .splash-master {
-            background: #000 !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 99999999;
+            background: radial-gradient(circle at center, #0a0c10 0%, #000 100%) !important;
+            height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 99999;
           }
           .loader-container { position: relative; width: 220px; height: 220px; margin-bottom: 40px; }
-          .image-wrapper { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid #00C853; box-shadow: 0 0 80px rgba(0, 200, 83, 0.4); position: relative; z-index: 2; }
+          @media (max-width: 768px) { .loader-container { width: 180px; height: 180px; } }
+          
+          .image-wrapper {
+            width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+            border: 2px solid #00C853; box-shadow: 0 0 60px rgba(0, 200, 83, 0.5);
+            position: relative; z-index: 2;
+          }
           .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-          .pulse-ring { position: absolute; top: -15%; left: -15%; width: 130%; height: 130%; border: 2px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.4; }
-          .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: linear-gradient(to right, transparent, #00C853, transparent); box-shadow: 0 0 25px #00C853; z-index: 3; animation: scan-master 3s ease-in-out infinite; }
-          .loading-bar-master { width: 280px; height: 2px; background: rgba(255,255,255,0.03); border-radius: 10px; overflow: hidden; margin-top: 30px; }
-          .loading-bar-fill { width: 0%; height: 100%; background: #00C853; animation: progress-master 5s linear forwards; }
-          .loading-text-elite { color: #00C853; font-size: 11px; letter-spacing: 8px; font-weight: 300; text-transform: uppercase; margin-top: 25px; }
+          .pulse-ring {
+            position: absolute; top: -15%; left: -15%; width: 130%; height: 130%;
+            border: 2px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.4;
+          }
+          .scan-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 8px;
+            background: linear-gradient(to right, transparent, #00C853, transparent);
+            box-shadow: 0 0 20px #00C853; z-index: 3; animation: scan-master 3s ease-in-out infinite;
+          }
+
+          /* --- MICRO-CIRUGÍA: CENTRADO ABSOLUTO DE BIENVENIDA --- */
+          .welcome-container-luxe {
+            width: 100%;
+            max-width: 320px; /* Limita el ancho en desktop para elegancia */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centrado horizontal de hijos */
+            justify-content: center;
+            text-align: center; /* Centrado de texto */
+            margin-top: 20px;
+            padding: 0 20px; /* Margen de seguridad en móvil */
+          }
+          
+          .loading-bar-master { 
+            width: 100%; /* Ocupa el ancho del contenedor padre */
+            height: 2px; 
+            background: rgba(255,255,255,0.03); 
+            border-radius: 10px; 
+            overflow: hidden; 
+            margin-bottom: 25px; 
+          }
+          .loading-bar-fill { 
+            width: 0%; height: 100%; background: #00C853; 
+            animation: progress-master 5s linear forwards, door-open-blink 2s ease-in-out 4s infinite; 
+            box-shadow: 0 0 10px #00C853;
+          }
+          
+          .loading-text-elite { 
+            color: #00C853; 
+            font-size: 11px; 
+            letter-spacing: 6px; /* Reducido ligeramente para coherencia en móvil */
+            font-weight: 300; 
+            text-transform: uppercase; 
+            margin-bottom: 10px;
+            width: 100%; /* Asegura que el text-align center funcione */
+          }
+          
+          .welcome-subtext {
+            color: #222; /* Texto sutil, casi invisible, de bienvenida */
+            font-size: 9px;
+            letter-spacing: 3px;
+            font-weight: 700;
+            text-transform: uppercase;
+            width: 100%;
+          }
+          
           @keyframes pulse-master { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
           @keyframes scan-master { 0%, 100% { top: 0%; } 50% { top: 100%; } }
           @keyframes progress-master { 100% { width: 100%; } }
+          @keyframes door-open-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         `}</style>
       </div>
     );
@@ -115,7 +182,7 @@ export default function LandingPage() {
       <section className="hero-elite">
         <div className="hero-layout">
           <div className="hero-info-text">
-            <div className="hero-tag-elite"><Zap size={14} color="#00C853" /> NETWORK DE INVERSIÓN INSTITUCIONAL</div>
+            <div className="hero-status-tag"><Zap size={14} color="#00C853" /> NETWORK DE INVERSIÓN INSTITUCIONAL</div>
             <h1 className="hero-main-title">
               <span className="text-glow-neon">LA CIENCIA DE</span> <br/>
               RENTABILIZAR
@@ -262,6 +329,7 @@ export default function LandingPage() {
         .footer-elite-master { padding: 80px 30px; background: #050505; text-align: center; border-top: 1px solid #111; }
         .footer-links-row { display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; }
         .f-item-elite { color: #444; font-size: 13px; font-weight: 900; display: flex; align-items: center; gap: 10px; }
+        .f-item-elite:hover { color: var(--neon); }
         .f-copyright-text { color: #111; font-size: 11px; font-weight: 900; letter-spacing: 3px; }
 
         .float-anim { animation: float-master 6s ease-in-out infinite; }
