@@ -7,56 +7,15 @@ import {
   MapPin, DollarSign, UploadCloud, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff, Briefcase
 } from 'lucide-react';
 
-// --- DATOS DE MEMBRESÍAS (5 PLANES EXACTOS SEGÚN IMAGEN) ---
+// --- DATOS DE MEMBRESÍAS (SE MANTIENEN IGUAL) ---
 const planes = [
-  { 
-    id: 'micro', 
-    nombre: 'MICRO SOCIO', 
-    precio: 100, 
-    porcentaje: '0.067% de utilidades netas', 
-    icon: Target, 
-    color: '#E0E0E0', 
-    detalles: ['Acceso Básico', 'Señales Diarias', 'Soporte Estándar'] 
-  },
-  { 
-    id: 'inicial', 
-    nombre: 'SOCIO INICIAL', 
-    precio: 250, 
-    porcentaje: '0.167% de utilidades netas', 
-    icon: Briefcase, 
-    color: '#81D4FA', 
-    detalles: ['Acceso Intermedio', 'Señales Diarias', 'Soporte Estándar'] 
-  },
-  { 
-    id: 'activo', 
-    nombre: 'SOCIO ACTIVO', 
-    precio: 500, 
-    porcentaje: '0.333% de utilidades netas', 
-    icon: Zap, 
-    color: '#FFD54F', 
-    detalles: ['Acceso Intermedio', 'Señales Prioritarias', 'Soporte 24/7', 'Análisis Semanal'] 
-  },
-  { 
-    id: 'premium', 
-    nombre: 'SOCIO PREMIUM', 
-    precio: 1000, 
-    porcentaje: '0.667% de utilidades netas', 
-    icon: Award, 
-    color: '#FF8A65', 
-    detalles: ['Acceso VIP', 'Señales VIP', 'Soporte VIP 24/7', 'Análisis Diario'] 
-  },
-  { 
-    id: 'elite', 
-    nombre: 'SOCIO ÉLITE', 
-    precio: 1500, 
-    porcentaje: '1.0% de utilidades netas', 
-    icon: Star, 
-    color: '#00C853', 
-    detalles: ['Acceso Total VIP', 'Señales VIP Exclusivas', 'Soporte VIP Directo', 'Análisis Diario', 'Mentoría Mensual'] 
-  },
+  { id: 'micro', nombre: 'MICRO SOCIO', precio: 100, porcentaje: '0.067% de utilidades netas', icon: Target, color: '#E0E0E0', detalles: ['Acceso Básico', 'Señales Diarias', 'Soporte Estándar'] },
+  { id: 'inicial', nombre: 'SOCIO INICIAL', precio: 250, porcentaje: '0.167% de utilidades netas', icon: Briefcase, color: '#81D4FA', detalles: ['Acceso Intermedio', 'Señales Diarias', 'Soporte Estándar'] },
+  { id: 'activo', nombre: 'SOCIO ACTIVO', precio: 500, porcentaje: '0.333% de utilidades netas', icon: Zap, color: '#FFD54F', detalles: ['Acceso Intermedio', 'Señales Prioritarias', 'Soporte 24/7', 'Análisis Semanal'] },
+  { id: 'premium', nombre: 'SOCIO PREMIUM', precio: 1000, porcentaje: '0.667% de utilidades netas', icon: Award, color: '#FF8A65', detalles: ['Acceso VIP', 'Señales VIP', 'Soporte VIP 24/7', 'Análisis Diario'] },
+  { id: 'elite', nombre: 'SOCIO ÉLITE', precio: 1500, porcentaje: '1.0% de utilidades netas', icon: Star, color: '#00C853', detalles: ['Acceso Total VIP', 'Señales VIP Exclusivas', 'Soporte VIP Directo', 'Análisis Diario', 'Mentoría Mensual'] },
 ];
 
-// --- DATOS DE PAÍSES ---
 const paises = [
   { nombre: 'Colombia', codigo: '+57', flag: '🇨🇴' },
   { nombre: 'México', codigo: '+52', flag: '🇲🇽' },
@@ -69,7 +28,6 @@ const paises = [
   { nombre: 'Otros', codigo: '', flag: '🌐' },
 ];
 
-// --- DATOS DE MÉTODOS DE PAGO (5 MÉTODOS EXACTOS) ---
 const metodosPago = [
   { id: 'nequi', nombre: 'Nequi (Colombia)', info: 'Número de Celular: [INSERTAR TU CELULAR NEQUI AQUÍ] - Nombre: [INSERTAR TU NOMBRE AQUÍ]' },
   { id: 'bancolombia', nombre: 'Cuenta Bancolombia (Colombia)', info: 'Número de Cuenta (Ahorros): [INSERTAR NÚMERO AQUÍ] - Nombre Titular: [INSERTAR NOMBRE COMPLETO AQUÍ] - Cédula: [INSERTAR CÓDIGO AQUÍ]' },
@@ -82,7 +40,6 @@ export default function UnetePage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- ESTADOS ---
   const [paso, setPaso] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +48,6 @@ export default function UnetePage() {
   const [comprobanteUrl, setComprobanteUrl] = useState<string | null>(null);
   const [globalLoading, setGlobalLoading] = useState(false); 
 
-  // --- ESTADO DEL FORMULARIO ---
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -106,7 +62,6 @@ export default function UnetePage() {
     politicas: false, 
   });
 
-  // --- MANEJO DE CAMBIOS ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
@@ -130,40 +85,32 @@ export default function UnetePage() {
     }
   };
 
-  // --- VALIDACIONES ---
   const validarPaso1 = () => {
     setError(null);
     const { nombre, email, password, confirmPassword, telefono, tyc, politicas } = formData;
-
     if (!nombre || !email || !password || !confirmPassword || !telefono) {
       setError('Por favor completa todos los campos.');
       return false;
     }
-
     if (!/\S+@\S+\.\S+/.test(email)) {
       setError('El formato del correo electrónico no es válido.');
       return false;
     }
-
     if (password.length < 8) {
         setError('La contraseña debe tener al menos 8 caracteres.');
         return false;
     }
-
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden.');
       return false;
     }
-
     if (!tyc || !politicas) {
         setError('Debes aceptar los Términos y Condiciones y las Políticas de Privacidad.');
         return false;
     }
-
     return true;
   };
 
-  // --- FLUJO DE PASOS ---
   const siguientePaso = () => {
     if (paso === 1 && !validarPaso1()) return;
     setError(null);
@@ -181,7 +128,7 @@ export default function UnetePage() {
     window.scrollTo(0, 0);
   };
 
-  // --- FINALIZAR REGISTRO ---
+  // --- FUNCIÓN CORREGIDA ---
   const finalizarRegistro = async () => {
     setError(null);
     setLoading(true);
@@ -215,13 +162,14 @@ export default function UnetePage() {
           plan: formData.plan,
           metodo_pago: formData.metodoPago,
           comprobante_url: urlData.publicUrl,
-          estado: 'pendiente'
+          estado: 'pendiente' // Aseguramos que siempre sea pendiente
         }]);
 
       if (insertError) throw new Error('Error al guardar datos. El correo ya existe.');
 
-      localStorage.setItem('socio_nombre', formData.nombre);
-      router.push('/panel');
+      // CORRECCIÓN: Eliminamos la redirección al panel
+      // Enviamos a la página de revisión que crearemos a continuación
+      router.push('/revision-pendiente');
 
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error inesperado.');
@@ -244,13 +192,10 @@ export default function UnetePage() {
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Crea tu Cuenta Élite</h2>
             <p style={{ color: '#888', marginBottom: '30px' }}>Paso 1: Ingresa tus datos personales básicos.</p>
-            
             <label style={labelStyle}><User size={16} style={{marginRight: '5px'}}/> Nombre Completo</label>
             <input type="text" name="nombre" placeholder="Juan Pérez" value={formData.nombre} onChange={handleInputChange} style={inputStyle} />
-            
             <label style={labelStyle}><Mail size={16} style={{marginRight: '5px'}}/> Correo Electrónico (Real)</label>
             <input type="email" name="email" placeholder="juan@ejemplo.com" value={formData.email} onChange={handleInputChange} style={inputStyle} />
-            
             <label style={labelStyle}><Phone size={16} style={{marginRight: '5px'}}/> Número de Teléfono</label>
             <div style={{display: 'flex', gap: '10px', marginBottom: '15px'}}>
                 <select name="codigoArea" value={formData.codigoArea} onChange={handleInputChange} style={{...inputStyle, width: '35%', marginBottom: 0}}>
@@ -260,7 +205,6 @@ export default function UnetePage() {
                 </select>
                 <input type="tel" name="telefono" placeholder="3001234567" value={formData.telefono} onChange={handleInputChange} style={{...inputStyle, flex: 1, marginBottom: 0}} />
             </div>
-
             <label style={labelStyle}><Lock size={16} style={{marginRight: '5px'}}/> Contraseña</label>
             <div style={{position: 'relative'}}>
                 <input type={showPass ? "text" : "password"} name="password" placeholder="••••••••" value={formData.password} onChange={handleInputChange} style={inputStyle} />
@@ -268,12 +212,9 @@ export default function UnetePage() {
                     {showPass ? <EyeOff size={20}/> : <Eye size={20}/>}
                 </button>
             </div>
-
             <label style={labelStyle}><Lock size={16} style={{marginRight: '5px'}}/> Confirmar Contraseña</label>
             <input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleInputChange} style={inputStyle} />
-            
             {error && <p style={{color: '#ff4444', fontSize: '0.85rem', marginBottom: '15px', textAlign: 'center'}}>⚠️ {error}</p>}
-
             <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px'}}>
                 <input type="checkbox" name="tyc" checked={formData.tyc} onChange={handleInputChange} style={{width: '20px', height: '20px', accentColor: '#00C853'}} />
                 <label style={{color: '#888', fontSize: '0.9rem'}}>Acepto los <a href="#" style={{color: '#00C853', textDecoration: 'none'}}>Términos y Condiciones</a>.</label>
@@ -282,7 +223,6 @@ export default function UnetePage() {
                 <input type="checkbox" name="politicas" checked={formData.politicas} onChange={handleInputChange} style={{width: '20px', height: '20px', accentColor: '#00C853'}} />
                 <label style={{color: '#888', fontSize: '0.9rem'}}>Acepto las <a href="#" style={{color: '#00C853', textDecoration: 'none'}}>Políticas de Privacidad</a>.</label>
             </div>
-
             <button onClick={siguientePaso} style={{ width: '100%', padding: '18px', background: '#00C853', color: 'black', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Continuar a Selección de Plan</button>
           </div>
         );
