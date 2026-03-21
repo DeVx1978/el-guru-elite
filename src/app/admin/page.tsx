@@ -1,7 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Trash2, Eye, EyeOff, CheckCircle, PowerOff, ShieldCheck, Image as ImageIcon, Mail, Phone, Loader2 } from 'lucide-react';
+import { 
+  Trash2, Eye, EyeOff, CheckCircle, PowerOff, ShieldCheck, 
+  Image as ImageIcon, Mail, Phone, Loader2, KeyRound 
+} from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
@@ -14,7 +17,6 @@ export default function AdminControlMasterV4() {
 
   const KEY_ACCESO = "GURU2026";
 
-  // --- OBTENER DATOS ---
   const obtenerDatos = async () => {
     setCargando(true);
     const { data, error } = await clientSupabase
@@ -29,7 +31,6 @@ export default function AdminControlMasterV4() {
 
   useEffect(() => { if (!bloqueado) obtenerDatos(); }, [bloqueado]);
 
-  // --- ACTIVAR / DESACTIVAR SOCIO ---
   const alternarEstado = async (id: any, actual: string) => {
     const nuevoEstado = actual === 'activo' ? 'pendiente' : 'activo';
     const { error } = await clientSupabase
@@ -40,29 +41,13 @@ export default function AdminControlMasterV4() {
     if (!error) obtenerDatos();
   };
 
-  // --- ELIMINAR REGISTRO (CIRUGÍA QUIRÚRGICA) ---
   const eliminarRegistro = async (id: any, nombre: string) => {
-    const confirmacion = window.confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE A ${nombre.toUpperCase()}?\nEsta acción borrará al socio de la base de datos para siempre.`);
-    
+    const confirmacion = window.confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE A ${nombre.toUpperCase()}?`);
     if (confirmacion) {
       setCargando(true);
-      try {
-        const { error } = await clientSupabase
-          .from('socios')
-          .delete()
-          .eq('id', id);
-        
-        if (error) throw error;
-        
-        // Refresco inmediato de la lista
-        await obtenerDatos();
-        alert("Socio eliminado con éxito.");
-      } catch (error: any) {
-        alert("ERROR: No se pudo eliminar. Probablemente Supabase tiene el RLS (seguridad) activado para borrados.");
-        console.error("Error detallado:", error.message);
-      } finally {
-        setCargando(false);
-      }
+      const { error } = await clientSupabase.from('socios').delete().eq('id', id);
+      if (!error) await obtenerDatos();
+      setCargando(false);
     }
   };
 
@@ -96,7 +81,7 @@ export default function AdminControlMasterV4() {
         <h1 style={{ color: '#00C853', fontWeight: 900, margin: 0 }}>DIRECTORIO GURÚ ÉLITE V4</h1>
         <button onClick={obtenerDatos} style={{ background: '#111', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
           {cargando && <Loader2 size={16} className="animate-spin" />}
-          {cargando ? 'PROCESANDO...' : 'REFRESCAR LISTA'}
+          REFRESCAR LISTA
         </button>
       </div>
 
@@ -104,60 +89,60 @@ export default function AdminControlMasterV4() {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#111', color: '#555', fontSize: '11px', textTransform: 'uppercase' }}>
-              <th style={{ padding: '25px', textAlign: 'left' }}>Socio / Contacto</th>
+              <th style={{ padding: '25px', textAlign: 'left' }}>Socio / Contacto / Seguridad</th>
               <th style={{ padding: '25px', textAlign: 'center' }}>Plan / Pago</th>
               <th style={{ padding: '25px', textAlign: 'center' }}>Estado</th>
               <th style={{ padding: '25px', textAlign: 'center' }}>Acciones Ejecutivas</th>
             </tr>
           </thead>
           <tbody>
-            {listaSocios.length === 0 ? (
-              <tr><td colSpan={4} style={{padding: '50px', textAlign: 'center', color: '#444'}}>No hay registros en la tabla 'socios'</td></tr>
-            ) : (
-              listaSocios.map((s) => (
-                <tr key={s.id} style={{ borderBottom: '1px solid #111' }}>
-                  <td style={{ padding: '25px' }}>
-                    <b style={{fontSize: '16px', color: 'white'}}>{s.nombre}</b>
-                    <div style={{display: 'flex', gap: '10px', marginTop: '5px', color: '#666', fontSize: '12px'}}>
-                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Mail size={12}/> {s.email}</span>
-                      <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}><Phone size={12}/> {s.telefono}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding: '25px', textAlign: 'center' }}>
-                    <span style={{ color: '#888', display: 'block', fontSize: '13px', fontWeight: 'bold' }}>{s.plan?.toUpperCase()}</span>
-                    <a href={s.comprobante_url} target="_blank" rel="noreferrer" style={{ color: '#00C853', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginTop: '5px' }}>
-                      <ImageIcon size={14}/> VER PAGO
-                    </a>
-                  </td>
-                  <td style={{ padding: '25px', textAlign: 'center' }}>
-                    <span style={{ 
-                      backgroundColor: s.estado === 'activo' ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 152, 0, 0.1)', 
-                      color: s.estado === 'activo' ? '#00C853' : '#ff9800', 
-                      padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' 
-                    }}>
-                      {s.estado || 'PENDIENTE'}
+            {listaSocios.map((s) => (
+              <tr key={s.id} style={{ borderBottom: '1px solid #111' }}>
+                <td style={{ padding: '25px' }}>
+                  <b style={{fontSize: '16px', color: 'white'}}>{s.nombre}</b>
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px', color: '#666', fontSize: '12px'}}>
+                    <span style={{display: 'flex', alignItems: 'center', gap: '6px'}}><Mail size={12}/> {s.email}</span>
+                    <span style={{display: 'flex', alignItems: 'center', gap: '6px'}}><Phone size={12}/> {s.telefono}</span>
+                    {/* ACCESO B: VISIBILIDAD DE CONTRASEÑA */}
+                    <span style={{display: 'flex', alignItems: 'center', gap: '6px', color: '#81D4FA', fontWeight: 900, background: 'rgba(129, 212, 250, 0.05)', padding: '4px 8px', borderRadius: '6px', width: 'fit-content' }}>
+                      <KeyRound size={12}/> CLAVE: {s.password}
                     </span>
-                  </td>
-                  <td style={{ padding: '25px' }}>
-                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                      <button 
-                        onClick={() => alternarEstado(s.id, s.estado)} 
-                        style={{ background: s.estado === 'activo' ? '#1a1005' : '#051a0b', border: '1px solid #222', color: s.estado === 'activo' ? '#ff9800' : '#00C853', padding: '12px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 'bold' }}
-                      >
-                        {s.estado === 'activo' ? <PowerOff size={16} /> : <CheckCircle size={16} />}
-                        {s.estado === 'activo' ? 'DESACTIVAR' : 'ACTIVAR'}
-                      </button>
-                      <button 
-                        onClick={() => eliminarRegistro(s.id, s.nombre)} 
-                        style={{ background: '#1a0505', border: '1px solid #300', color: '#ff4444', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
+                  </div>
+                </td>
+                <td style={{ padding: '25px', textAlign: 'center' }}>
+                  <span style={{ color: '#888', display: 'block', fontSize: '13px', fontWeight: 'bold' }}>{s.plan?.toUpperCase()}</span>
+                  <a href={s.comprobante_url} target="_blank" rel="noreferrer" style={{ color: '#00C853', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginTop: '5px' }}>
+                    <ImageIcon size={14}/> VER PAGO
+                  </a>
+                </td>
+                <td style={{ padding: '25px', textAlign: 'center' }}>
+                  <span style={{ 
+                    backgroundColor: s.estado === 'activo' ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 152, 0, 0.1)', 
+                    color: s.estado === 'activo' ? '#00C853' : '#ff9800', 
+                    padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' 
+                  }}>
+                    {s.estado || 'PENDIENTE'}
+                  </span>
+                </td>
+                <td style={{ padding: '25px' }}>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <button 
+                      onClick={() => alternarEstado(s.id, s.estado)} 
+                      style={{ background: s.estado === 'activo' ? '#1a1005' : '#051a0b', border: '1px solid #222', color: s.estado === 'activo' ? '#ff9800' : '#00C853', padding: '12px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 'bold' }}
+                    >
+                      {s.estado === 'activo' ? <PowerOff size={16} /> : <CheckCircle size={16} />}
+                      {s.estado === 'activo' ? 'DESACTIVAR' : 'ACTIVAR'}
+                    </button>
+                    <button 
+                      onClick={() => eliminarRegistro(s.id, s.nombre)} 
+                      style={{ background: '#1a0505', border: '1px solid #300', color: '#ff4444', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
