@@ -2,13 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, ArrowUpRight, Menu, X, Lock, FileText, Scale, Activity, Zap, TrendingUp, Globe, ChevronDown 
+  ShieldCheck, ArrowUpRight, Lock, FileText, Scale, Activity, Zap, TrendingUp, Globe, ChevronDown 
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
-  const [menuAbierto, setMenuAbierto] = useState(false);
-  const [seccionExpandida, setSeccionExpandida] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
 
@@ -22,17 +20,12 @@ export default function LandingPage() {
 
   // --- 2. CIRUGÍA DE NAVEGACIÓN BLINDADA (4 SEGUNDOS) ---
   const ejecutarTransicion = (e: React.MouseEvent, ruta: string) => {
-    e.preventDefault(); // Bloquea cualquier salto inmediato
-    setIsNavigating(true); // Activa el círculo del Gurú inmediatamente
+    e.preventDefault(); 
+    setIsNavigating(true); 
     
-    // Timer de seguridad para la elegancia visual
     setTimeout(() => {
       router.push(ruta);
     }, 4000); 
-  };
-
-  const toggleSeccion = (id: string) => {
-    setSeccionExpandida(seccionExpandida === id ? null : id);
   };
 
   const membresias = [
@@ -75,7 +68,7 @@ export default function LandingPage() {
             overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999;
           }
           .loader-container { position: relative; width: 220px; height: 220px; margin-bottom: 40px; transition: all 0.5s ease; }
-          .nav-mode { width: 160px; height: 160px; filter: brightness(1.2); } /* Tamaño discreto para navegar */
+          .nav-mode { width: 160px; height: 160px; filter: brightness(1.2); } 
           
           @media (max-width: 768px) { 
             .loader-container { width: 180px; height: 180px; } 
@@ -104,6 +97,7 @@ export default function LandingPage() {
 
   return (
     <div className="elite-landing-master">
+      {/* 4. NAVBAR MILIMÉTRICO (HAMBURGUESA ELIMINADA) */}
       <nav className="navbar-elite">
         <div className="nav-container-master">
           <div className="nav-brand">
@@ -116,26 +110,11 @@ export default function LandingPage() {
           </div>
           <div className="nav-actions-master">
             <button onClick={(e) => ejecutarTransicion(e, '/panel')} className="btn-access-master">ACCESO PRIVADO</button>
-            <button onClick={() => setMenuAbierto(!menuAbierto)} className="btn-menu-master">
-              {menuAbierto ? <X size={26} color="#00C853" /> : <Menu size={26} color="white" />}
-            </button>
           </div>
         </div>
-        {menuAbierto && (
-          <div className="mobile-dropdown-master fade-in-nav">
-            <div className="accordion-item">
-              <button onClick={() => toggleSeccion('quienes')} className="accordion-trigger">
-                <span>QUIÉNES SOMOS</span>
-                <ChevronDown size={18} className={seccionExpandida === 'quienes' ? 'rotate' : ''} />
-              </button>
-              {seccionExpandida === 'quienes' && <p className="accordion-content">Ecosistema de analistas cuantitativos optimizando capital.</p>}
-            </div>
-            <div className="menu-divider"></div>
-            <p className="terminal-status">NETWORK STATUS: SECURE</p>
-          </div>
-        )}
       </nav>
 
+      {/* 5. HERO RESTAURADO */}
       <section className="hero-elite">
         <div className="hero-layout">
           <div className="hero-info-text">
@@ -177,6 +156,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* 6. EL CUERPO: PORTAFOLIO DE ACTIVOS */}
       <section id="proyecto-inversionistas" className="plans-section-luxe">
         <div className="section-header-luxe">
           <span className="header-tag-luxe">MERCADO DE CAPITAL PRIVADO</span>
@@ -196,7 +176,6 @@ export default function LandingPage() {
                   <div className="m-divider-luxe"></div>
                   <p className="m-perk-text">{plan.perk}</p>
                 </div>
-                {/* Corrección aquí: Llamada a ejecutarTransicion */}
                 <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-m-acquire">ADQUIRIR</button>
               </div>
             </div>
@@ -225,8 +204,8 @@ export default function LandingPage() {
         .link-elite { color: #444; text-decoration: none; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
         .link-elite:hover { color: var(--neon); }
         .nav-actions-master { display: flex; align-items: center; gap: 20px; }
-        .btn-access-master { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 12px 28px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; }
-        .btn-menu-master { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; }
+        .btn-access-master { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 12px 28px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
+        .btn-access-master:hover { background: var(--neon); color: black; box-shadow: 0 0 15px var(--neon); }
         .hero-elite { max-width: 1400px; margin: 0 auto; padding: 120px 30px; }
         .hero-layout { display: grid; grid-template-columns: 1fr; gap: 80px; }
         @media (min-width: 1024px) { .hero-layout { grid-template-columns: 1.2fr 0.8fr; align-items: center; } }
