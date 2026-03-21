@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'navigation';
 import { 
   ShieldCheck, ArrowUpRight, Lock, FileText, Scale, Activity, Zap, TrendingUp, Globe, ChevronDown 
 } from 'lucide-react';
@@ -8,6 +8,7 @@ import {
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [seccionExpandida, setSeccionExpandida] = useState<string | null>(null);
   const router = useRouter();
 
   // --- 1. CARGA INICIAL (5 SEGUNDOS) ---
@@ -18,14 +19,17 @@ export default function LandingPage() {
     return () => clearTimeout(timer);
   }, [router]);
 
-  // --- 2. CIRUGÍA DE NAVEGACIÓN BLINDADA (4 SEGUNDOS) ---
+  // --- 2. NAVEGACIÓN BLINDADA ---
   const ejecutarTransicion = (e: React.MouseEvent, ruta: string) => {
     e.preventDefault(); 
     setIsNavigating(true); 
-    
     setTimeout(() => {
       router.push(ruta);
     }, 4000); 
+  };
+
+  const toggleSeccion = (id: string) => {
+    setSeccionExpandida(seccionExpandida === id ? null : id);
   };
 
   const membresias = [
@@ -36,7 +40,7 @@ export default function LandingPage() {
     { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
   ];
 
-  // --- 3. RENDERIZADO DEL LOADER DUAL (SIN PARPADEOS) ---
+  // --- 3. LOADER DUAL ---
   if (loading || isNavigating) {
     return (
       <div className="splash-master">
@@ -47,7 +51,6 @@ export default function LandingPage() {
           </div>
           <div className="scan-line"></div>
         </div>
-        
         <div className="welcome-container-luxe">
           <div className="loading-bar-master">
             <div className="loading-bar-fill"></div>
@@ -59,34 +62,19 @@ export default function LandingPage() {
             {isNavigating ? "ABRIENDO PUERTA DE ENLACE SEGURO" : "LA PUERTA AL CAPITAL GLOBAL SE ESTÁ ABRIENDO"}
           </p>
         </div>
-
         <style jsx global>{`
-          .splash-master {
-            background: radial-gradient(circle at center, #0a0c10 0%, #000 100%) !important;
-            height: 100vh; display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999;
-          }
+          .splash-master { background: radial-gradient(circle at center, #0a0c10 0%, #000 100%) !important; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; }
           .loader-container { position: relative; width: 220px; height: 220px; margin-bottom: 40px; transition: all 0.5s ease; }
-          .nav-mode { width: 160px; height: 160px; filter: brightness(1.2); } 
-          
-          @media (max-width: 768px) { 
-            .loader-container { width: 180px; height: 180px; } 
-            .nav-mode { width: 130px; height: 130px; }
-          }
-          
+          .nav-mode { width: 160px; height: 160px; }
           .image-wrapper { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid #00C853; box-shadow: 0 0 60px rgba(0, 200, 83, 0.5); position: relative; z-index: 2; }
           .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
           .pulse-ring { position: absolute; top: -15%; left: -15%; width: 130%; height: 130%; border: 2px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.4; }
           .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: linear-gradient(to right, transparent, #00C853, transparent); box-shadow: 0 0 20px #00C853; z-index: 3; animation: scan-master 3s ease-in-out infinite; }
-
           .welcome-container-luxe { width: 100%; max-width: 320px; display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 20px; }
           .loading-bar-master { width: 100%; height: 2px; background: rgba(255,255,255,0.03); border-radius: 10px; overflow: hidden; margin-bottom: 25px; }
           .loading-bar-fill { width: 0%; height: 100%; background: #00C853; animation: progress-master 4s linear forwards; box-shadow: 0 0 10px #00C853; }
-          
           .loading-text-elite { color: #00C853; font-size: 11px; letter-spacing: 6px; font-weight: 300; text-transform: uppercase; margin-bottom: 10px; }
           .welcome-subtext { color: #222; font-size: 9px; letter-spacing: 3px; font-weight: 700; text-transform: uppercase; }
-          
           @keyframes pulse-master { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
           @keyframes scan-master { 0%, 100% { top: 0%; } 50% { top: 100%; } }
           @keyframes progress-master { 100% { width: 100%; } }
@@ -97,7 +85,6 @@ export default function LandingPage() {
 
   return (
     <div className="elite-landing-master">
-      {/* 4. NAVBAR MILIMÉTRICO (HAMBURGUESA ELIMINADA) */}
       <nav className="navbar-elite">
         <div className="nav-container-master">
           <div className="nav-brand">
@@ -114,7 +101,6 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* 5. HERO RESTAURADO */}
       <section className="hero-elite">
         <div className="hero-layout">
           <div className="hero-info-text">
@@ -132,6 +118,7 @@ export default function LandingPage() {
                 COMENZAR AHORA <ArrowUpRight size={20} />
               </button>
             </div>
+            {/* Estadística móvil */}
             <div className="mobile-stat-wrapper">
               <div className="stat-card-luxe glass-effect">
                 <div className="stat-header"><Activity size={24} color="#00C853" /> RENDIMIENTO AUDITADO</div>
@@ -139,8 +126,11 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+
+          {/* COLUMNA DERECHA OPERADA (PC) */}
           <div className="hero-visuals-right">
             <div className="master-glow-orb"></div>
+            
             <div className="stat-card-master glass-depth-1 float-anim">
               <div className="stat-icon-glow"><Activity color="#00C853" size={28} /></div>
               <div className="stat-info-text-box">
@@ -148,6 +138,7 @@ export default function LandingPage() {
                 <span className="stat-value-master">+18.5% <small>MES</small></span>
               </div>
             </div>
+
             <div className="stat-card-master glass-depth-2 float-anim-reverse">
               <ShieldCheck color="#00C853" size={20} />
               <span className="shield-text-master">CAPITAL 100% PROTEGIDO</span>
@@ -156,7 +147,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 6. EL CUERPO: PORTAFOLIO DE ACTIVOS */}
       <section id="proyecto-inversionistas" className="plans-section-luxe">
         <div className="section-header-luxe">
           <span className="header-tag-luxe">MERCADO DE CAPITAL PRIVADO</span>
@@ -206,6 +196,7 @@ export default function LandingPage() {
         .nav-actions-master { display: flex; align-items: center; gap: 20px; }
         .btn-access-master { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 12px 28px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
         .btn-access-master:hover { background: var(--neon); color: black; box-shadow: 0 0 15px var(--neon); }
+
         .hero-elite { max-width: 1400px; margin: 0 auto; padding: 120px 30px; }
         .hero-layout { display: grid; grid-template-columns: 1fr; gap: 80px; }
         @media (min-width: 1024px) { .hero-layout { grid-template-columns: 1.2fr 0.8fr; align-items: center; } }
@@ -214,38 +205,59 @@ export default function LandingPage() {
         @media (max-width: 600px) { .hero-main-title { font-size: 2.8rem; letter-spacing: -1px; } }
         .text-glow-neon { background: linear-gradient(180deg, #fff 40%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 22px 50px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+
+        /* --- REDISTRIBUCIÓN HERO VISUALS (PC) --- */
+        .hero-visuals-right { display: none; position: relative; height: 550px; }
+        @media (min-width: 1024px) { 
+          .hero-visuals-right { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 40px; /* Espaciado generoso entre estadísticas */
+          } 
+        }
+        .master-glow-orb { position: absolute; width: 500px; height: 500px; background: var(--neon); filter: blur(160px); opacity: 0.12; z-index: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        .stat-card-master { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(0, 200, 83, 0.2); border-radius: 20px; padding: 35px; position: relative; z-index: 10; transition: 0.5s; }
+        .stat-card-master:hover { border-color: var(--neon); box-shadow: 0 0 30px rgba(0, 200, 83, 0.2); }
+        .glass-depth-1 { width: 320px; }
+        .stat-icon-glow { background: rgba(0, 200, 83, 0.1); padding: 18px; border-radius: 15px; display: inline-block; margin-bottom: 15px; }
+        .stat-label-master { font-size: 11px; color: #444; font-weight: 900; line-height: 1.4; display: block; }
+        .stat-value-master { font-size: 30px; font-weight: 900; color: white; display: block; margin-top: 6px; }
+        .stat-value-master small { font-size: 12px; color: var(--neon); }
+        .glass-depth-2 { padding: 18px 28px; font-size: 12px; font-weight: 900; color: #888; display: flex; align-items: center; gap: 14px; width: fit-content; }
+
+        /* Móvil */
+        .mobile-stat-wrapper { margin-top: 60px; }
+        @media (min-width: 1024px) { .mobile-stat-wrapper { display: none; } }
+        .stat-card-luxe { padding: 35px; border-radius: 20px; background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 30px 70px rgba(0, 200, 83, 0.15); }
+        .stat-header { display: flex; align-items: center; gap: 15px; font-size: 11px; font-weight: 900; color: #444; letter-spacing: 2px; }
+        .stat-value { font-size: 36px; font-weight: 900; margin-top: 15px; }
+
+        /* Membresías */
         .plans-section-luxe { padding: 140px 30px; max-width: 1600px; margin: 0 auto; }
-        @media (max-width: 768px) { .plans-section-luxe { padding: 80px 20px; } }
         .section-header-luxe { text-align: center; margin-bottom: 80px; }
         .header-tag-luxe { color: #444; font-size: 11px; font-weight: 900; letter-spacing: 5px; margin-bottom: 15px; display: block; }
         .header-title-luxe { font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -2px; }
-        @media (min-width: 1024px) { .header-title-luxe { font-size: 4rem; } }
         .header-line-luxe { width: 60px; height: 1px; background: var(--neon); margin: 30px auto 0; box-shadow: 0 0 15px var(--neon); }
         .plans-grid-luxe { display: grid; grid-template-columns: repeat(1, 1fr); gap: 20px; }
         @media (min-width: 1024px) { .plans-grid-luxe { grid-template-columns: repeat(5, 1fr); gap: 15px; } }
-        .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; position: relative; overflow: hidden; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; }
+        .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; position: relative; overflow: hidden; transition: 0.5s; display: flex; flex-direction: column; }
         .membership-card-luxe:hover { border-color: var(--card-color); transform: translateY(-15px); }
-        .card-energy-bar { width: 100%; height: 5px; background: var(--card-color); position: absolute; top: 0; left: 0; box-shadow: 0 0 15px var(--card-color); z-index: 5; }
-        .card-glow-effect { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top center, var(--card-color) 0%, transparent 70%); opacity: 0; transition: 0.5s; z-index: 1; }
-        .membership-card-luxe:hover .card-glow-effect { opacity: 0.15; }
+        .card-energy-bar { width: 100%; height: 5px; background: var(--card-color); position: absolute; top: 0; left: 0; box-shadow: 0 0 15px var(--card-color); }
         .m-card-inner { padding: 50px 20px 35px; text-align: center; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 2; }
-        .m-fondo-tag { font-size: 8px; color: #444; font-weight: 900; letter-spacing: 2px; }
-        .m-card-name { color: #fff; font-size: 1.5rem; font-weight: 900; margin-top: 10px; }
-        .m-card-price { margin: 25px 0; display: flex; align-items: baseline; justify-content: center; gap: 2px; }
-        .m-sign { color: var(--card-color); font-size: 18px; font-weight: 900; }
-        .m-num { font-size: 3.5rem; font-weight: 900; color: white; letter-spacing: -2px; }
-        .m-usd { font-size: 12px; color: #444; font-weight: 800; }
-        .m-card-profit { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 900; color: #888; margin-bottom: 25px; }
-        .m-divider-luxe { width: 30px; height: 1px; background: #1a1a1a; margin: 0 auto 25px; }
-        .m-perk-text { color: #fff; font-size: 12px; font-weight: 900; line-height: 1.5; margin-bottom: 30px; margin-top: auto; }
-        .btn-m-acquire { background: transparent; border: 1px solid var(--card-color); color: var(--card-color); padding: 14px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
-        .btn-m-acquire:hover { background: var(--card-color); color: black; box-shadow: 0 0 20px var(--card-color); }
+        .btn-m-acquire { background: transparent; border: 1px solid var(--card-color); color: var(--card-color); padding: 14px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
+        .btn-m-acquire:hover { background: var(--card-color); color: black; }
+
+        /* Footer */
         .footer-elite-master { padding: 80px 30px; background: #050505; text-align: center; border-top: 1px solid #111; }
         .footer-links-row { display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; }
         .f-item-elite { color: #444; font-size: 13px; font-weight: 900; display: flex; align-items: center; gap: 10px; }
-        .f-item-elite:hover { color: var(--neon); }
         .f-copyright-text { color: #111; font-size: 11px; font-weight: 900; letter-spacing: 3px; }
+
         .float-anim { animation: float-master 6s ease-in-out infinite; }
+        .float-anim-reverse { animation: float-master 6s ease-in-out infinite reverse; }
         @keyframes float-master { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         .fade-up-card { opacity: 0; animation: fadeUpMaster 1s ease forwards; }
         @keyframes fadeUpMaster { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
