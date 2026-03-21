@@ -29,7 +29,15 @@ export default function LandingPage() {
     setSeccionExpandida(seccionExpandida === id ? null : id);
   };
 
-  // --- 2. LOADER TERMINAL SEGURA ---
+  // --- DATOS DE MEMBRESÍAS CON COLORES ÚNICOS ---
+  const membresias = [
+    { name: 'Micro', price: '100', profit: '+8-10%', perk: 'Nivel 1: Acceso Base', delay: '0.1s', color: '#444' },
+    { name: 'Inicial', price: '250', profit: '+12-15%', perk: 'Nivel 2: Gestión Activa', delay: '0.2s', color: '#00E5FF' },
+    { name: 'Activo', price: '500', profit: '+18.5%', perk: 'Nivel 3: Capital Auditado', delay: '0.3s', color: '#00C853' },
+    { name: 'Premium', price: '1000', profit: '+20-25%', perk: 'Nivel 4: Prioridad Institucional', delay: '0.4s', color: '#FFD600' },
+    { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
+  ];
+
   if (loading || isNavigating) {
     return (
       <div className="splash-master">
@@ -67,14 +75,6 @@ export default function LandingPage() {
     );
   }
 
-  const membresias = [
-    { name: 'Micro', price: '100', perk: 'Nivel 1: Acceso Base', delay: '0.1s' },
-    { name: 'Inicial', price: '250', perk: 'Nivel 2: Gestión Activa', delay: '0.2s' },
-    { name: 'Activo', price: '500', perk: 'Nivel 3: Capital Auditado', delay: '0.3s' },
-    { name: 'Premium', price: '1000', perk: 'Nivel 4: Prioridad Institucional', delay: '0.4s' },
-    { name: 'Élite', price: '1500', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s' }
-  ];
-
   return (
     <div className="elite-landing-master">
       {/* 3. NAVBAR MILIMÉTRICO */}
@@ -96,7 +96,6 @@ export default function LandingPage() {
           </div>
         </div>
         
-        {/* MENÚ MÓVIL LUXE */}
         {menuAbierto && (
           <div className="mobile-dropdown-master fade-in-nav">
             <div className="accordion-item">
@@ -112,7 +111,7 @@ export default function LandingPage() {
         )}
       </nav>
 
-      {/* 4. HERO RESTAURADO (GRID PC Y ORBE LUZ) */}
+      {/* 4. HERO RESTAURADO */}
       <section className="hero-elite">
         <div className="hero-layout">
           <div className="hero-info-text">
@@ -131,7 +130,6 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Reubicado para móvil */}
             <div className="mobile-stat-wrapper">
               <div className="stat-card-luxe glass-effect">
                 <div className="stat-header"><Activity size={24} color="#00C853" /> RENDIMIENTO AUDITADO</div>
@@ -157,20 +155,39 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 5. MEMBRESÍAS HORIZONTALES (PC) */}
-      <section id="proyecto-inversionistas" className="plans-area-master">
-        <div className="plans-header-master">
-          <h2 className="plans-title-tag">PORTAFOLIO DE ACTIVOS</h2>
+      {/* 5. EL CUERPO: PORTAFOLIO DE ACTIVOS (MAGISTRAL) */}
+      <section id="proyecto-inversionistas" className="plans-section-luxe">
+        <div className="section-header-luxe">
+          <span className="header-tag-luxe">MERCADO DE CAPITAL PRIVADO</span>
+          <h2 className="header-title-luxe">PORTAFOLIO DE ACTIVOS <span className="brand-neon">ÉLITE</span></h2>
+          <div className="header-line-luxe"></div>
         </div>
-        <div className="plans-grid-master">
-          {membresias.map((p) => (
-            <div key={p.name} className="membership-card-master glass-effect fade-up-card shadow-hover" style={{animationDelay: p.delay}}>
-              <h3 className="m-name">{p.name}</h3>
-              <div className="m-price-box">
-                <span className="m-amount">${p.price}</span>
+        
+        <div className="plans-grid-luxe">
+          {membresias.map((plan) => (
+            <div key={plan.name} className="membership-card-luxe fade-up-card shadow-hover" style={{animationDelay: plan.delay, '--card-color': plan.color} as React.CSSProperties}>
+              <div className="card-energy-bar"></div>
+              <div className="card-glow-effect"></div>
+              <div className="m-card-inner">
+                <div className="m-card-header">
+                  <span className="m-fondo-tag">FONDO DE INVERSIÓN</span>
+                  <h3 className="m-card-name">{plan.name}</h3>
+                </div>
+                <div className="m-card-body">
+                  <div className="m-card-price">
+                    <span className="m-sign">$</span>
+                    <span className="m-num">{plan.price}</span>
+                    <span className="m-usd">USD</span>
+                  </div>
+                  <div className="m-card-profit">
+                    <TrendingUp size={18} color={plan.color} />
+                    <span>PROFIT: <strong>{plan.profit}</strong></span>
+                  </div>
+                  <div className="m-divider-luxe"></div>
+                  <p className="m-perk-text">{plan.perk}</p>
+                </div>
+                <button onClick={() => router.push('/unete')} className="btn-m-acquire">ADQUIRIR</button>
               </div>
-              <p className="m-perk-text">{p.perk}</p>
-              <button onClick={() => router.push('/unete')} className="btn-m-select">SELECCIONAR</button>
             </div>
           ))}
         </div>
@@ -202,9 +219,6 @@ export default function LandingPage() {
         .btn-access-master { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 12px 28px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; }
         .btn-menu-master { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; }
 
-        .mobile-dropdown-master { position: absolute; top: 100%; left: 0; width: 100%; background: #000; border-bottom: 1px solid #111; padding: 30px 20px; }
-        .accordion-trigger { width: 100%; background: transparent; border: none; color: white; display: flex; justify-content: space-between; padding: 18px 0; font-size: 14px; font-weight: 900; text-transform: uppercase; cursor: pointer; border-bottom: 1px solid #111; }
-
         .hero-elite { max-width: 1400px; margin: 0 auto; padding: 120px 30px; }
         .hero-layout { display: grid; grid-template-columns: 1fr; gap: 80px; }
         @media (min-width: 1024px) { .hero-layout { grid-template-columns: 1.2fr 0.8fr; align-items: center; } }
@@ -214,18 +228,36 @@ export default function LandingPage() {
         .text-glow-neon { background: linear-gradient(180deg, #fff 40%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 22px 50px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; gap: 15px; cursor: pointer; }
 
-        .hero-visuals-right { display: none; position: relative; height: 500px; }
-        @media (min-width: 1024px) { .hero-visuals-right { display: flex; justify-content: center; align-items: center; } }
-        .master-glow-orb { position: absolute; width: 500px; height: 500px; background: var(--neon); filter: blur(180px); opacity: 0.15; }
-        .stat-card-master { background: var(--glass); backdrop-filter: blur(35px); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 35px; position: absolute; }
-        .glass-depth-1 { width: 320px; top: 10%; right: 0; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
+        /* --- SECCIÓN MEMBRESÍAS MAESTRA --- */
+        .plans-section-luxe { padding: 140px 30px; max-width: 1600px; margin: 0 auto; }
+        @media (max-width: 768px) { .plans-section-luxe { padding: 80px 20px; } }
+        .section-header-luxe { text-align: center; margin-bottom: 80px; }
+        .header-tag-luxe { color: #444; font-size: 11px; font-weight: 900; letter-spacing: 5px; margin-bottom: 15px; display: block; }
+        .header-title-luxe { font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -2px; }
+        @media (min-width: 1024px) { .header-title-luxe { font-size: 4rem; } }
+        .header-line-luxe { width: 60px; height: 1px; background: var(--neon); margin: 30px auto 0; box-shadow: 0 0 15px var(--neon); }
 
-        .plans-area-master { padding: 120px 30px; max-width: 1550px; margin: 0 auto; }
-        .plans-grid-master { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; }
-        .membership-card-master { padding: 60px 35px; border-radius: 12px; text-align: center; border: 1px solid #111; transition: 0.5s; }
-        .membership-card-master:hover { border-color: var(--neon); transform: translateY(-15px); }
-        .m-name { color: var(--neon); font-size: 1.8rem; font-weight: 900; margin-bottom: 30px; }
-        .m-amount { font-size: 4rem; font-weight: 900; color: #fff; }
+        .plans-grid-luxe { display: grid; grid-template-columns: repeat(1, 1fr); gap: 20px; }
+        @media (min-width: 1024px) { .plans-grid-luxe { grid-template-columns: repeat(5, 1fr); gap: 15px; } }
+
+        .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; position: relative; overflow: hidden; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; }
+        .membership-card-luxe:hover { border-color: var(--card-color); transform: translateY(-15px); }
+        .card-energy-bar { width: 100%; height: 5px; background: var(--card-color); position: absolute; top: 0; left: 0; box-shadow: 0 0 15px var(--card-color); z-index: 5; }
+        .card-glow-effect { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top center, var(--card-color) 0%, transparent 70%); opacity: 0; transition: 0.5s; z-index: 1; }
+        .membership-card-luxe:hover .card-glow-effect { opacity: 0.15; }
+
+        .m-card-inner { padding: 50px 20px 35px; text-align: center; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 2; }
+        .m-fondo-tag { font-size: 8px; color: #444; font-weight: 900; letter-spacing: 2px; }
+        .m-card-name { color: #fff; font-size: 1.5rem; font-weight: 900; margin-top: 10px; }
+        .m-card-price { margin: 25px 0; display: flex; align-items: baseline; justify-content: center; gap: 2px; }
+        .m-sign { color: var(--card-color); font-size: 18px; font-weight: 900; }
+        .m-num { font-size: 3.5rem; font-weight: 900; color: white; letter-spacing: -2px; }
+        .m-usd { font-size: 12px; color: #444; font-weight: 800; }
+        .m-card-profit { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 900; color: #888; margin-bottom: 25px; }
+        .m-divider-luxe { width: 30px; height: 1px; background: #1a1a1a; margin: 0 auto 25px; }
+        .m-perk-text { color: #fff; font-size: 12px; font-weight: 900; line-height: 1.5; margin-bottom: 30px; margin-top: auto; }
+        .btn-m-acquire { background: transparent; border: 1px solid var(--card-color); color: var(--card-color); padding: 14px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
+        .btn-m-acquire:hover { background: var(--card-color); color: black; box-shadow: 0 0 20px var(--card-color); }
 
         .footer-elite-master { padding: 80px 30px; background: #050505; text-align: center; border-top: 1px solid #111; }
         .footer-links-row { display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; }
