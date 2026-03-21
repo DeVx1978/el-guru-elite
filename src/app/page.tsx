@@ -122,7 +122,7 @@ export default function LandingPage() {
             <a href="#proyecto-inversionistas" className="link-elite">Inversionistas</a>
           </div>
           <div className="nav-actions-master">
-            <button onClick={(e) => ejecutarTransicion(e, '/panel')} className="btn-access-master">ACCESO PRIVADO</button>
+            <button onClick={(e) => ejecutarTransicion(e, '/panel')} className="btn-access-master">ACCESO EXCLUSIVO</button>
           </div>
         </div>
       </nav>
@@ -130,7 +130,7 @@ export default function LandingPage() {
       <section className="hero-elite">
         <div className="hero-layout">
           <div className="hero-info-text">
-            <div className="hero-status-tag"><Zap size={14} color="#00C853" /> NETWORK DE INVERSIÓN INSTITUCIONAL</div>
+            <div className="hero-status-tag"><Zap size={14} color="#00C853" /> ÉLITE DE INVERSIÓN EXCLUSIVA</div>
             <h1 className="hero-main-title">
               <span className="text-glow-neon">LA CIENCIA DE</span> <br/>
               PREDECIR
@@ -176,7 +176,7 @@ export default function LandingPage() {
       <section id="proyecto-inversionistas" className="plans-section-luxe">
         <div className="section-header-luxe">
           <span className="header-tag-luxe">MERCADO DE CAPITAL PRIVADO</span>
-          <h2 className="header-title-luxe">PORTAFOLIO DE ACTIVOS <span className="brand-neon">ÉLITE</span></h2>
+          <h2 className="header-title-luxe">PORTAFOLIO DE MEMBRESIAS <span className="brand-neon">EXCLUSIVAS</span></h2>
           <div className="header-line-luxe"></div>
         </div>
         <div className="plans-grid-luxe">
