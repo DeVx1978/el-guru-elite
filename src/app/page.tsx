@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   TrendingUp, ShieldCheck, Zap, ChevronRight, 
-  ArrowUpRight, Wallet, Activity, Lock
+  ArrowUpRight, Wallet, Activity, Lock, Globe
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // EFECTO DE CARGA EXCLUSIVO DE 5 SEGUNDOS
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 5000);
     return () => clearTimeout(timer);
@@ -29,39 +30,37 @@ export default function LandingPage() {
         <div className="loading-bar-container">
           <div className="loading-bar-progress"></div>
         </div>
-        <h2 className="loading-text">IDENTIFICANDO SOCIO ÉLITE...</h2>
+        <h2 className="loading-text">IDENTIFICANDO INVERSOR ÉLITE...</h2>
 
-        <style jsx>{`
+        <style jsx global>{`
           .splash {
-            background: #000;
+            background: radial-gradient(circle at center, #0a0c10 0%, #000 100%);
             height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            font-family: sans-serif;
           }
           .loader-container {
             position: relative;
-            width: 200px;
-            height: 200px;
+            width: 180px; height: 180px;
             margin-bottom: 30px;
           }
+          @media (max-width: 600px) {
+            .loader-container { width: 140px; height: 140px; }
+          }
           .image-wrapper {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             border-radius: 50%;
             overflow: hidden;
             border: 2px solid #00C853;
-            box-shadow: 0 0 50px rgba(0, 200, 83, 0.3);
+            box-shadow: 0 0 50px rgba(0, 200, 83, 0.4);
             position: relative;
             z-index: 2;
           }
-          .image-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-          }
+          .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
           .pulse-ring {
             position: absolute;
             top: -10%; left: -10%; width: 120%; height: 120%;
@@ -72,31 +71,30 @@ export default function LandingPage() {
           }
           .scan-line {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 4px;
-            background: #00C853;
+            top: 0; left: 0; width: 100%; height: 6px;
+            background: linear-gradient(to right, transparent, #00C853, transparent);
             box-shadow: 0 0 15px #00C853;
             z-index: 3;
             animation: scan 2.5s ease-in-out infinite;
           }
           .loading-bar-container {
-            width: 250px;
-            height: 2px;
-            background: rgba(255,255,255,0.1);
+            width: 200px; height: 2px;
+            background: rgba(255,255,255,0.05);
             border-radius: 10px;
             overflow: hidden;
           }
           .loading-bar-progress {
-            width: 0%;
-            height: 100%;
+            width: 0%; height: 100%;
             background: #00C853;
             animation: progress 5s linear forwards;
           }
           .loading-text {
             color: #00C853;
-            font-size: 10px;
-            letter-spacing: 4px;
+            font-size: 9px;
+            letter-spacing: 5px;
             margin-top: 15px;
             font-weight: 300;
+            text-transform: uppercase;
           }
           @keyframes pulse { 0% { transform: scale(0.9); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
           @keyframes scan { 0%, 100% { top: 0%; } 50% { top: 100%; } }
@@ -106,178 +104,258 @@ export default function LandingPage() {
     );
   }
 
+  // --- DATOS DE MEMBRESÍAS (LOS 5 PLANES) ---
+  const membresias = [
+    { name: 'Micro', price: '100', perk: '0.067% Utilidad', delay: '0.1s' },
+    { name: 'Inicial', price: '250', perk: '0.167% Utilidad', delay: '0.2s' },
+    { name: 'Activo', price: '500', perk: '0.333% Utilidad', delay: '0.3s' },
+    { name: 'Premium', price: '1000', perk: '0.667% Utilidad', delay: '0.4s' },
+    { name: 'Élite', price: '1500', perk: '1.0% Utilidad', delay: '0.5s' }
+  ];
+
   return (
     <div className="elite-landing">
-      {/* 2. HEADER PROFESIONAL */}
+      {/* 2. HEADER PROFESIONAL - MEJORADO PARA MÓVIL */}
       <nav className="navbar">
-        <div className="nav-logo">
-          <span className="logo-text">EL GURÚ <span className="neon-text">ÉLITE</span></span>
+        <div className="nav-content">
+          <div className="nav-logo">
+            <span className="logo-text">EL GURÚ <span className="neon-text">ÉLITE</span></span>
+          </div>
+          <button onClick={() => router.push('/unete')} className="btn-access">ACCESO PRIVADO</button>
         </div>
-        <button onClick={() => router.push('/unete')} className="btn-access">ACCESO PRIVADO</button>
       </nav>
 
-      {/* 3. HERO SECTION - REEMPLAZA LAS GRÁFICAS FEAS */}
+      {/* 3. HERO SECTION - BLINDADO PARA MÓVIL */}
       <section className="hero">
-        <div className="hero-content">
-          <div className="hero-tag">INVESTMENT TERMINAL V4.0</div>
-          <h1 className="hero-title">
-            LA CIENCIA DE LA <br/>
-            <span className="gradient-text">RENTABILIDAD</span>
-          </h1>
-          <p className="hero-description">
-            Plataforma exclusiva de gestión de capital institucional y deportiva. 
-            Algoritmos de alta frecuencia diseñados para el 1% de los inversores.
-          </p>
-          
-          <div className="hero-buttons">
-            <button onClick={() => router.push('/unete')} className="btn-primary">
-              COMENZAR AHORA <ArrowUpRight size={18} />
-            </button>
-          </div>
-        </div>
-
-        <div className="hero-visual">
-          {/* Aquí reemplazamos las barras feas por un visual de "Dashboard Futuro" */}
-          <div className="glass-card main-stat">
-            <Activity color="#00C853" size={32} />
-            <div className="stat-info">
-              <span className="stat-label">RENDIMIENTO PROMEDIO</span>
-              <span className="stat-num">+18.5% <small>MENSUAL</small></span>
+        <div className="hero-grid">
+          <div className="hero-text-block">
+            <div className="hero-tag">NETWORK DE INVERSIÓN V4.0</div>
+            <h1 className="hero-title">
+              ARQUITECTURA DE <br/>
+              <span className="gradient-text">RENTABILIDAD</span>
+            </h1>
+            <p className="hero-description">
+              Plataforma exclusiva de gestión de capital institucional y deportiva. 
+              Algoritmos de alta frecuencia diseñados para el 1% de los inversores globales.
+            </p>
+            <div className="hero-buttons">
+              <button onClick={() => router.push('/unete')} className="btn-primary">
+                COMENZAR AHORA <ArrowUpRight size={18} />
+              </button>
             </div>
           </div>
-          <div className="glass-card secondary-stat">
-            <ShieldCheck color="#00C853" size={24} />
-            <span>OPERACIÓN PROTEGIDA</span>
+
+          <div className="hero-visual-block">
+            <div className="glow-orb"></div>
+            <div className="glass-card stat-card-1">
+              <Activity color="#00C853" size={24} />
+              <div className="stat-data">
+                <span className="stat-label">RENDIMIENTO <br/>PROMEDIO</span>
+                <span className="stat-value">+18.5% <small>MES</small></span>
+              </div>
+            </div>
+            <div className="glass-card stat-card-2">
+              <ShieldCheck color="#00C853" size={20} />
+              <span>CAPITAL PROTEGIDO</span>
+            </div>
           </div>
-          <div className="glow-orb"></div>
         </div>
       </section>
 
-      {/* 4. PLANES REDISEÑADOS (Sin los cuadros planos verdes) */}
+      {/* 4. SECCIÓN DE PLANES - DISEÑO ESTILIZADO Y RESPONSIVE (5 PLANES) */}
       <section className="plans-section">
-        <h2 className="section-title">PORTAFOLIO DE INVERSIÓN</h2>
-        <div className="plans-grid">
-          {[
-            { name: 'Micro', price: '100', perk: '0.067% Utilidad' },
-            { name: 'Activo', price: '500', perk: '0.333% Utilidad' },
-            { name: 'Élite', price: '1500', perk: '1.0% Utilidad' }
-          ].map((plan) => (
-            <div key={plan.name} className="plan-card">
-              <div className="plan-name">{plan.name}</div>
-              <div className="plan-price"><span>$</span>{plan.price}</div>
-              <div className="plan-perk">{plan.perk}</div>
-              <button onClick={() => router.push('/unete')} className="btn-select">SELECCIONAR</button>
+        <div className="section-header">
+          <h2 className="section-title">PORTAFOLIO DE MEMBRESÍAS</h2>
+          <p className="section-subtitle">Selecciona tu nivel de participación en las utilidades globales.</p>
+        </div>
+        
+        <div className="plans-container">
+          {membresias.map((plan) => (
+            <div key={plan.name} className="plan-card fade-in-card" style={{animationDelay: plan.delay}}>
+              <div className="plan-inner">
+                <div className="plan-header">
+                  <span className="plan-category">Socio</span>
+                  <h3 className="plan-name">{plan.name}</h3>
+                </div>
+                <div className="plan-body">
+                  <div className="plan-price">
+                    <span className="currency">$</span>
+                    <span className="amount">{plan.price}</span>
+                    <span className="usd">USD</span>
+                  </div>
+                  <div className="plan-divider"></div>
+                  <p className="plan-perk">{plan.perk}</p>
+                  <p className="plan-desc">Acceso a señales y reportes Élite.</p>
+                </div>
+                <button onClick={() => router.push('/unete')} className="btn-select">SELECCIONAR</button>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      <style jsx>{`
+      {/* 5. FOOTER MINIMALISTA */}
+      <footer className="footer">
+        <p>&copy; 2026 EL GURÚ ÉLITE. TODOS LOS DERECHOS RESERVADOS.</p>
+        <p className="text-xs text-gray-700">SOLO PARA MIEMBROS AUTORIZADOS</p>
+      </footer>
+
+      <style jsx global>{`
+        /* ESTILOS GLOBALES RESPETANDO EL DISEÑO ORIGINAL */
         .elite-landing {
-          background-color: #020406;
+          background-color: #000;
           color: white;
           min-height: 100vh;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Inter', -apple-system, sans-serif;
+          overflow-x: hidden;
         }
+        
+        /* NAVBAR RESPONSIVE */
         .navbar {
-          padding: 30px 50px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .logo-text { font-weight: 900; font-size: 1.2rem; letter-spacing: -0.5px; }
-        .neon-text { color: #00C853; text-shadow: 0 0 10px rgba(0,200,83,0.5); }
-        .btn-access {
-          background: transparent;
-          border: 1px solid #00C853;
-          color: #00C853;
-          padding: 8px 20px;
-          border-radius: 5px;
-          font-size: 12px;
-          font-weight: bold;
-          cursor: pointer;
-        }
-
-        .hero {
-          max-width: 1200px;
-          margin: 0 auto;
-          display: grid;
-          grid-template-columns: 1.2fr 0.8fr;
-          padding: 100px 50px;
-          gap: 40px;
-        }
-        .hero-tag { color: #00C853; font-size: 11px; font-weight: 900; letter-spacing: 3px; margin-bottom: 20px; }
-        .hero-title { font-size: 4.5rem; font-weight: 900; line-height: 0.9; margin-bottom: 30px; }
-        .gradient-text { background: linear-gradient(180deg, #fff 0%, #00C853 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-description { color: #888; font-size: 1.1rem; line-height: 1.6; margin-bottom: 40px; max-width: 500px; }
-
-        .btn-primary {
-          background: #00C853;
-          color: black;
-          border: none;
-          padding: 18px 40px;
-          border-radius: 5px;
-          font-weight: 900;
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          cursor: pointer;
-          transition: 0.3s;
-        }
-
-        .hero-visual { position: relative; display: flex; justify-content: center; align-items: center; }
-        .glass-card {
-          background: rgba(255,255,255,0.03);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,255,255,0.05);
-          padding: 25px;
-          border-radius: 20px;
-          z-index: 5;
-        }
-        .main-stat { display: flex; gap: 20px; align-items: center; width: 300px; }
-        .stat-label { font-size: 10px; color: #555; display: block; }
-        .stat-num { font-size: 24px; font-weight: 900; color: white; display: block; }
-        .glow-orb {
-          position: absolute;
-          width: 300px; height: 300px;
-          background: #00C853;
-          filter: blur(120px);
-          opacity: 0.2;
-        }
-
-        .plans-section { padding: 100px 50px; text-align: center; }
-        .section-title { font-size: 10px; letter-spacing: 5px; color: #555; margin-bottom: 50px; }
-        .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1000px; margin: 0 auto; }
-        .plan-card {
-          background: #0a0c10;
-          border: 1px solid #111;
-          padding: 40px 20px;
-          border-radius: 5px;
-          transition: 0.3s;
-        }
-        .plan-card:hover { border-color: #00C853; transform: translateY(-10px); }
-        .plan-name { color: #555; font-size: 12px; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; }
-        .plan-price { font-size: 48px; font-weight: 900; margin-bottom: 10px; }
-        .plan-price span { font-size: 20px; color: #00C853; }
-        .plan-perk { color: #888; font-size: 13px; margin-bottom: 30px; }
-        .btn-select {
-          background: transparent;
-          border: 1px solid #222;
-          color: white;
           width: 100%;
-          padding: 12px;
-          font-weight: bold;
-          cursor: pointer;
+          position: fixed; top: 0; z-index: 100;
+          backdrop-filter: blur(15px);
+          background: rgba(0, 0, 0, 0.8);
+          border-bottom: 1px solid rgba(255,255,255,0.03);
         }
-        .btn-select:hover { background: white; color: black; }
+        .nav-content {
+          max-width: 1200px; margin: 0 auto;
+          padding: 15px 20px;
+          display: flex; justify-content: space-between; align-items: center;
+        }
+        @media (min-width: 768px) { .nav-content { padding: 20px 50px; } }
+        .logo-text { font-weight: 900; font-size: 1.1rem; letter-spacing: -0.5px; }
+        .neon-text { color: #00C853; text-shadow: 0 0 10px rgba(0,200,83,0.3); }
+        .btn-access {
+          background: transparent; border: 1px solid #00C853;
+          color: #00C853; padding: 6px 15px; border-radius: 4px;
+          font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .btn-access:hover { background: #00C853; color: black; }
 
-        @media (max-width: 900px) {
-          .hero { grid-template-columns: 1fr; text-align: center; padding: 50px 20px; }
-          .hero-title { font-size: 2.8rem; }
-          .hero-buttons { display: flex; justify-content: center; }
-          .plans-grid { grid-template-columns: 1fr; }
+        /* HERO RESPONSIVE */
+        .hero {
+          max-width: 1200px; margin: 0 auto;
+          padding: 100px 20px 60px;
         }
+        @media (min-width: 768px) { .hero { padding: 150px 50px 100px; } }
+        .hero-grid {
+          display: grid; grid-template-columns: 1fr; gap: 40px;
+        }
+        @media (min-width: 992px) { .hero-grid { grid-template-columns: 1.1fr 0.9fr; gap: 60px; } }
+        
+        .hero-text-block { text-align: center; display: flex; flex-direction: column; align-items: center; }
+        @media (min-width: 992px) { .hero-text-block { text-align: left; align-items: flex-start; } }
+        
+        .hero-tag { color: #00C853; font-size: 10px; font-weight: 900; letter-spacing: 3px; margin-bottom: 15px; text-transform: uppercase; }
+        .hero-title { font-size: 2.8rem; font-weight: 900; line-height: 1; margin-bottom: 25px; letter-spacing: -1px; }
+        @media (min-width: 768px) { .hero-title { font-size: 4rem; } }
+        .gradient-text { background: linear-gradient(180deg, #fff 30%, #00C853 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-description { color: #666; font-size: 1rem; line-height: 1.6; margin-bottom: 35px; max-width: 450px; }
+        @media (min-width: 768px) { .hero-description { font-size: 1.1rem; } }
+        
+        .btn-primary {
+          background: #00C853; color: black; border: none;
+          padding: 16px 35px; border-radius: 4px;
+          font-weight: 900; font-size: 13px;
+          display: flex; align-items: center; gap: 12px;
+          cursor: pointer; transition: 0.2s; text-transform: uppercase;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,200,83,0.3); }
+
+        .hero-visual-block {
+          position: relative; display: flex; justify-content: center; align-items: center;
+          height: 250px; margin-top: 30px;
+        }
+        @media (min-width: 992px) { .hero-visual-block { height: 100%; margin-top: 0; } }
+        
+        .glass-card {
+          background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(15px);
+          border: 1px solid rgba(255,255,255,0.03);
+          border-radius: 12px; z-index: 5; transition: 0.3s;
+        }
+        .stat-card-1 {
+          display: flex; gap: 15px; align-items: center;
+          padding: 20px; width: 240px;
+          position: absolute; top: 0; right: 10%;
+          animation: float 6s ease-in-out infinite;
+        }
+        .stat-label { font-size: 9px; color: #555; display: block; font-weight: bold; line-height: 1.2; }
+        .stat-value { font-size: 22px; font-weight: 900; color: white; display: block; margin-top: 3px; }
+        .stat-value small { font-size: 10px; color: #00C853; }
+        
+        .stat-card-2 {
+          display: flex; gap: 10px; align-items: center;
+          padding: 12px 20px; font-size: 11px; color: #ccc; font-weight: bold;
+          position: absolute; bottom: 15%; left: 5%;
+          animation: float 6s ease-in-out infinite reverse;
+        }
+        
+        .glow-orb {
+          position: absolute; width: 250px; height: 250px;
+          background: #00C853; filter: blur(100px); opacity: 0.15;
+        }
+
+        /* PLANES RESPONSIVE (5 COLUMNAS) */
+        .plans-section {
+          padding: 80px 20px;
+          max-width: 1200px; margin: 0 auto;
+        }
+        @media (min-width: 768px) { .plans-section { padding: 100px 50px; } }
+        .section-header { text-align: center; margin-bottom: 50px; }
+        .section-title { font-size: 10px; letter-spacing: 5px; color: #444; margin-bottom: 10px; text-transform: uppercase; font-weight: 900; }
+        .section-subtitle { color: #888; font-size: 1rem; max-width: 400px; margin: 0 auto; }
+
+        .plans-container {
+          display: grid;
+          grid-template-columns: 1fr; gap: 20px;
+        }
+        @media (min-width: 600px) { .plans-container { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 992px) { .plans-container { grid-template-columns: repeat(5, 1fr); gap: 15px; } }
+        
+        .plan-card {
+          background: rgba(10, 10, 10, 0.5);
+          border: 1px solid rgba(255,255,255,0.02);
+          border-radius: 8px; transition: 0.3s;
+          position: relative; overflow: hidden;
+        }
+        .plan-card:hover { border-color: #00C853; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,200,83,0.1); }
+        .plan-inner { padding: 30px 20px; display: flex; flex-direction: column; height: 100%; text-align: center; }
+        
+        .plan-header { margin-bottom: 25px; }
+        .plan-category { color: #555; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .plan-name { color: #00C853; font-size: 1.4rem; font-weight: 900; margin: 5px 0 0; text-transform: uppercase; }
+        
+        .plan-body { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        .plan-price { margin-bottom: 20px; color: white; display: flex; align-items: baseline; justify-content: center; gap: 2px; }
+        .plan-price .currency { font-size: 18px; color: #00C853; font-weight: bold; }
+        .plan-price .amount { font-size: 3rem; font-weight: 900; line-height: 1; }
+        .plan-price .usd { font-size: 10px; color: #555; font-weight: bold; }
+        
+        .plan-divider { width: 40px; height: 1px; background: rgba(255,255,255,0.05); margin: 0 auto 20px; }
+        .plan-perk { color: #fff; font-size: 14px; font-weight: bold; margin-bottom: 8px; }
+        .plan-desc { color: #666; font-size: 12px; line-height: 1.4; margin-bottom: 30px; }
+        
+        .btn-select {
+          background: transparent; border: 1px solid #222;
+          color: white; width: 100%; padding: 12px;
+          border-radius: 4px; font-weight: bold; font-size: 12px;
+          cursor: pointer; transition: 0.2s; text-transform: uppercase;
+        }
+        .btn-select:hover { background: white; color: black; border-color: white; }
+
+        /* FOOTER */
+        .footer {
+          text-align: center; padding: 40px 20px;
+          border-top: 1px solid rgba(255,255,255,0.02);
+          color: #333; font-size: 10px; font-weight: bold; letter-spacing: 1px;
+        }
+        .footer p { margin: 5px 0; }
+
+        /* ANIMACIONES */
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .fade-in-card { opacity: 0; animation: fadeInCard 0.8s ease forwards; }
+        @keyframes fadeInCard { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
