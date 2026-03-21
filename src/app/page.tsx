@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, ArrowUpRight, Menu, X, Lock, FileText, Scale, Activity, TrendingUp, Zap, Globe 
+  ShieldCheck, ArrowUpRight, Menu, X, Lock, FileText, Scale, Activity, TrendingUp, Zap, Globe, ChevronDown 
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [seccionExpandida, setSeccionExpandida] = useState<string | null>(null);
   const router = useRouter();
 
   // --- BLOQUEO TOTAL DE PARPADEO (5 SEGUNDOS CRUCIALES) ---
@@ -15,6 +16,14 @@ export default function LandingPage() {
     const timer = setTimeout(() => setLoading(false), 5000);
     return () => clearTimeout(timer);
   }, []);
+
+  const toggleSeccion = (seccion: string) => {
+    if (seccionExpandida === seccion) {
+      setSeccionExpandida(null);
+    } else {
+      setSeccionExpandida(seccion);
+    }
+  };
 
   // 1. PANTALLA DE CARGA (SPLASH SCREEN) - IMPACTO INSTITUCIONAL
   if (loading) {
@@ -74,35 +83,54 @@ export default function LandingPage() {
     { name: 'Élite', price: '1500', perk: '1.0% Utilidad Diaria', delay: '0.5s' }
   ];
 
+  const seccionesInfo = [
+    { id: 'quienes-somos', title: 'Quiénes Somos', text: 'Somos un ecosistema de analistas cuantitativos y desarrolladores dedicados a la optimización de capital mediante modelos predictivos avanzados. Combinamos el análisis de datos masivos con estrategias de arbitraje para generar rendimientos consistentes en entornos volátiles.' },
+    { id: 'proyecto-guru', title: 'Proyecto Gurú', text: 'El "Proyecto Gurú" representa el pináculo de nuestro desarrollo técnico. Es un motor de inteligencia artificial que procesa ineficiencias de mercado en tiempo real. No operamos al azar; operamos donde la probabilidad matemática está a nuestro favor.' },
+    { id: 'proyecto-inversionistas', title: 'Proyecto Inversionistas', text: 'Modelos de participación ajustados a su perfil de capital. Selecciona tu nivel de participación en las utilidades globales mediante nuestro portafolio de membresías diseñadas para inversores exigentes.' }
+  ];
+
   return (
     <div className="elite-landing">
-      {/* 2. NAVBAR (RESPONSIVE & FUNCIONAL) */}
+      {/* 2. NAVBAR (RESPONSIVE & FUNCIONAL CON CORRECCIONES ESTÉTICAS) */}
       <nav className="navbar">
         <div className="nav-content">
           <div className="nav-logo">
             <span className="logo-text">EL GURÚ <span className="neon-text">ÉLITE</span></span>
           </div>
           
+          {/* Links de escritorio resguardados */}
           <div className="nav-links-desktop">
-            <a href="#quienes-somos" className="nav-link">Quiénes Somos</a>
-            <a href="#proyecto-guru" className="nav-link">Proyecto Gurú</a>
-            <a href="#proyecto-inversionistas" className="nav-link">Proyecto Inversionistas</a>
+            <a href="#proyecto-inversionistas" className="nav-link">Portafolio</a>
+            <a href="#contacto" className="nav-link">Soporte</a>
           </div>
 
+          {/* CORRECCIÓN QUIRÚRGICA: Botón y Hamburguesa separados */}
           <div className="nav-actions">
             <button onClick={() => router.push('/panel')} className="btn-access">ACCESO PRIVADO</button>
-            <button onClick={() => setMenuAbierto(!menuAbierto)} className="btn-hamburger">
-              {menuAbierto ? <X size={28} color="white" /> : <Menu size={28} color="white" />}
-            </button>
+            <div className="hamburger-wrapper">
+              <button onClick={() => setMenuAbierto(!menuAbierto)} className="btn-hamburger">
+                {menuAbierto ? <X size={28} color="white" /> : <Menu size={28} color="white" />}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* MENÚ MÓVIL (Sin botones verdes redundantes) */}
+        {/* MENÚ MÓVIL (Interactivo con textos desplegables) */}
         {menuAbierto && (
           <div className="mobile-menu fade-in">
-            <a href="#quienes-somos" onClick={() => setMenuAbierto(false)} className="mobile-link">Quiénes Somos</a>
-            <a href="#proyecto-guru" onClick={() => setMenuAbierto(false)} className="mobile-link">Proyecto Gurú</a>
-            <a href="#proyecto-inversionistas" onClick={() => setMenuAbierto(false)} className="mobile-link">Proyecto Inversionistas</a>
+            {seccionesInfo.map((seccion) => (
+              <div key={seccion.id} className="menu-item-wrapper">
+                <button onClick={() => toggleSeccion(seccion.id)} className="mobile-link-accordion">
+                  {seccion.title}
+                  <ChevronDown size={18} className={`accordion-icon ${seccionExpandida === seccion.id ? 'rotate' : ''}`} />
+                </button>
+                {seccionExpandida === seccion.id && (
+                  <div className="seccion-texto-desplegado fade-in-down">
+                    <p>{seccion.text}</p>
+                  </div>
+                )}
+              </div>
+            ))}
             <div className="menu-divider"></div>
             <p className="menu-subtext">TERMINAL DE ALTA SEGURIDAD</p>
           </div>
@@ -113,12 +141,12 @@ export default function LandingPage() {
       <section className="hero">
         <div className="hero-grid">
           <div className="hero-text-content">
-            <div className="hero-badge">INVESTMENT NETWORK V4.4</div>
+            <div className="hero-badge">INVESTMENT NETWORK V4.5</div>
             <h1 className="hero-main-title">
               ARQUITECTURA DE <br/>
               <span className="gradient-text">RENTABILIDAD</span>
             </h1>
-            <p className="hero-sub">
+            <p className="hero-description">
               Plataforma exclusiva de gestión de capital institucional y deportiva. 
               Algoritmos de alta frecuencia diseñados para el 1% de los inversores globales.
             </p>
@@ -146,35 +174,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 4. SECCIONES INFORMATIVAS (RE incorporadas con detalle) */}
-      <section id="quienes-somos" className="section-info dark-bg">
-        <div className="content-limit">
-          <div className="tag-line">NUESTRA IDENTIDAD</div>
-          <h2 className="title-section">QUIÉNES SOMOS</h2>
-          <p className="text-body">
-            Somos un ecosistema de analistas cuantitativos y desarrolladores dedicados a la optimización 
-            de capital mediante modelos predictivos avanzados. Combinamos el análisis de datos masivos 
-            con estrategias de arbitraje para generar rendimientos consistentes en entornos volátiles.
-          </p>
-          <div className="info-grid">
-            <div className="info-item"><Zap size={30} color="#00C853"/> <h3>Rapidez</h3></div>
-            <div className="info-item"><Globe size={30} color="#00C853"/> <h3>Global</h3></div>
-            <div className="info-item"><Lock size={30} color="#00C853"/> <h3>Privacidad</h3></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="proyecto-guru" className="section-info">
-        <div className="content-limit">
-          <div className="tag-line">TECNOLOGÍA PROPIA</div>
-          <h2 className="title-section">PROYECTO GURÚ</h2>
-          <p className="text-body">
-            El "Proyecto Gurú" representa el pináculo de nuestro desarrollo técnico. Es un motor de 
-            inteligencia artificial que procesa ineficiencias de mercado en tiempo real. No operamos 
-            al azar; operamos donde la probabilidad matemática está a nuestro favor.
-          </p>
-        </div>
-      </section>
+      {/* 4. SECCIONES INFORMATIVAS (ELIMINADAS DE LA LANDING SEGÚN INSTRUCCIÓN) */}
+      {/* Ya no están visibles aquí como textos planos */}
 
       {/* 5. PORTAFOLIO DE 5 MEMBRESÍAS (RESTAURADO) */}
       <section id="proyecto-inversionistas" className="plans-area">
@@ -221,7 +222,7 @@ export default function LandingPage() {
       </footer>
 
       <style jsx global>{`
-        /* --- ESTILOS MAESTROS (450+ LINEAS DE ARQUITECTURA) --- */
+        /* --- ESTILOS MAESTROS (450+ LINEAS DE ARQUITECTURA RESGUARDADA) --- */
         :root { --neon: #00C853; --dark: #020406; --glass: rgba(20, 20, 20, 0.5); }
         .elite-landing { background: #000; color: white; font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
         
@@ -233,15 +234,23 @@ export default function LandingPage() {
         @media (min-width: 1024px) { .nav-links-desktop { display: flex; } }
         .nav-link { color: #666; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
         .nav-link:hover { color: white; }
+        
+        /* CORRECCIÓN ESTÉTICA CABECERA */
+        .nav-actions { display: flex; align-items: center; gap: 30px; }
         .btn-access { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 8px 18px; border-radius: 4px; font-weight: 900; font-size: 10px; cursor: pointer; transition: 0.3s; }
         .btn-access:hover { background: var(--neon); color: black; }
-        .btn-hamburger { background: transparent; border: none; cursor: pointer; display: block; }
-        @media (min-width: 1024px) { .btn-hamburger { display: none; } }
+        .hamburger-wrapper { display: block; position: relative; padding-right: 15px; }
+        .btn-hamburger { background: transparent; border: none; cursor: pointer; display: block; padding: 0; }
         
-        .mobile-menu { position: absolute; top: 100%; left: 0; width: 100%; background: #080808; padding: 40px; display: flex; flex-direction: column; gap: 25px; text-align: center; border-bottom: 1px solid #111; }
-        .mobile-link { color: white; text-decoration: none; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
-        .menu-divider { width: 30px; height: 1px; background: #222; margin: 5px auto; }
-        .menu-subtext { color: #222; font-size: 10px; font-weight: 900; letter-spacing: 3px; }
+        .mobile-menu { position: absolute; top: 100%; left: 0; width: 100%; background: #080808; padding: 40px; display: flex; flex-direction: column; gap: 15px; text-align: left; border-bottom: 1px solid #111; max-height: 80vh; overflow-y: auto; }
+        .menu-item-wrapper { border-bottom: 1px solid #111; padding-bottom: 10px; }
+        .mobile-link-accordion { background: transparent; border: none; color: white; width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; padding: 10px 0; }
+        .mobile-link-accordion:hover { color: var(--neon); }
+        .accordion-icon { transition: transform 0.3s ease; color: #444; }
+        .accordion-icon.rotate { transform: rotate(180deg); color: var(--neon); }
+        .seccion-texto-desplegado { color: #888; font-size: 14px; line-height: 1.6; padding: 10px 0; font-weight: 400; text-transform: none; letter-spacing: normal; }
+        .menu-divider { width: 30px; height: 1px; background: #222; margin: 20px auto; }
+        .menu-subtext { color: #222; font-size: 10px; font-weight: 900; letter-spacing: 3px; text-align: center; }
 
         .hero { max-width: 1200px; margin: 0 auto; padding: 120px 25px 80px; }
         .hero-grid { display: grid; grid-template-columns: 1fr; gap: 60px; }
@@ -250,7 +259,7 @@ export default function LandingPage() {
         .hero-main-title { font-size: 3.2rem; font-weight: 900; line-height: 0.95; margin-bottom: 30px; letter-spacing: -2px; }
         @media (min-width: 768px) { .hero-main-title { font-size: 4.8rem; } }
         .gradient-text { background: linear-gradient(180deg, #fff 40%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-sub { color: #666; font-size: 1.1rem; line-height: 1.6; margin-bottom: 40px; max-width: 500px; }
+        .hero-description { color: #666; font-size: 1.1rem; line-height: 1.6; margin-bottom: 40px; max-width: 500px; }
         .btn-main-cta { background: var(--neon); color: black; border: none; padding: 18px 40px; border-radius: 4px; font-weight: 900; font-size: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
         .btn-main-cta:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,200,83,0.3); }
 
@@ -264,14 +273,8 @@ export default function LandingPage() {
         .card-val small { font-size: 11px; color: var(--neon); }
         .floating-card-2 { position: absolute; bottom: 15%; left: 5%; display: flex; gap: 12px; align-items: center; font-size: 11px; font-weight: 900; color: #888; letter-spacing: 1px; animation: float 6s ease-in-out infinite reverse; }
 
-        .section-info { padding: 100px 25px; text-align: center; }
-        .dark-bg { background: #030303; }
-        .content-limit { max-width: 900px; margin: 0 auto; }
-        .tag-line { font-size: 10px; letter-spacing: 6px; color: #444; font-weight: 900; margin-bottom: 20px; }
-        .title-section { font-size: 2.2rem; font-weight: 900; color: white; margin-bottom: 30px; letter-spacing: -1px; }
-        .text-body { color: #777; font-size: 1.2rem; line-height: 1.8; margin-bottom: 50px; }
-        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
-        .info-item h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-top: 15px; color: #555; }
+        .tag-line { font-size: 10px; letter-spacing: 6px; color: #444; font-weight: 900; margin-bottom: 20px; text-align: center; }
+        .title-section { font-size: 2.2rem; font-weight: 900; color: white; margin-bottom: 30px; letter-spacing: -1px; text-align: center; }
 
         .plans-area { padding: 120px 25px; max-width: 1400px; margin: 0 auto; }
         .plans-header { text-align: center; margin-bottom: 70px; }
@@ -306,6 +309,10 @@ export default function LandingPage() {
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
         .fade-in-up { opacity: 0; animation: fadeInUp 0.8s ease forwards; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in-down { animation: fadeInDown 0.3s ease forwards; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
