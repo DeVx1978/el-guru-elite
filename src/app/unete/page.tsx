@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   User, Mail, Lock, Phone, Target, Zap, Award, Star, 
-  MapPin, DollarSign, UploadCloud, CheckCircle, AlertTriangle, Loader2 
+  MapPin, DollarSign, UploadCloud, CheckCircle, AlertTriangle, Loader2, Eye, EyeOff 
 } from 'lucide-react';
 
 // --- DATOS DE MEMBRESÍAS (ACTUALIZADOS SEGÚN IMAGEN) ---
@@ -66,22 +66,24 @@ export default function UnetePage() {
   const [paso, setPaso] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPass, setShowPass] = useState(false); // Estado para el Ojo
   const [comprobante, setComprobante] = useState<File | null>(null);
   const [comprobanteUrl, setComprobanteUrl] = useState<string | null>(null);
+  const [globalLoading, setGlobalLoading] = useState(false); // Estado para el Balón
 
   // --- ESTADO DEL FORMULARIO ---
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
     password: '',
-    confirmPassword: '', // Nuevo
+    confirmPassword: '', 
     pais: 'Colombia',
-    codigoArea: '+57', // Nuevo
-    telefono: '', // Nuevo
+    codigoArea: '+57', 
+    telefono: '', 
     plan: 'plan',
     metodoPago: 'nequi',
-    tyc: false, // Nuevo
-    politicas: false, // Nuevo
+    tyc: false, 
+    politicas: false, 
   });
 
   // --- MANEJO DE CAMBIOS ---
@@ -123,15 +125,13 @@ export default function UnetePage() {
       return false;
     }
 
-    // Validación de email básica
     if (!/\S+@\S+\.\S+/.test(email)) {
       setError('El formato del correo electrónico no es válido.');
       return false;
     }
 
-    // Validación de contraseña segura (mínimo 8 caracteres, una letra y un número)
-    if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(password)) {
-        setError('La contraseña debe tener al menos 8 caracteres, incluir al menos una letra y un número.');
+    if (password.length < 8) {
+        setError('La contraseña debe tener al menos 8 caracteres.');
         return false;
     }
 
@@ -152,8 +152,14 @@ export default function UnetePage() {
   const siguientePaso = () => {
     if (paso === 1 && !validarPaso1()) return;
     setError(null);
-    setPaso(prev => prev + 1);
-    window.scrollTo(0, 0); // Subir al inicio al cambiar de paso
+    
+    // Animación del balón al cambiar de paso
+    setGlobalLoading(true);
+    setTimeout(() => {
+        setPaso(prev => prev + 1);
+        setGlobalLoading(false);
+        window.scrollTo(0, 0);
+    }, 800);
   };
 
   const pasoAnterior = () => {
@@ -174,43 +180,35 @@ export default function UnetePage() {
     }
 
     try {
-      // 1. Subir Imagen a Supabase Storage
       const fileExt = comprobante.name.split('.').pop();
       const fileName = `${Date.now()}_${formData.email.replace('@', '_').replace('.', '_')}.${fileExt}`;
       const filePath = `comprobantes/${fileName}`;
 
-      const { error: uploadError, data: uploadData } = await supabase.storage
-        .from('pagos')
-        .upload(filePath, comprobante);
-
+      const { error: uploadError } = await supabase.storage.from('pagos').upload(filePath, comprobante);
       if (uploadError) throw new Error('Error al subir el comprobante.');
 
-      // Obtener URL pública
       const { data: urlData } = supabase.storage.from('pagos').getPublicUrl(filePath);
       const urlComprobanteSupabase = urlData.publicUrl;
 
-      // 2. Insertar Socio en la Base de Datos
       const { error: insertError } = await supabase
         .from('socios')
         .insert([{
           nombre: formData.nombre,
           email: formData.email,
-          password: formData.password, // Nota: Debería ser encriptada en producción
+          password: formData.password,
           pais: formData.pais,
-          telefono: `${formData.codigoArea} ${formData.telefono}`, // Guardar con código de área
+          telefono: `${formData.codigoArea} ${formData.telefono}`,
           plan: formData.plan,
           metodo_pago: formData.metodoPago,
           comprobante_url: urlComprobanteSupabase,
-          estado: 'pendiente' // El admin lo aprueba luego
+          estado: 'pendiente'
         }]);
 
       if (insertError) {
-          // Si falla la inserción, intentar borrar la imagen subida
           await supabase.storage.from('pagos').remove([filePath]);
           throw new Error('Error al guardar los datos del registro. El correo podría ya estar registrado.');
       }
 
-      // 3. Éxito: Guardar sesión local y redirigir
       localStorage.setItem('socio_nombre', formData.nombre);
       router.push('/panel');
 
@@ -221,7 +219,6 @@ export default function UnetePage() {
     }
   };
 
-  // --- ESTILOS COMUNES ---
   const inputStyle = {
     width: '100%', padding: '15px', background: '#0a0c10', border: '1px solid #111', 
     borderRadius: '12px', color: 'white', fontSize: '1rem', outline: 'none', marginBottom: '15px'
@@ -229,10 +226,9 @@ export default function UnetePage() {
 
   const labelStyle = { color: '#888', fontSize: '0.9rem', marginBottom: '8px', display: 'block', fontWeight: 'bold' };
 
-  // --- RENDERIZADO DE PASOS ---
   const renderPaso = () => {
     switch (paso) {
-      case 1: // DATOS PERSONALES
+      case 1:
         return (
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Crea tu Cuenta Élite</h2>
@@ -254,13 +250,19 @@ export default function UnetePage() {
                 <input type="tel" name="telefono" placeholder="3001234567" value={formData.telefono} onChange={handleInputChange} style={{...inputStyle, flex: 1, marginBottom: 0}} />
             </div>
 
-            <label style={labelStyle}><Lock size={16} style={{marginRight: '5px'}}/> Contraseña Segura (mín. 8 caracteres, letra y número)</label>
-            <input type="password" name="password" placeholder="••••••••" value={formData.password} onChange={handleInputChange} style={inputStyle} />
+            <label style={labelStyle}><Lock size={16} style={{marginRight: '5px'}}/> Contraseña</label>
+            <div style={{position: 'relative'}}>
+                <input type={showPass ? "text" : "password"} name="password" placeholder="••••••••" value={formData.password} onChange={handleInputChange} style={inputStyle} />
+                <button type="button" onClick={() => setShowPass(!showPass)} style={{position: 'absolute', right: '15px', top: '15px', background: 'none', border: 'none', color: '#555', cursor: 'pointer'}}>
+                    {showPass ? <EyeOff size={20}/> : <Eye size={20}/>}
+                </button>
+            </div>
 
             <label style={labelStyle}><Lock size={16} style={{marginRight: '5px'}}/> Confirmar Contraseña</label>
-            <input type="password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleInputChange} style={inputStyle} />
+            <input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleInputChange} style={inputStyle} />
             
-            {/* Checkboxes T&C y Políticas */}
+            {error && <p style={{color: '#ff4444', fontSize: '0.85rem', marginBottom: '15px', textAlign: 'center'}}>⚠️ {error}</p>}
+
             <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px'}}>
                 <input type="checkbox" name="tyc" checked={formData.tyc} onChange={handleInputChange} style={{width: '20px', height: '20px', accentColor: '#00C853'}} />
                 <label style={{color: '#888', fontSize: '0.9rem'}}>Acepto los <a href="#" style={{color: '#00C853', textDecoration: 'none'}}>Términos y Condiciones</a>.</label>
@@ -275,12 +277,11 @@ export default function UnetePage() {
             </button>
           </div>
         );
-      case 2: // SELECCIÓN DE PLAN (ACTUALIZADO)
+      case 2:
         return (
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Selecciona tu Plan Élite</h2>
             <p style={{ color: '#888', marginBottom: '30px' }}>Paso 2: Elige el nivel de acceso y rentabilidad.</p>
-            
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '15px', marginBottom: '30px' }}>
               {planes.map(plan => {
                 const Icon = plan.icon;
@@ -290,141 +291,108 @@ export default function UnetePage() {
                     background: '#0a0c10', border: esSeleccionado ? `2px solid ${plan.color}` : '1px solid #111', 
                     borderRadius: '20px', padding: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '20px', transition: '0.3s'
                   }}>
-                    <div style={{ background: `${plan.color}10`, padding: '15px', borderRadius: '15px', color: plan.color }}>
-                      <Icon size={30} />
-                    </div>
+                    <div style={{ background: `${plan.color}10`, padding: '15px', borderRadius: '15px', color: plan.color }}><Icon size={30} /></div>
                     <div style={{ flex: 1 }}>
                       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: esSeleccionado ? 'white' : '#ccc' }}>{plan.nombre}</h3>
-                        <div style={{textAlign: 'right'}}>
-                            <span style={{ fontSize: '1.5rem', fontWeight: 900, color: plan.color }}>${plan.precio}</span>
-                            <span style={{ fontSize: '0.8rem', color: '#555' }}> /mes</span>
-                        </div>
+                        <div style={{textAlign: 'right'}}><span style={{ fontSize: '1.5rem', fontWeight: 900, color: plan.color }}>${plan.precio}</span></div>
                       </div>
                       <p style={{ color: '#00C853', margin: '5px 0', fontWeight: 'bold' }}>Rentabilidad: {plan.porcentaje}</p>
-                      <ul style={{margin: '10px 0 0 0', padding: 0, listStyle: 'none', fontSize: '0.9rem', color: '#888', display: 'flex', flexWrap: 'wrap', gap: '5px 15px'}}>
-                        {plan.detalles.map(d => <li key={d} style={{display: 'flex', alignItems: 'center', gap: '5px'}}><CheckCircle size={14} color="#333"/> {d}</li>)}
-                      </ul>
                     </div>
                   </div>
                 );
               })}
             </div>
-            
             <div style={{ display: 'flex', gap: '15px' }}>
               <button onClick={pasoAnterior} style={{ flex: 1, padding: '18px', background: '#111', color: '#888', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Atrás</button>
               <button onClick={siguientePaso} style={{ flex: 2, padding: '18px', background: '#00C853', color: 'black', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Continuar a Pago</button>
             </div>
           </div>
         );
-      case 3: // MÉTODO DE PAGO
+      case 3:
         return (
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Método de Pago</h2>
             <p style={{ color: '#888', marginBottom: '30px' }}>Paso 3: Elige cómo prefieres realizar el depósito.</p>
-            
             <label style={labelStyle}><DollarSign size={16} style={{marginRight: '5px'}}/> Selecciona tu método</label>
             <select name="metodoPago" value={formData.metodoPago} onChange={handleInputChange} style={inputStyle}>
-              {metodosPago.map(metodo => (
-                <option key={metodo.id} value={metodo.id}>{metodo.nombre}</option>
-              ))}
+              {metodosPago.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
             </select>
-            
-            {/* Mostrar información detallada del método seleccionado */}
             <div style={{ background: 'rgba(0,200,83,0.05)', border: '1px solid #00C85330', padding: '20px', borderRadius: '12px', color: '#ccc', marginBottom: '30px', fontSize: '0.95rem', lineHeight: '1.5' }}>
                 <b style={{color: '#00C853', display: 'block', marginBottom: '10px'}}>Datos para realizar el pago:</b>
                 {metodosPago.find(m => m.id === formData.metodoPago)?.info.split(' - ').map(infoLine => (
                     <p key={infoLine} style={{margin: '0 0 5px 0'}}>{infoLine}</p>
                 ))}
-                <p style={{margin: '15px 0 0 0', color: '#888', fontSize: '0.85rem'}}>Asegúrate de copiar los datos exactamente y realizar el pago antes de continuar.</p>
             </div>
-
             <div style={{ display: 'flex', gap: '15px' }}>
               <button onClick={pasoAnterior} style={{ flex: 1, padding: '18px', background: '#111', color: '#888', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Atrás</button>
               <button onClick={siguientePaso} style={{ flex: 2, padding: '18px', background: '#00C853', color: 'black', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Continuar a Verificación</button>
             </div>
           </div>
         );
-      case 4: // SUBIR COMPROBANTE
-        const planSeleccionado = planes.find(p => p.id === formData.plan);
+      case 4:
+        const planFinal = planes.find(p => p.id === formData.plan);
         return (
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Verificación de Pago</h2>
-            <p style={{ color: '#888', marginBottom: '30px' }}>Paso 4: Sube una captura de tu comprobante de pago.</p>
-            
             <div style={{ background: '#0a0c10', border: '1px solid #111', padding: '20px', borderRadius: '15px', marginBottom: '20px' }}>
                 <p style={{margin: 0, color: '#555', fontSize: '0.8rem'}}>TOTAL A PAGAR:</p>
-                <p style={{margin: 0, fontSize: '2rem', fontWeight: 900, color: planSeleccionado?.color}}>${planSeleccionado?.precio} USD</p>
-                <p style={{margin: '5px 0 0 0', color: '#888'}}>Plan: {planSeleccionado?.nombre} ({planSeleccionado?.porcentaje})</p>
+                <p style={{margin: 0, fontSize: '2rem', fontWeight: 900, color: planFinal?.color}}>${planFinal?.precio} USD</p>
             </div>
-
-            <label style={labelStyle}><UploadCloud size={16} style={{marginRight: '5px'}}/> Captura del Comprobante (Máx 5MB)</label>
-            <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
-            
-            <div onClick={() => fileInputRef.current?.click()} style={{
-              width: '100%', height: '180px', background: '#0a0c10', border: '2px dashed #222', 
-              borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', 
-              justifyContent: 'center', cursor: 'pointer', marginBottom: '30px', overflow: 'hidden', color: '#555'
-            }}>
-              {comprobanteUrl ? (
-                <img src={comprobanteUrl} alt="Comprobante" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              ) : (
-                <>
-                  <UploadCloud size={40} style={{ marginBottom: '10px' }} />
-                  <span>Click para subir imagen</span>
-                </>
-              )}
+            <div onClick={() => fileInputRef.current?.click()} style={{ width: '100%', height: '180px', background: '#0a0c10', border: '2px dashed #222', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginBottom: '30px', overflow: 'hidden' }}>
+              {comprobanteUrl ? <img src={comprobanteUrl} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <UploadCloud size={40} color="#555"/>}
             </div>
-
-            {error && (
-              <div style={{ background: 'rgba(255,68,68,0.1)', color: '#ff4444', padding: '15px', borderRadius: '12px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
-                <AlertTriangle size={20} /> {error}
-              </div>
-            )}
-
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
+            {error && <p style={{color: '#ff4444', marginBottom: '15px'}}>⚠️ {error}</p>}
             <div style={{ display: 'flex', gap: '15px' }}>
               <button onClick={pasoAnterior} style={{ flex: 1, padding: '18px', background: '#111', color: '#888', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Atrás</button>
-              <button onClick={finalizarRegistro} disabled={loading} style={{ flex: 2, padding: '18px', background: '#00C853', color: 'black', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                {loading ? <><Loader2 className="animate-spin" size={20}/> Procesando...</> : 'Finalizar Registro'}
+              <button onClick={finalizarRegistro} disabled={loading} style={{ flex: 2, padding: '18px', background: '#00C853', color: 'black', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>
+                {loading ? 'Procesando...' : 'Finalizar Registro'}
               </button>
             </div>
           </div>
         );
-      default:
-        return null;
+      default: return null;
     }
   };
 
   return (
     <div style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif' }}>
-      {/* HEADER SIMPLE */}
+      
+      {/* BALÓN GIRATORIO */}
+      {globalLoading && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(2,4,6,0.9)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+          <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+            <div className="loader-ring"></div>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', boxShadow: '0 0 20px #00C853' }}>
+              <img src="/images/guru.jpg" alt="Logo" className="ball-spin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          </div>
+        </div>
+      )}
+
       <header style={{ padding: '20px', borderBottom: '1px solid #111', textAlign: 'center' }}>
         <h1 onClick={() => router.push('/')} style={{ color: '#00C853', margin: 0, fontSize: '1.5rem', fontWeight: 900, cursor: 'pointer' }}>EL GURÚ ÉLITE</h1>
       </header>
 
-      {/* CONTENIDO PRINCIPAL */}
       <main style={{ maxWidth: '600px', margin: '0 auto', padding: '40px 20px' }}>
-        
-        {/* INDICADOR DE PASOS */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', position: 'relative' }}>
           <div style={{position: 'absolute', top: '20px', left: '0', width: '100%', height: '2px', background: '#111', zIndex: 1}}></div>
           <div style={{position: 'absolute', top: '20px', left: '0', width: `${(paso - 1) * 33.33}%`, height: '2px', background: '#00C853', zIndex: 1, transition: '0.3s'}}></div>
           {[1, 2, 3, 4].map(p => (
-            <div key={p} style={{ width: '40px', height: '40px', borderRadius: '50%', background: paso >= p ? '#00C853' : '#0a0c10', color: paso >= p ? 'black' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', position: 'relative', zIndex: 2, border: paso >= p ? 'none' : '2px solid #111', transition: '0.3s' }}>
-              {p}
-            </div>
+            <div key={p} style={{ width: '40px', height: '40px', borderRadius: '50%', background: paso >= p ? '#00C853' : '#0a0c10', color: paso >= p ? 'black' : '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', position: 'relative', zIndex: 2, border: paso >= p ? 'none' : '2px solid #111' }}>{p}</div>
           ))}
         </div>
-
-        {/* RENDERIZAR EL PASO ACTUAL */}
         {renderPaso()}
-
       </main>
 
-      {/* ESTILOS CSS INYECTADOS */}
       <style jsx global>{`
         .fade-in { animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .loader-ring { width: 120px; height: 120px; border-radius: 50%; border: 3px solid transparent; border-top: 3px solid #00C853; border-bottom: 3px solid #00C853; animation: spin-ring 1s linear infinite; }
+        .ball-spin { animation: spin-ball 2s linear infinite; }
+        @keyframes spin-ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin-ball { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
