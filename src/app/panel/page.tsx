@@ -183,4 +183,4 @@ export default function SocioPanel() {
       `}</style>
     </div>
   );
-}
+} 
