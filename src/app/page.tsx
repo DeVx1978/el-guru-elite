@@ -15,6 +15,7 @@ export default function LandingPage() {
   useEffect(() => {
     router.prefetch('/panel');
     router.prefetch('/unete');
+    router.prefetch('/admin'); // Prefetch preventivo para MJ
     const timer = setTimeout(() => setLoading(false), 5000);
     return () => clearTimeout(timer);
   }, [router]);
@@ -23,7 +24,14 @@ export default function LandingPage() {
     e.preventDefault(); 
     setIsNavigating(true); 
     setMenuMovilAbierto(false);
-    setTimeout(() => { router.push(ruta); }, 4000); 
+
+    // 💉 INYECCIÓN QUIRÚRGICA: Identificación de María José desde la entrada
+    const esAdmin = typeof window !== 'undefined' && localStorage.getItem('socio_rol') === 'admin';
+    const destinoFinal = (ruta === '/login' || ruta === '/panel') && esAdmin ? '/admin' : ruta;
+
+    setTimeout(() => { 
+      router.push(destinoFinal); 
+    }, 3500); // Optimizado para fluidez Élite
   };
 
   const membresias = [
@@ -34,7 +42,6 @@ export default function LandingPage() {
     { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
   ];
 
-  // --- LÓGICA DE TEXTOS INDEPENDIENTES (REFORZADA) ---
   const abrirLegal = (tipo: string) => {
     const textos: {[key: string]: {t: string, c: string}} = {
       terminos: { 
@@ -73,7 +80,7 @@ export default function LandingPage() {
         </div>
         <div className="welcome-container-luxe">
           <div className="loading-bar-master"><div className="loading-bar-fill"></div></div>
-          <h2 className="loading-text-elite">{isNavigating ? "VALIDANDO CREDENCIALES..." : "IDENTIFICANDO INVERSOR ÉLITE..."}</h2>
+          <h2 className="loading-text-elite">{isNavigating ? "SINCRONIZANDO ACCESO MJ..." : "IDENTIFICANDO INVERSOR ÉLITE..."}</h2>
         </div>
         <style jsx global>{`
           .splash-master { background: radial-gradient(circle at center, #0a0c10 0%, #000 100%) !important; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; }
@@ -179,7 +186,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 💉 FOOTER REFORMADO: TÉRMINOS, PRIVACIDAD Y CONFIDENCIALIDAD */}
       <footer className="footer-elite-master">
         <div className="footer-links-row">
           <span className="f-item-elite" onClick={() => abrirLegal('terminos')}>
@@ -248,7 +254,6 @@ export default function LandingPage() {
         .card-energy-bar { position: absolute; top:0; left:0; width: 100%; height: 5px; background: var(--card-color); box-shadow: 0 0 15px var(--card-color); z-index: 10; }
         .btn-m-acquire { width: 100%; padding: 15px; background: transparent; border: 1px solid var(--btn-color); color: var(--btn-color); font-weight: 900; cursor: pointer; border-radius: 4px; transition: 0.3s; margin-top: 20px; }
         
-        /* 💉 ESTILOS FOOTER */
         .footer-elite-master { padding: 60px 20px; text-align: center; border-top: 1px solid #111; margin-top: 50px; }
         .footer-links-row { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap; }
         .f-item-elite { color: #555; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
