@@ -1,26 +1,45 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js'; // Importamos para el conteo real
 import { 
   User, Wallet, TrendingUp, ShieldCheck, LogOut, 
   Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard,
-  ArrowUpRight, Activity
+  ArrowUpRight, Activity, ShieldAlert
 } from 'lucide-react';
+
+const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
 export default function SocioPanel() {
   const router = useRouter();
   const [nombre, setNombre] = useState("Socio");
+  const [esAdmin, setEsAdmin] = useState(false);
+  const [pendientes, setPendientes] = useState(0);
 
   useEffect(() => {
     const socioNombre = localStorage.getItem('socio_nombre');
     const socioId = localStorage.getItem('socio_id');
+    const socioRol = localStorage.getItem('socio_rol'); // Asumimos que guardas el rol al loguear
 
     if (!socioId) {
       router.push('/login');
     } else {
       setNombre(socioNombre || "Socio");
+      // Si el rol en la base de datos es admin, activamos el poder
+      if (socioRol === 'admin') {
+        setEsAdmin(true);
+        obtenerPendientes();
+      }
     }
   }, []);
+
+  const obtenerPendientes = async () => {
+    const { data } = await clientSupabase
+      .from('socios')
+      .select('id')
+      .eq('estado', 'pendiente');
+    setPendientes(data?.length || 0);
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -36,7 +55,15 @@ export default function SocioPanel() {
           GURÚ <span style={{color: '#fff'}}>ÉLITE</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <Bell size={20} color="#333" />
+          
+          {/* CAMPANA INTELIGENTE: Solo brilla si es Admin y hay pendientes */}
+          <div style={{ position: 'relative', cursor: esAdmin ? 'pointer' : 'default' }} onClick={() => esAdmin && router.push('/admin')}>
+            <Bell size={20} color={esAdmin && pendientes > 0 ? "#00C853" : "#333"} />
+            {esAdmin && pendientes > 0 && (
+              <span className="bell-badge">{pendientes}</span>
+            )}
+          </div>
+
           <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
             <LogOut size={16} /> SALIR
           </button>
@@ -45,6 +72,33 @@ export default function SocioPanel() {
 
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
         
+        {/* BOTÓN DE ACCESO MAESTRO (SOLO PARA MARÍA JOSÉ / ADMINS) */}
+        {esAdmin && (
+          <div className="fade-in" style={{ marginBottom: '30px' }}>
+            <button 
+              onClick={() => router.push('/admin')}
+              style={{ 
+                width: '100%', 
+                padding: '20px', 
+                background: 'linear-gradient(90deg, #00C853 0%, #007a33 100%)', 
+                color: 'white', 
+                borderRadius: '20px', 
+                border: 'none', 
+                fontWeight: 900, 
+                fontSize: '1rem', 
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '15px',
+                boxShadow: '0 10px 20px rgba(0,200,83,0.2)'
+              }}
+            >
+              <ShieldAlert size={24} /> ENTRAR AL CENTRO DE MANDO (ADMINISTRADOR)
+            </button>
+          </div>
+        )}
+
         {/* BIENVENIDA PERSONALIZADA */}
         <header style={{ marginBottom: '40px' }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '10px' }}>
@@ -56,7 +110,7 @@ export default function SocioPanel() {
           </div>
         </header>
 
-        {/* --- MONITOR DE CRECIMIENTO ÉLITE (CIRUGÍA PLÁSTICA) --- */}
+        {/* --- MONITOR DE CRECIMIENTO ÉLITE --- */}
         <div style={{ 
           background: 'linear-gradient(145deg, #0a0c10 0%, #050505 100%)', 
           border: '1px solid #111', 
@@ -67,7 +121,6 @@ export default function SocioPanel() {
           position: 'relative',
           overflow: 'hidden'
         }}>
-           {/* Efecto de luz ambiental en la esquina */}
            <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'rgba(0, 200, 83, 0.05)', filter: 'blur(50px)', borderRadius: '50%' }}></div>
 
            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px', position: 'relative', zIndex: 1 }}>
@@ -88,7 +141,6 @@ export default function SocioPanel() {
               </div>
            </div>
 
-           {/* BARRA DE PROGRESO CON NEÓN */}
            <div style={{ marginTop: '40px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.8rem', fontWeight: 'bold', color: '#444' }}>
                 <span>PROGRESO DE CARTERA</span>
@@ -105,7 +157,6 @@ export default function SocioPanel() {
 
         {/* TARJETAS DE ACCIÓN RÁPIDA */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-          
           <div className="action-card">
             <div className="icon-box" style={{ background: 'rgba(0, 200, 83, 0.1)', color: '#00C853' }}><TrendingUp /></div>
             <div>
@@ -129,7 +180,6 @@ export default function SocioPanel() {
               <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#555' }}>Ajustes de cuenta</p>
             </div>
           </div>
-
         </div>
 
       </main>
@@ -151,12 +201,21 @@ export default function SocioPanel() {
           background: #0d1015;
           transform: translateY(-5px);
         }
-        .icon-box {
-          padding: 15px;
-          borderRadius: 18px;
+        .bell-badge {
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          background: #ff4444;
+          color: white;
+          border-radius: 50%;
+          width: 16px;
+          height: 16px;
+          font-size: 9px;
           display: flex;
-          alignItems: center;
-          justifyContent: center;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          border: 2px solid #050505;
         }
         .progress-bar-glow {
           box-shadow: 0 0 15px #00C853;
@@ -175,6 +234,8 @@ export default function SocioPanel() {
           50% { filter: brightness(1.5); }
           100% { filter: brightness(1); }
         }
+        .fade-in { animation: fadeIn 0.8s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
