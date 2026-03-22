@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
   Trash2, Eye, EyeOff, CheckCircle, PowerOff, ShieldCheck, 
-  Image as ImageIcon, Mail, Phone, Loader2, KeyRound 
+  ImageIcon, Mail, Phone, Loader2, KeyRound, Bell 
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -14,6 +14,7 @@ export default function AdminControlMasterV4() {
   const [verClave, setVerClave] = useState(false);
   const [listaSocios, setListaSocios] = useState<any[]>([]);
   const [cargando, setCargando] = useState(false);
+  const [pendientes, setPendientes] = useState(0); // <-- EL CONTADOR DE ALERTAS
 
   const KEY_ACCESO = "GURU2026";
 
@@ -24,8 +25,14 @@ export default function AdminControlMasterV4() {
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (error) console.error("Error al obtener socios:", error.message);
+    if (error) console.error("Error:", error.message);
+    
     setListaSocios(data || []);
+    
+    // --- LÓGICA DE ALERTA: FILTRAMOS LOS PENDIENTES ---
+    const count = data?.filter(s => s.estado === 'pendiente').length || 0;
+    setPendientes(count);
+    
     setCargando(false);
   };
 
@@ -33,17 +40,12 @@ export default function AdminControlMasterV4() {
 
   const alternarEstado = async (id: any, actual: string) => {
     const nuevoEstado = actual === 'activo' ? 'pendiente' : 'activo';
-    const { error } = await clientSupabase
-      .from('socios')
-      .update({ estado: nuevoEstado })
-      .eq('id', id);
-    
+    const { error } = await clientSupabase.from('socios').update({ estado: nuevoEstado }).eq('id', id);
     if (!error) obtenerDatos();
   };
 
   const eliminarRegistro = async (id: any, nombre: string) => {
-    const confirmacion = window.confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE A ${nombre.toUpperCase()}?`);
-    if (confirmacion) {
+    if (window.confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE A ${nombre.toUpperCase()}?`)) {
       setCargando(true);
       const { error } = await clientSupabase.from('socios').delete().eq('id', id);
       if (!error) await obtenerDatos();
@@ -77,35 +79,48 @@ export default function AdminControlMasterV4() {
 
   return (
     <main style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', padding: '40px', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ color: '#00C853', fontWeight: 900, margin: 0 }}>DIRECTORIO GURÚ ÉLITE V4</h1>
-        <button onClick={obtenerDatos} style={{ background: '#111', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {cargando && <Loader2 size={16} className="animate-spin" />}
-          REFRESCAR LISTA
+      
+      {/* ENCABEZADO CON NOTIFICACIONES ESTILO FACEBOOK */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
+          <h1 style={{ color: '#00C853', fontWeight: 900, margin: 0 }}>DIRECTORIO GURÚ ÉLITE V4</h1>
+          
+          {/* ICONO DE CAMPANA CON PUNTO ROJO PULSANTE */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Bell size={28} color={pendientes > 0 ? "#00C853" : "#333"} />
+            {pendientes > 0 && (
+              <span className="notification-badge">
+                {pendientes}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <button onClick={obtenerDatos} style={{ background: '#111', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {cargando ? <Loader2 size={16} className="animate-spin" /> : "REFRESCAR LISTA"}
         </button>
       </div>
 
-      <div style={{ background: '#0a0c10', borderRadius: '25px', border: '1px solid #111', marginTop: '30px', overflow: 'hidden' }}>
+      <div style={{ background: '#0a0c10', borderRadius: '25px', border: '1px solid #111', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#111', color: '#555', fontSize: '11px', textTransform: 'uppercase' }}>
               <th style={{ padding: '25px', textAlign: 'left' }}>Socio / Contacto / Seguridad</th>
               <th style={{ padding: '25px', textAlign: 'center' }}>Plan / Pago</th>
               <th style={{ padding: '25px', textAlign: 'center' }}>Estado</th>
-              <th style={{ padding: '25px', textAlign: 'center' }}>Acciones Ejecutivas</th>
+              <th style={{ padding: '25px', textAlign: 'center' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {listaSocios.map((s) => (
-              <tr key={s.id} style={{ borderBottom: '1px solid #111' }}>
+              <tr key={s.id} style={{ borderBottom: '1px solid #111', background: s.estado === 'pendiente' ? 'rgba(0,200,83,0.02)' : 'transparent' }}>
                 <td style={{ padding: '25px' }}>
                   <b style={{fontSize: '16px', color: 'white'}}>{s.nombre}</b>
                   <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px', color: '#666', fontSize: '12px'}}>
                     <span style={{display: 'flex', alignItems: 'center', gap: '6px'}}><Mail size={12}/> {s.email}</span>
                     <span style={{display: 'flex', alignItems: 'center', gap: '6px'}}><Phone size={12}/> {s.telefono}</span>
-                    {/* ACCESO B: VISIBILIDAD DE CONTRASEÑA */}
-                    <span style={{display: 'flex', alignItems: 'center', gap: '6px', color: '#81D4FA', fontWeight: 900, background: 'rgba(129, 212, 250, 0.05)', padding: '4px 8px', borderRadius: '6px', width: 'fit-content' }}>
-                      <KeyRound size={12}/> CLAVE: {s.password}
+                    <span style={{color: '#81D4FA', fontWeight: 900, background: 'rgba(129, 212, 250, 0.05)', padding: '4px 8px', borderRadius: '6px', width: 'fit-content' }}>
+                      🔑 CLAVE: {s.password}
                     </span>
                   </div>
                 </td>
@@ -121,7 +136,7 @@ export default function AdminControlMasterV4() {
                     color: s.estado === 'activo' ? '#00C853' : '#ff9800', 
                     padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' 
                   }}>
-                    {s.estado || 'PENDIENTE'}
+                    {s.estado}
                   </span>
                 </td>
                 <td style={{ padding: '25px' }}>
@@ -133,10 +148,7 @@ export default function AdminControlMasterV4() {
                       {s.estado === 'activo' ? <PowerOff size={16} /> : <CheckCircle size={16} />}
                       {s.estado === 'activo' ? 'DESACTIVAR' : 'ACTIVAR'}
                     </button>
-                    <button 
-                      onClick={() => eliminarRegistro(s.id, s.nombre)} 
-                      style={{ background: '#1a0505', border: '1px solid #300', color: '#ff4444', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}
-                    >
+                    <button onClick={() => eliminarRegistro(s.id, s.nombre)} style={{ background: '#1a0505', border: '1px solid #300', color: '#ff4444', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}>
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -146,9 +158,34 @@ export default function AdminControlMasterV4() {
           </tbody>
         </table>
       </div>
+
       <style jsx global>{`
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .notification-badge {
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          background: #ff4444;
+          color: white;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          font-size: 11px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          border: 2px solid #0a0c10;
+          animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+          70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(255, 68, 68, 0); }
+          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+        }
       `}</style>
     </main>
   );
