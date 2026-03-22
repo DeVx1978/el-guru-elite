@@ -111,7 +111,6 @@ export default function LandingPage() {
             <span className="brand-text">EL GURÚ <span className="brand-neon">ÉLITE</span></span>
           </div>
 
-          {/* MENÚ DESKTOP */}
           <div className="nav-links-desktop">
             <span onClick={() => abrirInfoSeccion('quienes')} className="link-elite pointer">Quiénes Somos</span>
             <span onClick={() => abrirInfoSeccion('proyecto')} className="link-elite pointer">Proyecto Gurú</span>
@@ -126,7 +125,6 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* MENÚ MÓVIL (HAMBURGUESA) */}
         <div className={`mobile-menu-overlay ${menuMovilAbierto ? 'active' : ''}`}>
            <span onClick={() => abrirInfoSeccion('quienes')} className="mobile-link">Quiénes Somos</span>
            <span onClick={() => abrirInfoSeccion('proyecto')} className="mobile-link">Proyecto Gurú</span>
@@ -149,7 +147,10 @@ export default function LandingPage() {
             </p>
             <div className="hero-cta-btn-group">
               <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-hero-primary">
-                COMENZAR AHORA <ArrowUpRight size={20} />
+                COMENZAR <ArrowUpRight size={18} />
+              </button>
+              <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-hero-secondary">
+                ACCESO <Lock size={16} />
               </button>
             </div>
           </div>
@@ -181,7 +182,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* RESTO DE SECCIONES (MEMBRESÍAS) SE MANTIENEN IGUAL */}
       <section id="proyecto-inversionistas" className="plans-section-luxe">
         <div className="section-header-luxe">
           <span className="header-tag-luxe">MERCADO DE CAPITAL PRIVADO</span>
@@ -219,7 +219,6 @@ export default function LandingPage() {
         :root { --neon: #00C853; }
         .elite-landing-master { background-color: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; padding-top: 80px; }
         
-        /* NAVBAR RESPONSIVA */
         .navbar-elite { width: 100%; position: fixed; top: 0; z-index: 1000; background: rgba(0, 0, 0, 0.95); border-bottom: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
         .nav-container-master { max-width: 1400px; margin: 0 auto; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
         .brand-text { font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; }
@@ -228,42 +227,46 @@ export default function LandingPage() {
         .nav-links-desktop { display: none; gap: 30px; }
         @media (min-width: 1024px) { .nav-links-desktop { display: flex; } }
         .link-elite { color: #888; text-transform: uppercase; font-size: 11px; font-weight: 900; letter-spacing: 2px; transition: 0.3s; cursor: pointer; }
-        .link-elite:hover { color: var(--neon); }
 
         .menu-toggle { display: block; background: none; border: none; cursor: pointer; }
         @media (min-width: 1024px) { .menu-toggle { display: none; } .desktop-only { display: block; } }
         .desktop-only { display: none; }
 
-        /* MENÚ MÓVIL ESTILO GURÚ */
         .mobile-menu-overlay { position: fixed; top: 80px; left: 0; width: 100%; height: 0; background: #000; overflow: hidden; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; z-index: 999; }
         .mobile-menu-overlay.active { height: calc(100vh - 80px); }
         .mobile-link { color: white; font-size: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; }
-        .btn-mobile-access { background: var(--neon); color: black; border: none; padding: 15px 30px; border-radius: 4px; font-weight: 900; }
 
-        /* HERO RECTIFICADO (EL DEGRADADO BLANCO/VERDE) */
-        .hero-elite { max-width: 1400px; margin: 0 auto; padding: 100px 30px; }
-        .hero-main-title { font-size: clamp(2.8rem, 8vw, 5.5rem); font-weight: 900; line-height: 0.95; margin-bottom: 35px; letter-spacing: -3px; text-align: left; }
+        .hero-elite { max-width: 1400px; margin: 0 auto; padding: 60px 20px; }
+        @media (min-width: 1024px) { .hero-elite { padding: 100px 30px; } }
+        
+        .hero-main-title { font-size: clamp(2.5rem, 8vw, 5.5rem); font-weight: 900; line-height: 0.95; margin-bottom: 25px; letter-spacing: -2px; }
         .text-glow-neon { background: linear-gradient(180deg, #fff 30%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-subtext { color: #666; font-size: 1.25rem; line-height: 1.6; max-width: 600px; margin-bottom: 40px; }
-        .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 20px 40px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .hero-subtext { color: #666; font-size: 1.1rem; line-height: 1.6; max-width: 600px; margin-bottom: 35px; }
 
-        /* STATS CARDS */
-        .hero-visuals-horizontal { display: flex; flex-direction: column; gap: 20px; margin-top: 60px; }
-        @media (min-width: 1024px) { .hero-visuals-horizontal { flex-direction: row; } }
-        .stat-card-horizontal { background: rgba(10,10,10,0.8); border: 1px solid #111; padding: 25px; border-radius: 12px; display: flex; align-items: center; gap: 20px; flex: 1; }
+        /* --- BOTONES EN UNA SOLA FILA PARA MÓVIL --- */
+        .hero-cta-btn-group { display: flex; gap: 8px; width: 100%; }
+        .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 16px 15px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; flex: 1.5; font-size: 0.75rem; white-space: nowrap; }
+        .btn-hero-secondary { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 16px 15px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; flex: 1; font-size: 0.75rem; white-space: nowrap; }
+        
+        @media (min-width: 1024px) { 
+          .hero-cta-btn-group { width: auto; gap: 20px; }
+          .btn-hero-primary { padding: 20px 40px; font-size: 1rem; }
+          .btn-hero-secondary { display: none; } 
+        }
+
+        .hero-visuals-horizontal { display: flex; flex-direction: column; gap: 15px; margin-top: 50px; }
+        @media (min-width: 1024px) { .hero-visuals-horizontal { flex-direction: row; gap: 20px; } }
+        .stat-card-horizontal { background: rgba(10,10,10,0.8); border: 1px solid #111; padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 15px; flex: 1; }
         .stat-label { font-size: 10px; color: #444; font-weight: 900; letter-spacing: 2px; }
-        .stat-value { font-size: 1.5rem; font-weight: 900; }
+        .stat-value { font-size: 1.3rem; font-weight: 900; }
 
-        /* PLANES GRID */
-        .plans-grid-luxe { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .plans-section-luxe { padding: 80px 20px; max-width: 1600px; margin: 0 auto; }
+        .plans-grid-luxe { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
         .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; padding: 40px 20px; position: relative; overflow: hidden; transition: 0.4s; text-align: center; }
-        .membership-card-luxe:hover { border-color: var(--card-color); transform: translateY(-10px); }
-        .card-energy-bar { position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--card-color); }
-        .m-card-price { font-size: 2.5rem; font-weight: 900; margin: 20px 0; }
-        .m-card-price .m-sign { color: var(--neon); font-size: 1.2rem; vertical-align: top; }
-        .btn-m-acquire { width: 100%; padding: 15px; background: transparent; border: 1px solid var(--card-color); color: var(--card-color); font-weight: 900; cursor: pointer; margin-top: 20px; }
+        
+        .footer-elite-master { padding: 60px 20px; background: #050505; text-align: center; border-top: 1px solid #111; margin-top: 50px; }
+        .footer-links-row { display: flex; justify-content: center; gap: 30px; margin-bottom: 30px; }
 
-        @keyframes progress-master { 100% { width: 100%; } }
         .fade-up-card { opacity: 0; animation: fadeUp 0.8s ease forwards; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
