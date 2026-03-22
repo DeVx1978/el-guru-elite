@@ -2,9 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js'; 
-import { 
-  User, Wallet, TrendingUp, ShieldCheck, LogOut, 
-  Bell, ArrowUpRight, Activity, ShieldAlert, Target, Trophy, ArrowRightCircle
+import {
+  User, Wallet, TrendingUp, ShieldCheck, LogOut,
+  Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard,
+  ArrowUpRight, Activity, ShieldAlert, Trophy, ArrowRightCircle
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -17,7 +18,7 @@ export default function SocioPanel() {
   const [pendientes, setPendientes] = useState(0);
 
   useEffect(() => {
-    // --- INYECCIÓN DEL CRONÓMETRO DE 4 SEGUNDOS ---
+    // 1. SEGURO DE CARGA: 4 segundos obligatorios de Logo Gurú
     const timer = setTimeout(() => {
       setLoading(false);
     }, 4000);
@@ -51,7 +52,7 @@ export default function SocioPanel() {
     router.push('/login');
   };
 
-  // --- CAPA DE SEGURIDAD: LOGO GURÚ ÉLITE (POR 4 SEGUNDOS) ---
+  // --- CAPA DE SEGURIDAD: LOGO GURÚ ÉLITE ---
   if (loading) {
     return (
       <div style={{ backgroundColor: '#020406', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: '20px', position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 9999 }}>
@@ -73,7 +74,6 @@ export default function SocioPanel() {
     );
   }
 
-  // --- PANEL COMPLETO (SIN RECORTES) ---
   return (
     <div style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif' }}>
       
@@ -85,7 +85,7 @@ export default function SocioPanel() {
           <div style={{ position: 'relative', cursor: esAdmin ? 'pointer' : 'default' }} onClick={() => esAdmin && router.push('/admin')}>
             <Bell size={20} color={esAdmin && pendientes > 0 ? "#00C853" : "#333"} />
             {esAdmin && pendientes > 0 && (
-              <span className="bell-badge">{pendientes}</span>
+              <span style={{ position: 'absolute', top: -5, right: -5, background: 'red', borderRadius: '50%', width: 14, height: 14, fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>{pendientes}</span>
             )}
           </div>
           <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
@@ -129,12 +129,6 @@ export default function SocioPanel() {
                   </span>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ background: 'rgba(129, 212, 250, 0.1)', padding: '10px 20px', borderRadius: '15px', border: '1px solid rgba(129, 212, 250, 0.2)', display: 'inline-block' }}>
-                  <p style={{ color: '#81D4FA', fontSize: '0.7rem', fontWeight: 900, margin: 0, letterSpacing: '1px' }}>NIVEL DE SOCIO</p>
-                  <p style={{ color: '#fff', fontWeight: 900, margin: 0, fontSize: '1.1rem' }}>PLAN INICIAL</p>
-                </div>
-              </div>
            </div>
            <div style={{ marginTop: '40px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.8rem', fontWeight: 'bold', color: '#444' }}>
@@ -142,7 +136,7 @@ export default function SocioPanel() {
                 <span style={{ color: '#00C853' }}>EN ESPERA DE MERCADO</span>
               </div>
               <div style={{ width: '100%', height: '12px', background: '#111', borderRadius: '20px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
-                <div className="progress-bar-glow" style={{ width: '5%', height: '100%', background: '#00C853', borderRadius: '20px' }}></div>
+                <div style={{ width: '5%', height: '100%', background: '#00C853', borderRadius: '20px', boxShadow: '0 0 15px #00C853' }}></div>
               </div>
               <p style={{ color: '#333', fontSize: '0.7rem', marginTop: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={12} className="pulse" /> SISTEMA DE ALGORITMOS CALCULANDO UTILIDADES EN TIEMPO REAL...
@@ -153,17 +147,10 @@ export default function SocioPanel() {
         {/* --- BANNER DE IMPACTO MUNDIAL 2026 --- */}
         <div 
           onClick={() => router.push('/panel/objetivos')}
-          className="investor-banner"
-          style={{ 
-            background: 'linear-gradient(90deg, rgba(0,200,83,0.15) 0%, rgba(10,12,16,1) 100%)', 
-            border: '1px solid #00C853', padding: '25px', borderRadius: '25px', marginBottom: '40px', 
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-          }}
+          style={{ background: 'linear-gradient(90deg, rgba(0,200,83,0.15) 0%, rgba(10,12,16,1) 100%)', border: '1px solid #00C853', padding: '25px', borderRadius: '25px', marginBottom: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div style={{ background: '#00C853', padding: '12px', borderRadius: '15px', color: 'black' }}>
-              <Trophy size={28} />
-            </div>
+            <div style={{ background: '#00C853', padding: '12px', borderRadius: '15px', color: 'black' }}><Trophy size={28} /></div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#00C853', fontWeight: 900 }}>PROYECCIÓN MUNDIAL 2026</h3>
               <p style={{ margin: '5px 0 0', fontSize: '0.9rem', color: '#888' }}>Hoja de ruta exclusiva: Champions League, Libertadores y expansión Global.</p>
@@ -172,42 +159,27 @@ export default function SocioPanel() {
           <ArrowRightCircle size={32} color="#00C853" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-          <div className="action-card" onClick={() => router.push('/panel/objetivos')}>
-            <div className="icon-box" style={{ background: 'rgba(0, 200, 83, 0.1)', color: '#00C853' }}><Target /></div>
-            <div>
-              <h4 style={{ margin: 0 }}>Ruta de Expansión</h4>
-              <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#555' }}>Objetivos y Torneos Élite</p>
-            </div>
+        {/* TARJETAS DE ACCIÓN */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+          <div onClick={() => router.push('/panel/objetivos')} style={{ background: '#0a0c10', padding: '25px', borderRadius: '25px', border: '1px solid #111', display: 'flex', alignItems: 'center', gap: '20px', cursor: 'pointer' }}>
+            <div style={{ color: '#00C853' }}><Target /></div>
+            <div><h4 style={{margin:0}}>Ruta de Expansión</h4><p style={{margin:0, fontSize:'0.8rem', color:'#555'}}>Objetivos Élite</p></div>
           </div>
-          <div className="action-card">
-            <div className="icon-box" style={{ background: 'rgba(0, 200, 83, 0.1)', color: '#00C853' }}><TrendingUp /></div>
-            <div>
-              <h4 style={{ margin: 0 }}>Señales en Vivo</h4>
-              <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#555' }}>Acceso a operativa diaria</p>
-            </div>
+          <div style={{ background: '#0a0c10', padding: '25px', borderRadius: '25px', border: '1px solid #111', display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div style={{ color: '#00C853' }}><TrendingUp /></div>
+            <div><h4 style={{margin:0}}>Señales en Vivo</h4><p style={{margin:0, fontSize:'0.8rem', color:'#555'}}>Operativa diaria</p></div>
           </div>
-          <div className="action-card">
-            <div className="icon-box" style={{ background: 'rgba(129, 212, 250, 0.1)', color: '#81D4FA' }}><Wallet /></div>
-            <div>
-              <h4 style={{ margin: 0 }}>Gestionar Retiros</h4>
-              <p style={{ margin: '5px 0 0', fontSize: '0.8rem', color: '#555' }}>Solicitudes de capital</p>
-            </div>
+          <div style={{ background: '#0a0c10', padding: '25px', borderRadius: '25px', border: '1px solid #111', display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div style={{ color: '#81D4FA' }}><Wallet size={24} /></div>
+            <div><h4 style={{margin:0}}>Gestionar Retiros</h4><p style={{margin:0, fontSize:'0.8rem', color:'#555'}}>Solicitudes de capital</p></div>
           </div>
         </div>
 
       </main>
 
       <style jsx>{`
-        .action-card { background: #0a0c10; border: 1px solid #111; padding: 25px; border-radius: 25px; display: flex; align-items: center; gap: 20px; transition: 0.3s ease; cursor: pointer; }
-        .action-card:hover { border-color: #00C853; background: #0d1015; transform: translateY(-5px); }
-        .investor-banner { transition: 0.4s; }
-        .investor-banner:hover { transform: scale(1.01); border-color: #fff; box-shadow: 0 0 30px rgba(0,200,83,0.2); }
-        .bell-badge { position: absolute; top: -8px; right: -8px; background: #ff4444; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #050505; }
-        .progress-bar-glow { box-shadow: 0 0 15px #00C853; animation: loading 2s infinite ease-in-out; }
         .pulse { animation: pulse-animation 2s infinite; }
         @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        @keyframes loading { 0% { filter: brightness(1); } 50% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
         .fade-in { animation: fadeIn 0.8s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
