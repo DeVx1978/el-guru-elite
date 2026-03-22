@@ -1,192 +1,194 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { 
-  Trash2, Eye, EyeOff, CheckCircle, PowerOff, ShieldCheck, 
-  ImageIcon, Mail, Phone, Loader2, KeyRound, Bell 
+  Users, Wallet, ArrowDownCircle, CheckCircle2, XCircle, 
+  ShieldCheck, Search, Filter, MoreVertical, ExternalLink,
+  TrendingUp, AlertTriangle, LogOut, LayoutDashboard
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
-export default function AdminControlMasterV4() {
-  const [bloqueado, setBloqueado] = useState(true);
-  const [claveMaestra, setClaveMaestra] = useState("");
-  const [verClave, setVerClave] = useState(false);
-  const [listaSocios, setListaSocios] = useState<any[]>([]);
-  const [cargando, setCargando] = useState(false);
-  const [pendientes, setPendientes] = useState(0); // <-- EL CONTADOR DE ALERTAS
+export default function AdminPanel() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [socios, setSocios] = useState<any[]>([]);
+  const [retiros, setRetiros] = useState<any[]>([]);
+  const [stats, setStats] = useState({ totalCapital: 0, sociosActivos: 0, retirosPendientes: 0 });
+  const [tab, setTab] = useState('retiros'); // 'retiros' o 'socios'
 
-  const KEY_ACCESO = "GURU2026";
+  useEffect(() => {
+    const rol = localStorage.getItem('socio_rol');
+    if (rol !== 'admin') {
+      router.push('/panel'); // Protección: Si no es admin, fuera.
+    } else {
+      cargarDatosMaster();
+    }
+  }, []);
 
-  const obtenerDatos = async () => {
-    setCargando(true);
-    const { data, error } = await clientSupabase
-      .from('socios')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (error) console.error("Error:", error.message);
-    
-    setListaSocios(data || []);
-    
-    // --- LÓGICA DE ALERTA: FILTRAMOS LOS PENDIENTES ---
-    const count = data?.filter(s => s.estado === 'pendiente').length || 0;
-    setPendientes(count);
-    
-    setCargando(false);
-  };
-
-  useEffect(() => { if (!bloqueado) obtenerDatos(); }, [bloqueado]);
-
-  const alternarEstado = async (id: any, actual: string) => {
-    const nuevoEstado = actual === 'activo' ? 'pendiente' : 'activo';
-    const { error } = await clientSupabase.from('socios').update({ estado: nuevoEstado }).eq('id', id);
-    if (!error) obtenerDatos();
-  };
-
-  const eliminarRegistro = async (id: any, nombre: string) => {
-    if (window.confirm(`⚠️ ¿ELIMINAR DEFINITIVAMENTE A ${nombre.toUpperCase()}?`)) {
-      setCargando(true);
-      const { error } = await clientSupabase.from('socios').delete().eq('id', id);
-      if (!error) await obtenerDatos();
-      setCargando(false);
+  const cargarDatosMaster = async () => {
+    setLoading(true);
+    try {
+      // 1. Obtener Socios y sus capitales
+      const { data: dataSocios } = await clientSupabase.from('socios_elite').select('*, socios(nombre)');
+      // 2. Obtener Retiros Pendientes
+      const { data: dataRetiros } = await clientSupabase.from('retiros').select('*, socios(nombre)').order('created_at', { ascending: false });
+      
+      if (dataSocios) {
+        const capital = dataSocios.reduce((acc, curr) => acc + Number(curr.inversion_minima), 0);
+        setSocios(dataSocios);
+        setStats(prev => ({ ...prev, totalCapital: capital, sociosActivos: dataSocios.length }));
+      }
+      if (dataRetiros) {
+        setRetiros(dataRetiros);
+        const pendientes = dataRetiros.filter(r => r.estado === 'pendiente').length;
+        setStats(prev => ({ ...prev, retirosPendientes: pendientes }));
+      }
+    } catch (error) {
+      console.error("Error cargando administración:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (bloqueado) {
-    return (
-      <div style={{ backgroundColor: '#020406', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', fontFamily: 'sans-serif' }}>
-        <div style={{ textAlign: 'center', background: '#0a0c10', padding: '50px', borderRadius: '30px', border: '2px solid #00C853', width: '380px' }}>
-          <ShieldCheck size={60} color="#00C853" style={{ marginBottom: '20px' }} />
-          <h2 style={{ marginBottom: '25px', fontWeight: 900 }}>CENTRO DE MANDO V4</h2>
-          <div style={{ position: 'relative', marginBottom: '25px' }}>
-            <input 
-              type={verClave ? "text" : "password"} 
-              placeholder="LLAVE MAESTRA" 
-              onKeyDown={(e) => e.key === 'Enter' && (claveMaestra === KEY_ACCESO ? setBloqueado(false) : alert("LLAVE ERRÓNEA"))}
-              onChange={(e) => setClaveMaestra(e.target.value)}
-              style={{ padding: '18px', borderRadius: '15px', border: '1px solid #222', backgroundColor: '#020406', color: '#00C853', textAlign: 'center', width: '100%', outline: 'none' }}
-            />
-            <button type="button" onClick={() => setVerClave(!verClave)} style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#444', cursor: 'pointer' }}>
-              {verClave ? <EyeOff size={20} /> : <Eye size={20} />}
-            </button>
-          </div>
-          <button onClick={() => claveMaestra === KEY_ACCESO ? setBloqueado(false) : alert("LLAVE ERRÓNEA")} style={{ width: '100%', padding: '18px', background: '#00C853', color: 'black', borderRadius: '15px', fontWeight: 900, cursor: 'pointer' }}>DESBLOQUEAR</button>
-        </div>
-      </div>
-    );
-  }
+  const gestionarRetiro = async (id: string, nuevoEstado: 'completado' | 'rechazado') => {
+    const { error } = await clientSupabase
+      .from('retiros')
+      .update({ estado: nuevoEstado })
+      .eq('id', id);
+    
+    if (!error) {
+      alert(`Retiro ${nuevoEstado} con éxito.`);
+      cargarDatosMaster();
+    }
+  };
+
+  if (loading) return <div className="admin-loader">INICIALIZANDO BÓVEDA MAESTRA...</div>;
 
   return (
-    <main style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', padding: '40px', fontFamily: 'sans-serif' }}>
-      
-      {/* ENCABEZADO CON NOTIFICACIONES ESTILO FACEBOOK */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-          <h1 style={{ color: '#00C853', fontWeight: 900, margin: 0 }}>DIRECTORIO GURÚ ÉLITE V4</h1>
-          
-          {/* ICONO DE CAMPANA CON PUNTO ROJO PULSANTE */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Bell size={28} color={pendientes > 0 ? "#00C853" : "#333"} />
-            {pendientes > 0 && (
-              <span className="notification-badge">
-                {pendientes}
-              </span>
-            )}
+    <div className="admin-layout">
+      {/* Sidebar Admin */}
+      <aside className="admin-sidebar">
+        <div className="brand">GURÚ <span>ADMIN</span></div>
+        <nav>
+          <div className={`nav-item ${tab === 'retiros' ? 'active' : ''}`} onClick={() => setTab('retiros')}><ArrowDownCircle size={20}/> Retiros</div>
+          <div className={`nav-item ${tab === 'socios' ? 'active' : ''}`} onClick={() => setTab('socios')}><Users size={20}/> Socios</div>
+        </nav>
+        <button className="btn-exit" onClick={() => router.push('/panel')}><LogOut size={18}/> VOLVER AL PANEL</button>
+      </aside>
+
+      <main className="admin-main">
+        <header className="admin-header">
+          <h1>Torre de Control <span>Élite</span></h1>
+          <div className="admin-badges">
+            <div className="badge-item"><span>CAPITAL TOTAL</span><strong>${stats.totalCapital.toLocaleString()}</strong></div>
+            <div className="badge-item"><span>SOCIOS</span><strong>{stats.sociosActivos}</strong></div>
+            <div className="badge-item red"><span>PENDIENTES</span><strong>{stats.retirosPendientes}</strong></div>
           </div>
-        </div>
+        </header>
 
-        <button onClick={obtenerDatos} style={{ background: '#111', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {cargando ? <Loader2 size={16} className="animate-spin" /> : "REFRESCAR LISTA"}
-        </button>
-      </div>
+        <section className="content-area">
+          {tab === 'retiros' ? (
+            <div className="admin-card">
+              <div className="card-header"><h3>Solicitudes de Retiro</h3><Filter size={18}/></div>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Socio</th>
+                    <th>Monto</th>
+                    <th>Método / Detalles</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {retiros.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.socios?.nombre || 'ID: '+r.id_socio}</td>
+                      <td className="text-neon">${r.monto}</td>
+                      <td className="text-small">{r.billetera}</td>
+                      <td><span className={`status-tag ${r.estado}`}>{r.estado}</span></td>
+                      <td className="actions">
+                        {r.estado === 'pendiente' && (
+                          <>
+                            <button onClick={() => gestionarRetiro(r.id, 'completado')} className="btn-approve"><CheckCircle2 size={16}/></button>
+                            <button onClick={() => gestionarRetiro(r.id, 'rechazado')} className="btn-reject"><XCircle size={16}/></button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="admin-card">
+              <div className="card-header"><h3>Listado de Inversores</h3><Search size={18}/></div>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Socio</th>
+                    <th>País</th>
+                    <th>Teléfono</th>
+                    <th>Capital</th>
+                    <th>Nivel</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {socios.map((s) => (
+                    <tr key={s.id}>
+                      <td>{s.socios?.nombre}</td>
+                      <td>{s.pais}</td>
+                      <td>{s.telefono || 'N/A'}</td>
+                      <td>${Number(s.inversion_minima).toLocaleString()}</td>
+                      <td><span className="rank-tag">{s.nivel_socio}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </main>
 
-      <div style={{ background: '#0a0c10', borderRadius: '25px', border: '1px solid #111', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: '#111', color: '#555', fontSize: '11px', textTransform: 'uppercase' }}>
-              <th style={{ padding: '25px', textAlign: 'left' }}>Socio / Contacto / Seguridad</th>
-              <th style={{ padding: '25px', textAlign: 'center' }}>Plan / Pago</th>
-              <th style={{ padding: '25px', textAlign: 'center' }}>Estado</th>
-              <th style={{ padding: '25px', textAlign: 'center' }}>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listaSocios.map((s) => (
-              <tr key={s.id} style={{ borderBottom: '1px solid #111', background: s.estado === 'pendiente' ? 'rgba(0,200,83,0.02)' : 'transparent' }}>
-                <td style={{ padding: '25px' }}>
-                  <b style={{fontSize: '16px', color: 'white'}}>{s.nombre}</b>
-                  <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px', color: '#666', fontSize: '12px'}}>
-                    <span style={{display: 'flex', alignItems: 'center', gap: '6px'}}><Mail size={12}/> {s.email}</span>
-                    <span style={{display: 'flex', alignItems: 'center', gap: '6px'}}><Phone size={12}/> {s.telefono}</span>
-                    <span style={{color: '#81D4FA', fontWeight: 900, background: 'rgba(129, 212, 250, 0.05)', padding: '4px 8px', borderRadius: '6px', width: 'fit-content' }}>
-                      🔑 CLAVE: {s.password}
-                    </span>
-                  </div>
-                </td>
-                <td style={{ padding: '25px', textAlign: 'center' }}>
-                  <span style={{ color: '#888', display: 'block', fontSize: '13px', fontWeight: 'bold' }}>{s.plan?.toUpperCase()}</span>
-                  <a href={s.comprobante_url} target="_blank" rel="noreferrer" style={{ color: '#00C853', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginTop: '5px' }}>
-                    <ImageIcon size={14}/> VER PAGO
-                  </a>
-                </td>
-                <td style={{ padding: '25px', textAlign: 'center' }}>
-                  <span style={{ 
-                    backgroundColor: s.estado === 'activo' ? 'rgba(0, 200, 83, 0.1)' : 'rgba(255, 152, 0, 0.1)', 
-                    color: s.estado === 'activo' ? '#00C853' : '#ff9800', 
-                    padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, textTransform: 'uppercase' 
-                  }}>
-                    {s.estado}
-                  </span>
-                </td>
-                <td style={{ padding: '25px' }}>
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                    <button 
-                      onClick={() => alternarEstado(s.id, s.estado)} 
-                      style={{ background: s.estado === 'activo' ? '#1a1005' : '#051a0b', border: '1px solid #222', color: s.estado === 'activo' ? '#ff9800' : '#00C853', padding: '12px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 'bold' }}
-                    >
-                      {s.estado === 'activo' ? <PowerOff size={16} /> : <CheckCircle size={16} />}
-                      {s.estado === 'activo' ? 'DESACTIVAR' : 'ACTIVAR'}
-                    </button>
-                    <button onClick={() => eliminarRegistro(s.id, s.nombre)} style={{ background: '#1a0505', border: '1px solid #300', color: '#ff4444', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <style jsx global>{`
-        .animate-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      <style jsx>{`
+        .admin-layout { display: flex; background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; }
+        .admin-sidebar { width: 260px; background: #050505; border-right: 1px solid #111; padding: 40px 20px; display: flex; flex-direction: column; }
+        .brand { font-weight: 900; font-size: 1.5rem; margin-bottom: 50px; }
+        .brand span { color: #00C853; }
+        .nav-item { padding: 15px; cursor: pointer; color: #444; display: flex; gap: 12px; font-weight: 700; transition: 0.3s; }
+        .nav-item.active, .nav-item:hover { color: #00C853; background: rgba(0, 200, 83, 0.05); border-radius: 10px; }
+        .btn-exit { margin-top: auto; background: #111; border: none; color: #555; padding: 15px; border-radius: 10px; cursor: pointer; display: flex; gap: 10px; font-weight: 800; }
         
-        .notification-badge {
-          position: absolute;
-          top: -8px;
-          right: -8px;
-          background: #ff4444;
-          color: white;
-          border-radius: 50%;
-          width: 20px;
-          height: 20px;
-          font-size: 11px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          border: 2px solid #0a0c10;
-          animation: pulse-red 2s infinite;
-        }
+        .admin-main { flex: 1; padding: 40px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .admin-header h1 span { color: #00C853; }
+        .admin-badges { display: flex; gap: 20px; }
+        .badge-item { background: #050505; border: 1px solid #111; padding: 15px 25px; border-radius: 15px; display: flex; flex-direction: column; }
+        .badge-item span { font-size: 10px; color: #444; font-weight: 900; letter-spacing: 1px; }
+        .badge-item strong { font-size: 1.2rem; color: #00C853; }
+        .badge-item.red strong { color: #ff4444; }
 
-        @keyframes pulse-red {
-          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-          70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(255, 68, 68, 0); }
-          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
-        }
+        .admin-card { background: #050505; border: 1px solid #111; border-radius: 20px; padding: 30px; }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th { text-align: left; color: #333; font-size: 12px; padding: 15px; text-transform: uppercase; }
+        .admin-table td { padding: 15px; border-bottom: 1px solid #0a0a0a; font-size: 14px; }
+        .text-neon { color: #00C853; font-weight: 800; }
+        .text-small { font-size: 11px; color: #444; }
+        
+        .status-tag { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+        .status-tag.pendiente { background: rgba(255, 152, 0, 0.1); color: #ffb74d; }
+        .status-tag.completado { background: rgba(0, 200, 83, 0.1); color: #00C853; }
+        
+        .actions { display: flex; gap: 10px; }
+        .btn-approve { background: none; border: 1px solid #00C853; color: #00C853; border-radius: 5px; padding: 5px; cursor: pointer; }
+        .btn-reject { background: none; border: 1px solid #ff4444; color: #ff4444; border-radius: 5px; padding: 5px; cursor: pointer; }
+        
+        .rank-tag { background: #111; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; }
+        .admin-loader { background: #000; height: 100vh; display: flex; justify-content: center; align-items: center; color: #00C853; font-weight: 900; letter-spacing: 4px; }
       `}</style>
-    </main>
+    </div>
   );
 }
