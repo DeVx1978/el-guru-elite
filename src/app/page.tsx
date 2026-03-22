@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, ArrowUpRight, Lock, FileText, Scale, Activity, Zap, TrendingUp, Globe, ChevronDown, X, Menu 
+  ShieldCheck, ArrowUpRight, Lock, FileText, Scale, Activity, Zap, TrendingUp, Globe, ChevronDown, X, Menu, ShieldAlert 
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -23,24 +23,32 @@ export default function LandingPage() {
     e.preventDefault(); 
     setIsNavigating(true); 
     setMenuMovilAbierto(false);
-    setTimeout(() => {
-      router.push(ruta);
-    }, 4000); 
+    setTimeout(() => { router.push(ruta); }, 4000); 
   };
 
   const membresias = [
     { name: 'Micro', price: '100', profit: '+8-10%', perk: 'Nivel 1: Acceso Base', delay: '0.1s', color: '#E0E0E0' },
     { name: 'Inicial', price: '250', profit: '+12-15%', perk: 'Nivel 2: Gestión Activa', delay: '0.2s', color: '#81D4FA' },
-    { name: 'Activo', price: '500', profit: '+18.5%', perk: 'Nivel 3: Capital Auditado', delay: '0.3s', color: '#FFD54F' },
-    { name: 'Premium', price: '1000', profit: '+20-25%', perk: 'Nivel 4: Prioridad Institucional', delay: '0.4s', color: '#FF8A65' },
+    { name: 'Activo', price: '500', profit: '+18.5%', perk: 'Nivel 3: Capital Auditado', delay: '0.3s', color: '#00C853' },
+    { name: 'Premium', price: '1000', profit: '+20-25%', perk: 'Nivel 4: Prioridad Institucional', delay: '0.4s', color: '#FFD600' },
     { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
   ];
 
+  // --- LÓGICA DE TEXTOS INDEPENDIENTES (REFORZADA) ---
   const abrirLegal = (tipo: string) => {
     const textos: {[key: string]: {t: string, c: string}} = {
-      terminos: { t: "Términos de Servicio", c: "Al participar en nuestros fondos, el inversor reconoce que la gestión algorítmica busca maximizar la eficiencia. El Gurú Élite opera bajo protocolos de transparencia institucional." },
-      privacidad: { t: "Políticas de Privacidad", c: "Su identidad es nuestro activo más valioso. Utilizamos encriptación AES-256 para asegurar que su actividad financiera permanezca estrictamente privada." },
-      confidencialidad: { t: "Confidencialidad", c: "Toda estrategia de arbitraje y análisis cuantitativo compartido en esta plataforma es propiedad intelectual protegida y no debe ser divulgada a terceros." }
+      terminos: { 
+        t: "Términos de Servicio", 
+        c: "Al participar en nuestros fondos, el inversor reconoce que la gestión algorítmica busca maximizar la eficiencia. El Gurú Élite opera bajo protocolos de transparencia institucional y el inversor acepta los riesgos inherentes al mercado financiero." 
+      },
+      privacidad: { 
+        t: "Políticas de Privacidad", 
+        c: "Su identidad es nuestro activo más valioso. Utilizamos encriptación AES-256 para asegurar que su actividad financiera y datos personales permanezcan bajo estricto anonimato y protección profesional." 
+      },
+      confidencialidad: { 
+        t: "Acuerdo de Confidencialidad", 
+        c: "Toda estrategia de arbitraje, análisis de alta frecuencia y tecnología compartida en esta plataforma es propiedad intelectual protegida. Queda prohibida la reproducción total o parcial fuera del entorno Élite." 
+      }
     };
     setModalAbierto({titulo: textos[tipo].t, contenido: textos[tipo].c});
   };
@@ -58,14 +66,13 @@ export default function LandingPage() {
   if (loading || isNavigating) {
     return (
       <div className="splash-master">
-        <div className={`loader-container ${isNavigating ? 'nav-mode' : ''}`}>
+        <div className="loader-container">
           <div className="pulse-ring"></div>
           <div className="image-wrapper"><img src="/images/guru.jpg" alt="El Guru Elite" /></div>
           <div className="scan-line"></div>
         </div>
         <div className="welcome-container-luxe">
           <div className="loading-bar-master"><div className="loading-bar-fill"></div></div>
-          {/* 💉 SUTURA 1: Centrado absoluto del texto bajo el brujo */}
           <h2 className="loading-text-elite">{isNavigating ? "VALIDANDO CREDENCIALES..." : "IDENTIFICANDO INVERSOR ÉLITE..."}</h2>
         </div>
         <style jsx global>{`
@@ -75,12 +82,10 @@ export default function LandingPage() {
           .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
           .pulse-ring { position: absolute; top: -15%; left: -15%; width: 130%; height: 130%; border: 2px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.4; }
           .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: linear-gradient(to right, transparent, #00C853, transparent); box-shadow: 0 0 20px #00C853; z-index: 3; animation: scan-master 3s ease-in-out infinite; }
-          
           .welcome-container-luxe { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; }
           .loading-bar-master { width: 220px; height: 2px; background: rgba(255,255,255,0.05); margin-bottom: 15px; }
           .loading-bar-fill { width: 0%; height: 100%; background: #00C853; animation: progress-master 4s linear forwards; }
           .loading-text-elite { color: #00C853; font-size: 13px; letter-spacing: 6px; font-weight: 800; text-transform: uppercase; margin: 0; }
-          
           @keyframes pulse-master { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
           @keyframes progress-master { 100% { width: 100%; } }
           @keyframes scan-master { 0%, 100% { top: 0%; } 50% { top: 100%; } }
@@ -96,11 +101,10 @@ export default function LandingPage() {
           <div className="info-page-container glass-effect">
             <div className="info-header">
               <h3 className="info-title">{modalAbierto.titulo}</h3>
-              {/* 💉 SUTURA 2: Botón X traído hacia adentro del margen */}
               <button className="info-close" onClick={() => setModalAbierto(null)}><X size={32} color="#00C853" /></button>
             </div>
             <div className="info-body">
-              <div className="info-tag"><Zap size={16} color="#00C853" /> SECCIÓN EXCLUSIVA</div>
+              <div className="info-tag"><Zap size={16} color="#00C853" /> LEGAL ÉLITE</div>
               <p>{modalAbierto.contenido}</p>
             </div>
             <div className="info-footer-line"></div>
@@ -134,8 +138,7 @@ export default function LandingPage() {
         <div className="hero-content">
           <div className="hero-status-tag"><Zap size={14} color="#00C853" /> ÉLITE DE INVERSIÓN EXCLUSIVA</div>
           <h1 className="hero-main-title">
-            <span className="text-glow-neon">LA CIENCIA DE</span> <br/>
-            PREDECIR
+            <span className="text-glow-neon">LA CIENCIA DE</span> <br/>PREDECIR
           </h1>
           <p className="hero-subtext">Optimización estratégica de activos mediante algoritmos de IA de alta frecuencia. Seguridad blindada para inversores de alto perfil.</p>
           <div className="hero-cta-btn-group">
@@ -164,7 +167,6 @@ export default function LandingPage() {
         <div className="plans-grid-luxe">
           {membresias.map((plan) => (
             <div key={plan.name} className="membership-card-luxe" style={{'--card-color': plan.color} as React.CSSProperties}>
-              {/* 💉 SUTURA 3: Barra de energía restaurada en cada tarjeta */}
               <div className="card-energy-bar"></div>
               <div className="m-card-inner">
                 <div className="m-card-header"><span className="m-fondo-tag">FONDO DE INVERSIÓN</span><h3 className="m-card-name" style={{color:'white'}}>{plan.name}</h3></div>
@@ -177,10 +179,18 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* 💉 FOOTER REFORMADO: TÉRMINOS, PRIVACIDAD Y CONFIDENCIALIDAD */}
       <footer className="footer-elite-master">
         <div className="footer-links-row">
-          <span className="f-item-elite" onClick={() => abrirLegal('terminos')}>Términos</span>
-          <span className="f-item-elite" onClick={() => abrirLegal('privacidad')}>Privacidad</span>
+          <span className="f-item-elite" onClick={() => abrirLegal('terminos')}>
+            <Scale size={14} /> Términos
+          </span>
+          <span className="f-item-elite" onClick={() => abrirLegal('privacidad')}>
+            <ShieldAlert size={14} /> Privacidad
+          </span>
+          <span className="f-item-elite" onClick={() => abrirLegal('confidencialidad')}>
+            <Lock size={14} /> Confidencialidad
+          </span>
         </div>
         <p className="f-copyright-text">© 2026 EL GURÚ ÉLITE. TODOS LOS DERECHOS RESERVADOS.</p>
       </footer>
@@ -199,15 +209,16 @@ export default function LandingPage() {
         @media (min-width: 1024px) { .btn-nav-access { display: block; } .menu-toggle { display: none !important; } }
         .menu-toggle { display: block; background: none; border: none; cursor: pointer; }
 
-        .info-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; transform: translateY(100%); transition: transform 0.5s; }
+        .info-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1); }
         .info-overlay.active { transform: translateY(0); }
-        .info-page-container { height: 100%; width: 100%; padding: 40px 25px; display: flex; flex-direction: column; box-sizing: border-box; position: relative; }
-        .info-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; width: 100%; }
-        .info-title { font-size: 1.8rem; font-weight: 900; text-transform: uppercase; color: white; margin: 0; }
-        .info-close { background: none; border: none; cursor: pointer; padding: 10px; z-index: 2001; }
+        .info-page-container { height: 100%; width: 100%; padding: 40px 25px; display: flex; flex-direction: column; box-sizing: border-box; }
+        .info-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .info-title { font-size: 1.8rem; font-weight: 900; text-transform: uppercase; color: white; }
+        .info-close { background: none; border: none; cursor: pointer; padding: 10px; }
         .info-body { text-align: left; }
         .info-tag { font-size: 11px; font-weight: 900; color: var(--neon); letter-spacing: 3px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         .info-body p { font-size: 1.15rem; line-height: 1.8; color: #ccc; }
+        .info-footer-line { width: 40px; height: 3px; background: var(--neon); margin-top: 30px; box-shadow: 0 0 10px var(--neon); }
 
         .mobile-menu-overlay { position: fixed; top: 80px; left: 0; width: 100%; height: 0; background: #000; overflow: hidden; transition: 0.5s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; z-index: 999; }
         .mobile-menu-overlay.active { height: calc(100vh - 80px); }
@@ -236,7 +247,13 @@ export default function LandingPage() {
         .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; padding: 40px 20px; position: relative; overflow: hidden; transition: 0.4s; }
         .card-energy-bar { position: absolute; top:0; left:0; width: 100%; height: 5px; background: var(--card-color); box-shadow: 0 0 15px var(--card-color); z-index: 10; }
         .btn-m-acquire { width: 100%; padding: 15px; background: transparent; border: 1px solid var(--btn-color); color: var(--btn-color); font-weight: 900; cursor: pointer; border-radius: 4px; transition: 0.3s; margin-top: 20px; }
-        .footer-elite-master { padding: 60px 20px; text-align: center; border-top: 1px solid #111; }
+        
+        /* 💉 ESTILOS FOOTER */
+        .footer-elite-master { padding: 60px 20px; text-align: center; border-top: 1px solid #111; margin-top: 50px; }
+        .footer-links-row { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap; }
+        .f-item-elite { color: #555; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 6px; }
+        .f-item-elite:hover { color: var(--neon); }
+        .f-copyright-text { color: #222; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
       `}</style>
     </div>
   );
