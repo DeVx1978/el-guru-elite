@@ -36,8 +36,8 @@ export default function SocioPanel() {
 
   // 👤 ESTADOS DE EDICIÓN DE PERFIL
   const [editNombre, setEditNombre] = useState("");
-  const [editTelefono, setEditTelefono] = useState("");
   const [editPais, setEditPais] = useState("");
+  const [editTelefono, setEditTelefono] = useState("");
   const [guardandoPerfil, setGuardandoPerfil] = useState(false);
 
   useEffect(() => {
@@ -75,11 +75,8 @@ export default function SocioPanel() {
           setEditPais(data.pais);
         }
       }
-    } catch (err) {
-      console.error("Error de conexión:", err);
-    } finally {
-      setTimeout(() => setLoading(false), 2000);
-    }
+    } catch (err) { console.error("Error de conexión:", err); }
+    finally { setTimeout(() => setLoading(false), 2000); }
   };
 
   useEffect(() => {
@@ -129,10 +126,10 @@ export default function SocioPanel() {
         setNombre(editNombre);
         setPaisSocio(editPais);
         localStorage.setItem('socio_nombre', editNombre);
-        alert("Perfil de Inversor actualizado");
+        alert("Perfil Sincronizado con Éxito");
       }
     } catch (err) {
-      alert("Error en la sincronización del perfil");
+      alert("Error en la red de datos");
     } finally {
       setGuardandoPerfil(false);
     }
@@ -248,86 +245,68 @@ export default function SocioPanel() {
       <div className="withdraw-card glass-effect">
         <p className="withdraw-label">Saldo Neto en USD</p>
         <h3 className="withdraw-amount">${balanceVisual.toLocaleString()}</h3>
+        
         <div className="method-selector">
-          <div className={`method-option ${metodoRetiro === 'banco' ? 'active' : ''}`} onClick={() => setMetodoRetiro('banco')}><Building2 size={18} /> Banco Local</div>
-          <div className={`method-option ${metodoRetiro === 'cripto' ? 'active' : ''}`} onClick={() => setMetodoRetiro('cripto')}><Zap size={18} /> USDT TRC20</div>
+          <div className={`method-option ${metodoRetiro === 'banco' ? 'active' : ''}`} onClick={() => setMetodoRetiro('banco')}>
+            <Building2 size={18} /> Banco Local
+          </div>
+          <div className={`method-option ${metodoRetiro === 'cripto' ? 'active' : ''}`} onClick={() => setMetodoRetiro('cripto')}>
+            <Zap size={18} /> USDT TRC20
+          </div>
         </div>
+
         <div className="divider"></div>
-        {mensajeRetiro.texto && <div className={`status-alert ${mensajeRetiro.tipo}`}>{mensajeRetiro.texto}</div>}
+        
+        {mensajeRetiro.texto && (
+          <div className={`status-alert ${mensajeRetiro.tipo}`}>
+            {mensajeRetiro.tipo === 'exito' ? <CheckCircle2 size={16} /> : <ShieldAlert size={16} />}
+            {mensajeRetiro.texto}
+          </div>
+        )}
+
         <div className="input-group">
           <label>Monto a Retirar (USD)</label>
           <input type="number" value={montoRetiro} onChange={(e) => setMontoRetiro(e.target.value)} placeholder="0.00" className="elite-input" />
         </div>
+
         <div className="input-group" style={{ marginTop: '20px' }}>
           <label>{metodoRetiro === 'banco' ? `Datos Bancarios (${paisSocio})` : 'Wallet USDT (TRC20)'}</label>
           <textarea rows={2} value={detallesDestino} onChange={(e) => setDetallesDestino(e.target.value)} placeholder={metodoRetiro === 'banco' ? obtenerPlaceholderBanco() : 'Pegue dirección...'} className="elite-input" />
         </div>
-        <button onClick={procesarRetiro} disabled={enviandoRetiro} className="btn-withdraw-action">{enviandoRetiro ? 'VERIFICANDO...' : 'CONFIRMAR SOLICITUD'}</button>
+
+        <button onClick={procesarRetiro} disabled={enviandoRetiro} className="btn-withdraw-action">
+          {enviandoRetiro ? 'VERIFICANDO...' : 'CONFIRMAR SOLICITUD'}
+        </button>
       </div>
     </div>
   );
 
   const RenderPerfil = () => (
     <div className="fade-in section-container">
-      <div className="perfil-layout">
-        <div className="perfil-card-header glass-effect">
-          <div className="avatar-wrapper">
-            <div className="avatar-big">{nombre.charAt(0)}</div>
-            <button className="avatar-edit"><Camera size={14} /></button>
-          </div>
-          <div className="header-info">
-            <h2 className="perfil-title">{nombre}</h2>
-            <div className="badge-row">
-              <span className="premium-tag"><Award size={14} /> {nivelSocio}</span>
-              <span className="kyc-tag"><ShieldCheck size={14} /> KYC VERIFICADO</span>
+      <h2 className="section-h2">Perfil de Inversor</h2>
+      <div className="withdraw-card glass-effect" style={{maxWidth: '650px', margin: '0 auto'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: '25px', marginBottom: '35px'}}>
+          <div style={{width: '90px', height: '90px', background: 'var(--neon)', color: '#000', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.8rem', fontWeight: '900', border: '4px solid #000', boxShadow: '0 0 25px rgba(0,200,83,0.3)'}}>{nombre.charAt(0)}</div>
+          <div>
+            <h3 style={{margin: 0, fontSize: '2rem'}}>{nombre}</h3>
+            <div style={{display: 'flex', gap: '10px', marginTop: '5px'}}>
+              <span style={{background: 'rgba(0,200,83,0.1)', color: 'var(--neon)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '900'}}>VERIFICADO</span>
+              <span style={{background: '#111', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '900'}}>{nivelSocio}</span>
             </div>
           </div>
         </div>
-
-        <div className="perfil-grid">
-          <div className="perfil-card glass-effect">
-            <div className="card-top-inner">
-              <h3>Datos del Inversor</h3>
-              <User size={18} color="#00C853" />
-            </div>
-            <div className="form-grid">
-              <div className="input-box">
-                <label>Nombre Completo</label>
-                <input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} className="input-premium" />
-              </div>
-              <div className="input-box">
-                <label>País de Operación</label>
-                <input type="text" value={editPais} onChange={(e) => setEditPais(e.target.value)} className="input-premium" />
-              </div>
-              <div className="input-box">
-                <label>Teléfono de Contacto</label>
-                <input type="text" value={editTelefono} onChange={(e) => setEditTelefono(e.target.value)} placeholder="+57 ..." className="input-premium" />
-              </div>
-              <button className="btn-save-elite" onClick={actualizarPerfil} disabled={guardandoPerfil}>
-                {guardandoPerfil ? 'SINCRONIZANDO...' : <><Save size={18} /> GUARDAR CAMBIOS</>}
-              </button>
-            </div>
-          </div>
-
-          <div className="perfil-card glass-effect">
-            <div className="card-top-inner">
-              <h3>Seguridad de Cuenta</h3>
-              <ShieldCheck size={18} color="#00C853" />
-            </div>
-            <div className="security-stack">
-              <div className="sec-tile">
-                <div><h4>Protección 2FA</h4><p>Doble factor de seguridad activo</p></div>
-                <div className="toggle-ui active">ON</div>
-              </div>
-              <div className="sec-tile">
-                <div><h4>Correo Electrónico</h4><p>vinculado@guru.com</p></div>
-                <div className="tag-verified">CERTIFICADO</div>
-              </div>
-              <div className="sec-tile">
-                <div><h4>ID de Acceso</h4><p>SOCIO-ELITE-2026</p></div>
-              </div>
-            </div>
-          </div>
+        <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
+           <div>
+             <label style={{fontSize: '0.75rem', fontWeight: '900', color: '#444', marginBottom: '8px', display: 'block'}}>NOMBRE COMPLETO</label>
+             <input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} className="elite-input" />
+           </div>
+           <div>
+             <label style={{fontSize: '0.75rem', fontWeight: '900', color: '#444', marginBottom: '8px', display: 'block'}}>PAÍS DE RESIDENCIA</label>
+             <input type="text" value={editPais} onChange={(e) => setEditPais(e.target.value)} className="elite-input" />
+           </div>
+           <button onClick={actualizarPerfil} disabled={guardandoPerfil} className="btn-withdraw-action" style={{marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
+             {guardandoPerfil ? 'SINCRONIZANDO...' : <><Save size={18}/> GUARDAR CONFIGURACIÓN</>}
+           </button>
         </div>
       </div>
     </div>
@@ -362,6 +341,8 @@ export default function SocioPanel() {
           <div className={`nav-item ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}><BarChart3 size={20} /> Reportes</div>
           <div className={`nav-item ${activeTab === 'retiros' ? 'active' : ''}`} onClick={() => setActiveTab('retiros')}><Wallet size={20} /> Retiros</div>
           <div className={`nav-item ${activeTab === 'perfil' ? 'active' : ''}`} onClick={() => setActiveTab('perfil')}><User size={20} /> Perfil</div>
+          <div className="nav-divider"></div>
+          <div className="nav-item"><HelpCircle size={20} /> Soporte</div>
         </nav>
         <button onClick={handleLogout} className="logout-sidebar"><LogOut size={18} /> SALIR</button>
       </aside>
@@ -387,7 +368,6 @@ export default function SocioPanel() {
 
         <nav className="mobile-tab-bar">
           <div className={`tab-item ${activeTab === 'inicio' ? 'active' : ''}`} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={24} /><span>Inicio</span></div>
-          <div className={`tab-item ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}><BarChart3 size={24} /><span>Reportes</span></div>
           <div className={`tab-item ${activeTab === 'retiros' ? 'active' : ''}`} onClick={() => setActiveTab('retiros')}><Wallet size={24} /><span>Retiros</span></div>
           <div className={`tab-item ${activeTab === 'perfil' ? 'active' : ''}`} onClick={() => setActiveTab('perfil')}><User size={24} /><span>Perfil</span></div>
         </nav>
@@ -402,67 +382,67 @@ export default function SocioPanel() {
         .brand-elite span { color: var(--neon); }
         .nav-item { padding: 14px 18px; border-radius: 12px; display: flex; align-items: center; gap: 15px; color: #444; cursor: pointer; transition: 0.3s; margin-bottom: 5px; font-weight: 600; font-size: 0.95rem; }
         .nav-item:hover, .nav-item.active { background: rgba(0,200,83,0.05); color: var(--neon); }
+        .nav-divider { height: 1px; background: var(--border); margin: 20px 0; }
         .logout-sidebar { background: rgba(255,68,68,0.05); color: #ff4444; border: 1px solid rgba(255,68,68,0.1); padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: auto; }
         .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
         .top-navbar { height: 70px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .mobile-brand { font-weight: 900; font-size: 1.1rem; }
+        .mobile-brand span { color: var(--neon); }
+        @media (min-width: 1024px) { .mobile-brand { display: none; } }
         .header-actions { display: flex; align-items: center; gap: 20px; }
         .user-avatar { width: 35px; height: 35px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; cursor: pointer; }
         .badge { position: absolute; top: -5px; right: -5px; background: red; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; }
         .panel-content { padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; padding-bottom: 100px; }
-        
-        /* 👤 PERFIL ESTILO ÉLITE */
-        .perfil-layout { display: flex; flex-direction: column; gap: 25px; }
-        .perfil-card-header { background: linear-gradient(135deg, #0a0c10 0%, #050505 100%); border: 1px solid var(--border); border-radius: 30px; padding: 35px; display: flex; align-items: center; gap: 25px; }
-        .avatar-wrapper { position: relative; }
-        .avatar-big { width: 90px; height: 90px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 900; border: 4px solid #000; box-shadow: 0 0 20px rgba(0,200,83,0.3); }
-        .avatar-edit { position: absolute; bottom: 0; right: 0; background: #fff; border: none; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .perfil-title { font-size: 2rem; font-weight: 900; margin-bottom: 8px; }
-        .badge-row { display: flex; gap: 10px; }
-        .premium-tag { background: rgba(0,200,83,0.1); color: var(--neon); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 6px; }
-        .kyc-tag { background: #111; color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 900; display: flex; align-items: center; gap: 6px; }
-
-        .perfil-grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
-        @media (min-width: 1024px) { .perfil-grid { grid-template-columns: 1.2fr 1fr; } }
-        .card-top-inner { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .form-grid { display: flex; flex-direction: column; gap: 18px; }
-        .input-box label { font-size: 0.75rem; font-weight: 800; color: #444; margin-bottom: 8px; display: block; text-transform: uppercase; }
-        .input-premium { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 12px; color: #fff; font-weight: 600; transition: 0.3s; }
-        .input-premium:focus { border-color: var(--neon); }
-        .btn-save-elite { background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        
-        .security-stack { display: flex; flex-direction: column; gap: 20px; }
-        .sec-tile { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid #111; }
-        .sec-tile h4 { font-size: 0.9rem; font-weight: 800; margin-bottom: 4px; }
-        .sec-tile p { font-size: 0.75rem; color: #444; }
-        .toggle-ui.active { color: var(--neon); font-weight: 900; font-size: 0.8rem; }
-        .tag-verified { color: var(--neon); font-size: 0.7rem; font-weight: 900; border: 1px solid var(--neon); padding: 3px 8px; border-radius: 5px; }
-
-        /* REUTILIZABLES */
-        .welcome-banner h1 { font-size: 2.5rem; font-weight: 900; margin-bottom: 8px; }
+        @media (min-width: 768px) { .panel-content { padding: 35px; } }
+        .welcome-banner h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 900; margin-bottom: 8px; }
         .welcome-banner h1 span { color: var(--neon); }
+        .welcome-banner p { color: #555; font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
         .vault-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 25px 0; }
         @media (min-width: 1024px) { .vault-grid { grid-template-columns: 1.6fr 1fr; } }
-        .vault-card-main { background: #050505; border: 1px solid var(--border); border-radius: 35px; padding: 35px; }
+        .vault-card-main { background: linear-gradient(145deg, #0a0c10, #030303); border: 1px solid var(--border); border-radius: 25px; padding: 25px; position: relative; overflow: hidden; }
+        @media (min-width: 768px) { .vault-card-main { padding: 35px; border-radius: 35px; } }
+        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-label { font-size: 0.7rem; font-weight: 900; color: #444; letter-spacing: 1.5px; }
+        .profit-badge { background: rgba(0,200,83,0.1); color: var(--neon); padding: 5px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 900; }
         .balance-display { display: flex; align-items: baseline; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; }
-        .value { font-size: 4.2rem; font-weight: 900; letter-spacing: -2px; }
-        .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; overflow: hidden; }
+        .symbol { font-size: 1.5rem; color: #222; font-weight: 900; }
+        .value { font-size: 2.8rem; font-weight: 900; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+        @media (min-width: 768px) { .value { font-size: 4.2rem; } }
+        .live-status { display: flex; align-items: center; gap: 6px; font-size: 9px; color: #ff4444; font-weight: 900; border: 1px solid rgba(255,68,68,0.2); padding: 3px 10px; border-radius: 20px; }
+        .dot { width: 5px; height: 5px; background: #ff4444; border-radius: 50%; animation: blink 1s infinite; }
+        .progress-labels { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 900; color: #444; margin-bottom: 8px; }
+        .exec-text { color: var(--neon); }
+        .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--neon); box-shadow: 0 0 15px var(--neon); border-radius: 10px; animation: grow 2s ease-out; }
-        .actions-grid-v2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        @media (min-width: 768px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); } }
-        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 25px; border-radius: 18px; cursor: pointer; }
-        .withdraw-card { background: #0a0c10; padding: 40px; border-radius: 35px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
+        .ai-pulse { color: #222; font-size: 9px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+        .rank-card-v2 { background: #080808; border: 1px solid var(--border); border-radius: 25px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        @media (min-width: 768px) { .rank-card-v2 { border-radius: 35px; padding: 35px; } }
+        .rank-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .rank-header h3 { font-size: 1.3rem; font-weight: 900; margin: 0; }
+        .detail-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; font-weight: 700; }
+        .active-tag { color: var(--neon); }
+        .upgrade-btn { width: 100%; background: transparent; border: 1px solid #1a1a1a; padding: 12px; border-radius: 10px; color: #fff; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 15px; font-size: 0.8rem; }
+        .section-title { font-size: 0.7rem; font-weight: 900; color: #333; letter-spacing: 2px; margin-bottom: 15px; margin-top: 10px; }
+        .actions-grid-v2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (min-width: 768px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); gap: 15px; } }
+        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 20px; border-radius: 18px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: 0.3s; }
+        .action-tile span { font-size: 0.85rem; font-weight: 800; }
+        .withdraw-card { background: #0a0c10; padding: 25px; border-radius: 25px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
+        @media (min-width: 768px) { .withdraw-card { padding: 40px; } }
+        .withdraw-amount { font-size: 2.5rem; font-weight: 900; margin: 10px 0 20px; }
         .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .method-option { background: #000; border: 1px solid #111; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
-        .method-option.active { border-color: var(--neon); color: var(--neon); }
-        .elite-input { width: 100%; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 12px; color: #fff; margin-top: 10px; }
-        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; margin-top: 25px; cursor: pointer; }
+        .method-option { background: #000; border: 1px solid #111; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: 0.3s; color: #444; }
+        .method-option.active { border-color: var(--neon); color: var(--neon); background: rgba(0,200,83,0.05); }
+        .elite-input { width: 100%; background: #000; border: 1px solid var(--border); padding: 14px; border-radius: 10px; color: #fff; margin-top: 8px; font-size: 0.9rem; }
+        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 16px; border-radius: 10px; font-weight: 900; margin-top: 20px; cursor: pointer; font-size: 0.9rem; }
         .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; z-index: 100; }
         @media (min-width: 1024px) { .mobile-tab-bar { display: none; } }
         .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #333; cursor: pointer; }
         .tab-item.active { color: var(--neon); }
+        .tab-item span { font-size: 9px; font-weight: 700; }
+        @keyframes grow { from { width: 0%; } to { width: 75%; } }
         .fade-in { animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes grow { from { width: 0%; } to { width: 75%; } }
       `}</style>
     </div>
   );
