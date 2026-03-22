@@ -12,7 +12,6 @@ export default function LandingPage() {
   const [modalAbierto, setModalAbierto] = useState<{titulo: string, contenido: string} | null>(null);
   const router = useRouter();
 
-  // --- 1. CARGA INICIAL (5 SEGUNDOS) ---
   useEffect(() => {
     router.prefetch('/panel');
     router.prefetch('/unete');
@@ -20,17 +19,12 @@ export default function LandingPage() {
     return () => clearTimeout(timer);
   }, [router]);
 
-  // --- 2. NAVEGACIÓN BLINDADA ---
   const ejecutarTransicion = (e: React.MouseEvent, ruta: string) => {
     e.preventDefault(); 
     setIsNavigating(true); 
     setTimeout(() => {
       router.push(ruta);
     }, 4000); 
-  };
-
-  const toggleSeccion = (id: string) => {
-    setSeccionExpandida(seccionExpandida === id ? null : id);
   };
 
   const membresias = [
@@ -41,7 +35,6 @@ export default function LandingPage() {
     { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
   ];
 
-  // --- 3. LÓGICA LEGAL E INFORMACIÓN DE PESTAÑAS (INYECTADA) ---
   const abrirLegal = (tipo: string) => {
     const textos: {[key: string]: {t: string, c: string}} = {
       terminos: { t: "Términos de Servicio", c: "Al participar en nuestros fondos, el inversor reconoce que la gestión algorítmica busca maximizar la eficiencia. El Gurú Élite opera bajo protocolos de transparencia institucional." },
@@ -51,7 +44,6 @@ export default function LandingPage() {
     setModalAbierto({titulo: textos[tipo].t, contenido: textos[tipo].c});
   };
 
-  // NUEVA FUNCIÓN PARA PESTAÑAS SUPERIORES
   const abrirInfoSeccion = (seccion: string) => {
     const info: {[key: string]: {t: string, c: string}} = {
       quienes: { t: "Quiénes Somos", c: "Somos un colectivo de analistas y desarrolladores de IA enfocados en la optimización de capital. Nuestra misión es proporcionar herramientas de inversión institucional al inversor privado." },
@@ -61,14 +53,13 @@ export default function LandingPage() {
     setModalAbierto({titulo: info[seccion].t, contenido: info[seccion].c});
   };
 
-  // --- 4. LOADER DUAL ---
   if (loading || isNavigating) {
     return (
       <div className="splash-master">
         <div className={`loader-container ${isNavigating ? 'nav-mode' : ''}`}>
           <div className="pulse-ring"></div>
           <div className="image-wrapper">
-            <img src="/images/guru.jpg" alt="El Guru Elite" fetchPriority="high" loading="eager" />
+            <img src="/images/guru.jpg" alt="El Guru Elite" />
           </div>
           <div className="scan-line"></div>
         </div>
@@ -79,25 +70,17 @@ export default function LandingPage() {
           <h2 className="loading-text-elite">
             {isNavigating ? "VALIDANDO CREDENCIALES..." : "IDENTIFICANDO INVERSOR ÉLITE..."}
           </h2>
-          <p className="welcome-subtext">
-            {isNavigating ? "ABRIENDO PUERTA DE ENLACE SEGURO" : "LA PUERTA AL CAPITAL GLOBAL SE ESTÁ ABRIENDO"}
-          </p>
         </div>
         <style jsx global>{`
-          .splash-master { background: radial-gradient(circle at center, #0a0c10 0%, #000 100%) !important; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; }
-          .loader-container { position: relative; width: 220px; height: 220px; margin-bottom: 40px; transition: all 0.5s ease; }
-          .nav-mode { width: 160px; height: 160px; }
-          .image-wrapper { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid #00C853; box-shadow: 0 0 60px rgba(0, 200, 83, 0.5); position: relative; z-index: 2; }
+          .splash-master { background: radial-gradient(circle at center, #0a0c10 0%, #000 100%); height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; }
+          .loader-container { position: relative; width: clamp(140px, 30vw, 200px); height: clamp(140px, 30vw, 200px); margin-bottom: 30px; }
+          .image-wrapper { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid #00C853; box-shadow: 0 0 40px rgba(0, 200, 83, 0.4); position: relative; z-index: 2; }
           .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-          .pulse-ring { position: absolute; top: -15%; left: -15%; width: 130%; height: 130%; border: 2px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.4; }
-          .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: linear-gradient(to right, transparent, #00C853, transparent); box-shadow: 0 0 20px #00C853; z-index: 3; animation: scan-master 3s ease-in-out infinite; }
-          .welcome-container-luxe { width: 100%; max-width: 320px; display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: 20px; }
-          .loading-bar-master { width: 100%; height: 2px; background: rgba(255,255,255,0.03); border-radius: 10px; overflow: hidden; margin-bottom: 25px; }
-          .loading-bar-fill { width: 0%; height: 100%; background: #00C853; animation: progress-master 4s linear forwards; box-shadow: 0 0 10px #00C853; }
-          .loading-text-elite { color: #00C853; font-size: 11px; letter-spacing: 6px; font-weight: 300; text-transform: uppercase; margin-bottom: 10px; }
-          .welcome-subtext { color: #222; font-size: 9px; letter-spacing: 3px; font-weight: 700; text-transform: uppercase; }
-          @keyframes pulse-master { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
-          @keyframes scan-master { 0%, 100% { top: 0%; } 50% { top: 100%; } }
+          .pulse-ring { position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; border: 1px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.3; }
+          .loading-bar-master { width: 200px; height: 1px; background: rgba(255,255,255,0.05); margin-bottom: 15px; }
+          .loading-bar-fill { width: 0%; height: 100%; background: #00C853; animation: progress-master 4s linear forwards; }
+          .loading-text-elite { color: #00C853; font-size: 10px; letter-spacing: 4px; font-weight: 300; text-transform: uppercase; }
+          @keyframes pulse-master { 0% { transform: scale(0.9); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
           @keyframes progress-master { 100% { width: 100%; } }
         `}</style>
       </div>
@@ -106,7 +89,6 @@ export default function LandingPage() {
 
   return (
     <div className="elite-landing-master">
-      {/* 💉 MODAL DE INFORMACIÓN (ÓRGANO INYECTADO) */}
       {modalAbierto && (
         <div className="legal-overlay" onClick={() => setModalAbierto(null)}>
           <div className="legal-modal glass-effect" onClick={(e) => e.stopPropagation()}>
@@ -123,84 +105,63 @@ export default function LandingPage() {
       <nav className="navbar-elite">
         <div className="nav-container-master">
           <div className="nav-brand">
-            <span className="brand-text">EL GURÚ <span className="brand-neon">ÉLITE</span></span>
+            <span className="brand-text">GURÚ <span className="brand-neon">ÉLITE</span></span>
           </div>
           <div className="nav-links-desktop">
-            <span onClick={() => abrirInfoSeccion('quienes')} className="link-elite pointer">Quiénes Somos</span>
-            <span onClick={() => abrirInfoSeccion('proyecto')} className="link-elite pointer">Proyecto Gurú</span>
+            <span onClick={() => abrirInfoSeccion('quienes')} className="link-elite pointer">Quiénes</span>
+            <span onClick={() => abrirInfoSeccion('proyecto')} className="link-elite pointer">Proyecto</span>
             <span onClick={() => abrirInfoSeccion('inversionistas')} className="link-elite pointer">Inversionistas</span>
           </div>
-          <div className="nav-actions-master">
-            <button onClick={(e) => ejecutarTransicion(e, '/panel')} className="btn-access-master">ACCESO EXCLUSIVO</button>
-          </div>
+          <button onClick={(e) => ejecutarTransicion(e, '/panel')} className="btn-access-master">ACCESO</button>
         </div>
       </nav>
 
       <section className="hero-elite">
         <div className="hero-layout">
-          <div className="hero-info-text">
-            <div className="hero-status-tag"><Zap size={14} color="#00C853" /> ÉLITE DE INVERSIÓN EXCLUSIVA</div>
-            <h1 className="hero-main-title">
-              <span className="text-glow-neon">LA CIENCIA DE</span> <br/>
-              PREDECIR
-            </h1>
-            <p className="hero-subtext">
-              Optimización estratégica de activos mediante algoritmos de IA de alta frecuencia. 
-              Seguridad blindada para inversores de alto perfil.
-            </p>
-            <div className="hero-cta-btn-group">
-              <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-hero-primary">
-                COMENZAR AHORA <ArrowUpRight size={20} />
-              </button>
-            </div>
-          </div>
+          <div className="hero-status-tag"><Zap size={12} color="#00C853" /> INVERSIÓN EXCLUSIVA</div>
+          <h1 className="hero-main-title">
+            <span className="text-glow-neon">LA CIENCIA DE</span> <br/>
+            PREDECIR
+          </h1>
+          <p className="hero-subtext">
+            Optimización de activos mediante algoritmos de IA. 
+            Seguridad institucional para inversores de alto perfil.
+          </p>
+          <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-hero-primary">
+            COMENZAR <ArrowUpRight size={18} />
+          </button>
         </div>
 
         <div className="hero-visuals-horizontal">
-          <div className="master-glow-orb"></div>
-          <div className="stat-card-horizontal glass-effect">
-            <div className="stat-icon-glow"><Activity color="#00C853" size={24} /></div>
-            <div className="stat-info">
-              <span className="stat-label">RENDIMIENTO PROMEDIO</span>
-              <span className="stat-value">+18.5% <small>MES</small></span>
+          {[
+            { icon: Activity, label: "PROMEDIO", val: "+18.5%" },
+            { icon: ShieldCheck, label: "CAPITAL", val: "100% Auditado" },
+            { icon: Lock, label: "SEGURIDAD", val: "Validación IA" }
+          ].map((item, i) => (
+            <div key={i} className="stat-card-horizontal glass-effect">
+              <item.icon color="#00C853" size={20} />
+              <div className="stat-info">
+                <span className="stat-label">{item.label}</span>
+                <span className="stat-value">{item.val}</span>
+              </div>
             </div>
-          </div>
-          <div className="stat-card-horizontal glass-effect">
-            <div className="stat-icon-glow"><ShieldCheck color="#00C853" size={24} /></div>
-            <div className="stat-info">
-              <span className="stat-label">PROTECCIÓN DE CAPITAL</span>
-              <span className="stat-value">100% Auditado</span>
-            </div>
-          </div>
-          <div className="stat-card-horizontal glass-effect">
-            <div className="stat-icon-glow"><Lock color="#00C853" size={24} /></div>
-            <div className="stat-info">
-              <span className="stat-label">SEGURIDAD INSTITUCIONAL</span>
-              <span className="stat-value">Validación IA</span>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      <section id="proyecto-inversionistas" className="plans-section-luxe">
+      <section className="plans-section-luxe">
         <div className="section-header-luxe">
-          <span className="header-tag-luxe">MERCADO DE CAPITAL PRIVADO</span>
-          <h2 className="header-title-luxe">PORTAFOLIO DE MEMBRESIAS <span className="brand-neon">EXCLUSIVAS</span></h2>
-          <div className="header-line-luxe"></div>
+          <span className="header-tag-luxe">MERCADO PRIVADO</span>
+          <h2 className="header-title-luxe">MEMBRESÍAS <span className="brand-neon">ÉLITE</span></h2>
         </div>
         <div className="plans-grid-luxe">
           {membresias.map((plan) => (
-            <div key={plan.name} className="membership-card-luxe fade-up-card shadow-hover" style={{animationDelay: plan.delay, '--card-color': plan.color} as React.CSSProperties}>
+            <div key={plan.name} className="membership-card-luxe fade-up-card" style={{animationDelay: plan.delay, '--card-color': plan.color} as React.CSSProperties}>
               <div className="card-energy-bar"></div>
-              <div className="card-glow-effect"></div>
               <div className="m-card-inner">
-                <div className="m-card-header"><span className="m-fondo-tag">FONDO DE INVERSIÓN</span><h3 className="m-card-name">{plan.name}</h3></div>
-                <div className="m-card-body">
-                  <div className="m-card-price"><span className="m-sign">$</span><span className="m-num">{plan.price}</span><span className="m-usd">USD</span></div>
-                  <div className="m-card-profit"><TrendingUp size={18} color={plan.color} /><span>PROFIT: <strong>{plan.profit}</strong></span></div>
-                  <div className="m-divider-luxe"></div>
-                  <p className="m-perk-text">{plan.perk}</p>
-                </div>
+                <h3 className="m-card-name">{plan.name}</h3>
+                <div className="m-card-price"><span>$</span>{plan.price}</div>
+                <p className="m-card-profit">Profit: {plan.profit}</p>
                 <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-m-acquire">ADQUIRIR</button>
               </div>
             </div>
@@ -210,86 +171,56 @@ export default function LandingPage() {
 
       <footer className="footer-elite-master">
         <div className="footer-links-row">
-          <span className="f-item-elite" onClick={() => abrirLegal('terminos')}><Scale size={16} color="#00C853" /> Términos</span>
-          <span className="f-item-elite" onClick={() => abrirLegal('privacidad')}><FileText size={16} color="#00C853" /> Privacidad</span>
-          <span className="f-item-elite" onClick={() => abrirLegal('confidencialidad')}><Lock size={16} color="#00C853" /> Confidencialidad</span>
+          <span className="f-item-elite" onClick={() => abrirLegal('terminos')}>Términos</span>
+          <span className="f-item-elite" onClick={() => abrirLegal('privacidad')}>Privacidad</span>
         </div>
-        <div className="footer-info-row">
-           <p className="f-copyright-text">© 2026 EL GURÚ ÉLITE. TODOS LOS DERECHOS RESERVADOS.</p>
-           <p className="f-dev-text">Desarrollado por <span className="dev-brand">DeVx</span></p>
-        </div>
+        <p className="f-copyright-text">© 2026 EL GURÚ ÉLITE</p>
       </footer>
 
       <style jsx global>{`
-        :root { --neon: #00C853; --glass: rgba(15, 15, 15, 0.75); }
-        .elite-landing-master { background-color: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; padding-top: 80px; scroll-behavior: smooth; }
-        .navbar-elite { width: 100%; position: fixed; top: 0; z-index: 1000; backdrop-filter: blur(30px); background: rgba(0, 0, 0, 0.95); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .nav-container-master { max-width: 1400px; margin: 0 auto; padding: 25px 30px; display: flex; justify-content: space-between; align-items: center; }
-        .brand-text { font-weight: 900; font-size: 1.5rem; }
-        .brand-neon { color: var(--neon); text-shadow: 0 0 20px rgba(0, 200, 83, 0.5); }
+        :root { --neon: #00C853; }
+        .elite-landing-master { background-color: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; padding-top: 60px; }
         
-        .nav-links-desktop { display: none; gap: 40px; }
-        @media (min-width: 1024px) { .nav-links-desktop { display: flex; align-items: center; } }
-        
-        .link-elite { color: #444; text-decoration: none; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
-        .link-elite:hover { color: var(--neon); }
-        .pointer { cursor: pointer; }
-        .btn-access-master { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 12px 28px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
-        .btn-access-master:hover { background: var(--neon); color: black; box-shadow: 0 0 15px var(--neon); }
+        /* NAVBAR COMPACTA */
+        .navbar-elite { width: 100%; position: fixed; top: 0; z-index: 1000; background: rgba(0, 0, 0, 0.9); border-bottom: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px); }
+        .nav-container-master { max-width: 1200px; margin: 0 auto; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .brand-text { font-weight: 900; font-size: clamp(1rem, 4vw, 1.3rem); }
+        .btn-access-master { border: 1px solid var(--neon); color: var(--neon); padding: 8px 16px; border-radius: 4px; font-weight: 900; font-size: 10px; background: transparent; cursor: pointer; }
 
-        .hero-elite { max-width: 1400px; margin: 0 auto; padding: 100px 30px; }
-        .hero-layout { display: flex; flex-direction: column; align-items: flex-start; }
-        .hero-main-title { font-size: 3.5rem; font-weight: 900; line-height: 0.95; margin-bottom: 35px; letter-spacing: -3px; }
-        @media (min-width: 768px) { .hero-main-title { font-size: 5.5rem; } }
-        @media (max-width: 600px) { .hero-main-title { font-size: 2.8rem; letter-spacing: -1px; } .hero-elite { padding: 60px 20px; } }
-        .text-glow-neon { background: linear-gradient(180deg, #fff 40%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-subtext { color: #888; font-size: 1.25rem; line-height: 1.7; margin-bottom: 50px; max-width: 700px; }
-        .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 22px 50px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        /* HERO AJUSTADO */
+        .hero-elite { max-width: 1200px; margin: 0 auto; padding: 60px 20px; text-align: center; }
+        .hero-layout { display: flex; flex-direction: column; align-items: center; }
+        .hero-status-tag { background: rgba(0,200,83,0.1); padding: 6px 12px; border-radius: 20px; color: var(--neon); font-size: 10px; font-weight: 900; margin-bottom: 20px; display: flex; gap: 8px; align-items: center; }
+        .hero-main-title { font-size: clamp(2.2rem, 10vw, 4.5rem); font-weight: 900; line-height: 1; margin-bottom: 20px; letter-spacing: -2px; }
+        .hero-subtext { color: #666; font-size: clamp(0.9rem, 3vw, 1.1rem); line-height: 1.5; margin-bottom: 30px; max-width: 500px; }
+        .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 16px 32px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; }
 
-        .hero-visuals-horizontal { max-width: 1400px; margin: 0 auto; padding: 80px 30px; display: flex; flex-direction: column; align-items: center; gap: 25px; position: relative; }
-        @media (min-width: 1024px) { .hero-visuals-horizontal { flex-direction: row; justify-content: center; gap: 20px; margin-top: 100px; } }
-        .master-glow-orb { position: absolute; width: 500px; height: 500px; background: var(--neon); filter: blur(160px); opacity: 0.1; z-index: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .stat-card-horizontal { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(0, 200, 83, 0.1); border-radius: 12px; padding: 25px; display: flex; align-items: center; gap: 20px; width: 100%; position: relative; z-index: 10; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1); }
-        .stat-card-horizontal:hover { border-color: var(--neon); transform: translateY(-5px); }
-        @media (min-width: 1024px) { .stat-card-horizontal { width: auto; flex: 1; max-width: 320px; } }
-        .stat-icon-glow { background: rgba(0, 200, 83, 0.1); padding: 16px; border-radius: 10px; }
-        .stat-label { font-size: 11px; color: #444; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
-        .stat-value { font-size: 24px; font-weight: 900; color: white; display: block; margin-top: 6px; }
-        .stat-value small { font-size: 12px; color: var(--neon); }
+        /* STATS COMPACTOS */
+        .hero-visuals-horizontal { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 50px; width: 100%; }
+        .stat-card-horizontal { background: #080808; border: 1px solid #111; border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; text-align: left; }
+        .stat-label { font-size: 9px; color: #444; font-weight: 900; display: block; }
+        .stat-value { font-size: 14px; font-weight: 900; color: white; }
 
-        .plans-section-luxe { padding: 140px 30px; max-width: 1600px; margin: 0 auto; }
-        .section-header-luxe { text-align: center; margin-bottom: 80px; }
-        .header-tag-luxe { color: #444; font-size: 11px; font-weight: 900; letter-spacing: 5px; margin-bottom: 15px; display: block; }
-        .header-title-luxe { font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -2px; }
-        .header-line-luxe { width: 60px; height: 1px; background: var(--neon); margin: 30px auto 0; box-shadow: 0 0 15px var(--neon); }
-        .plans-grid-luxe { display: grid; grid-template-columns: repeat(1, 1fr); gap: 20px; }
-        @media (min-width: 1024px) { .plans-grid-luxe { grid-template-columns: repeat(5, 1fr); gap: 15px; } }
-        .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; position: relative; overflow: hidden; transition: 0.5s; display: flex; flex-direction: column; }
-        .membership-card-luxe:hover { border-color: var(--card-color); transform: translateY(-15px); }
-        .card-energy-bar { width: 100%; height: 5px; background: var(--card-color); position: absolute; top: 0; left: 0; box-shadow: 0 0 15px var(--card-color); z-index: 5; }
-        .m-card-inner { padding: 50px 20px 35px; text-align: center; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 2; }
-        .btn-m-acquire { background: transparent; border: 1px solid var(--card-color); color: var(--card-color); padding: 14px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
-        .btn-m-acquire:hover { background: var(--card-color); color: black; box-shadow: 0 0 20px var(--card-color); }
-        
-        /* --- ESTILOS MODAL & FOOTER VISIBILITY --- */
-        .legal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-        .legal-modal { background: #0a0a0a; border: 1px solid var(--neon); padding: 40px; border-radius: 20px; max-width: 500px; width: 90%; position: relative; box-shadow: 0 0 40px rgba(0, 200, 83, 0.2); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h3 { color: white; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
-        .modal-header button { background: transparent; border: none; cursor: pointer; }
-        .legal-modal p { color: #ccc; line-height: 1.6; font-size: 14px; text-align: left; }
-        .modal-accent { width: 40px; height: 2px; background: var(--neon); margin-top: 25px; box-shadow: 0 0 10px var(--neon); }
+        /* MEMBRESÍAS RESPONSIVAS */
+        .plans-section-luxe { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-header-luxe { text-align: center; margin-bottom: 40px; }
+        .header-title-luxe { font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 900; }
+        .plans-grid-luxe { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 12px; padding: 30px 15px; text-align: center; position: relative; transition: 0.3s; }
+        .m-card-name { font-size: 1rem; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; color: #555; }
+        .m-card-price { font-size: 2rem; font-weight: 900; color: white; margin-bottom: 10px; }
+        .m-card-price span { font-size: 1rem; color: var(--neon); vertical-align: top; }
+        .m-card-profit { font-size: 0.8rem; color: #00C853; font-weight: bold; margin-bottom: 20px; }
+        .btn-m-acquire { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--card-color); color: var(--card-color); font-weight: 900; border-radius: 4px; cursor: pointer; font-size: 10px; }
 
-        .footer-elite-master { padding: 100px 30px 60px; background: #050505; text-align: center; border-top: 1px solid #111; margin-top: 50px; }
-        .footer-links-row { display: flex; justify-content: center; gap: 40px; margin-bottom: 50px; flex-wrap: wrap; }
-        .f-item-elite { color: #E0E0E0 !important; font-size: 13px; font-weight: 900; display: flex; align-items: center; gap: 10px; transition: 0.3s; cursor: pointer; }
-        .f-item-elite:hover { color: var(--neon); }
-        .footer-info-row { display: flex; flex-direction: column; gap: 15px; align-items: center; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 40px; }
-        .f-copyright-text { color: #BBBBBB; font-size: 11px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
-        .f-dev-text { color: #666; font-size: 10px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; }
-        .dev-brand { color: var(--neon); font-weight: 900; }
-        .fade-up-card { opacity: 0; animation: fadeUpMaster 1s ease forwards; }
-        @keyframes fadeUpMaster { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .footer-elite-master { padding: 40px 20px; text-align: center; border-top: 1px solid #111; color: #333; }
+        .footer-links-row { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
+        .f-item-elite { font-size: 11px; font-weight: 900; cursor: pointer; }
+        .f-copyright-text { font-size: 9px; letter-spacing: 2px; }
+
+        @keyframes progress-master { 100% { width: 100%; } }
+        .fade-up-card { opacity: 0; animation: fadeUp 0.8s ease forwards; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
