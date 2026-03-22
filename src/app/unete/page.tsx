@@ -193,6 +193,16 @@ export default function UnetePage() {
   const renderPaso = () => {
     switch (paso) {
       case 1:
+        // --- LÓGICA DE SEMÁFORO (BISTURÍ LÁSER) ---
+        const formularioValido = 
+          formData.nombre.trim() !== '' && 
+          formData.email.trim() !== '' && 
+          formData.telefono.trim() !== '' && 
+          formData.password.length >= 8 && 
+          formData.password === formData.confirmPassword && 
+          formData.tyc === true && 
+          formData.politicas === true;
+
         return (
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Crea tu Cuenta Élite</h2>
@@ -202,7 +212,6 @@ export default function UnetePage() {
             <label style={labelStyle}><Mail size={16} style={{marginRight: '5px'}}/> Correo Electrónico (Real)</label>
             <input type="email" name="email" placeholder="juan@ejemplo.com" value={formData.email} onChange={handleInputChange} style={inputStyle} />
             
-            {/* --- SELECTOR DE PAÍS INDEPENDIENTE (BISTURÍ LÁSER AQUÍ) --- */}
             <label style={labelStyle}><MapPin size={16} style={{marginRight: '5px'}}/> País de Residencia</label>
             <select 
               name="pais" 
@@ -213,7 +222,6 @@ export default function UnetePage() {
                   ...prev, 
                   pais: e.target.value, 
                   codigoArea: selectedPais?.codigo || '',
-                  // Reset inteligente: Si es Ecuador, por defecto Pichincha, si no, Nequi
                   metodoPago: e.target.value === 'Ecuador' ? 'pichincha' : 'nequi' 
                 }));
               }} 
@@ -248,7 +256,26 @@ export default function UnetePage() {
                 <input type="checkbox" name="politicas" checked={formData.politicas} onChange={handleInputChange} style={{width: '20px', height: '20px', accentColor: '#00C853'}} />
                 <label style={{color: '#888', fontSize: '0.9rem'}}>Acepto las <a href="#" style={{color: '#00C853', textDecoration: 'none'}}>Políticas de Privacidad</a>.</label>
             </div>
-            <button onClick={siguientePaso} style={{ width: '100%', padding: '18px', background: '#00C853', color: 'black', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Continuar a Selección de Plan</button>
+            
+            {/* BOTÓN CON LÓGICA DE SEMÁFORO */}
+            <button 
+              onClick={siguientePaso} 
+              disabled={!formularioValido}
+              style={{ 
+                width: '100%', 
+                padding: '18px', 
+                background: formularioValido ? '#00C853' : '#1a1a1a', 
+                color: formularioValido ? 'black' : '#444', 
+                border: 'none', 
+                borderRadius: '12px', 
+                fontSize: '1.1rem', 
+                fontWeight: 'bold', 
+                cursor: formularioValido ? 'pointer' : 'not-allowed',
+                transition: 'all 0.4s ease'
+              }}
+            >
+              Continuar a Selección de Plan
+            </button>
           </div>
         );
       case 2:
@@ -279,7 +306,6 @@ export default function UnetePage() {
           </div>
         );
       case 3:
-        // --- LÓGICA DINÁMICA RECTIFICADA POR EL CIRUJANO ---
         const opcionesPago = formData.pais === 'Ecuador' ? metodosPagoEcuador : metodosPagoGlobal;
         const metodoSeleccionado = opcionesPago.find(m => m.id === formData.metodoPago) || opcionesPago[0];
 
