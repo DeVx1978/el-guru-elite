@@ -6,7 +6,8 @@ import {
   User, Wallet, TrendingUp, ShieldCheck, LogOut,
   Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard,
   ArrowUpRight, Activity, ShieldAlert, Trophy, ArrowRightCircle,
-  Settings, HelpCircle, BarChart3, PieChart, History, PlusCircle, ChevronRight, CheckCircle2
+  Settings, HelpCircle, BarChart3, PieChart, History, PlusCircle, ChevronRight, CheckCircle2,
+  Building2, Landmark, CreditCard, Smartphone, Globe
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -24,10 +25,12 @@ export default function SocioPanel() {
   const [balanceVisual, setBalanceVisual] = useState(0);
   const [nivelSocio, setNivelSocio] = useState("Socio Élite");
   const [utilidad, setUtilidad] = useState(0);
+  const [paisSocio, setPaisSocio] = useState("Colombia"); // Localización por defecto
 
-  // 💰 ESTADOS DE RETIRO
+  // 💰 ESTADOS DE RETIRO AVANZADO (MULTIPAÍS)
+  const [metodoRetiro, setMetodoRetiro] = useState('banco'); 
   const [montoRetiro, setMontoRetiro] = useState('');
-  const [billeteraRetiro, setBilleteraRetiro] = useState('');
+  const [detallesDestino, setDetallesDestino] = useState(''); 
   const [enviandoRetiro, setEnviandoRetiro] = useState(false);
   const [mensajeRetiro, setMensajeRetiro] = useState({ tipo: '', texto: '' });
 
@@ -42,7 +45,7 @@ export default function SocioPanel() {
       setNombre(socioNombre || "Socio");
       if (socioRol === 'admin') {
         setEsAdmin(true);
-        obtenerPendientes();
+        obtenerPendientesAdmin();
       }
       conectarBovedaElite(socioId);
     }
@@ -52,7 +55,7 @@ export default function SocioPanel() {
     try {
       const { data, error } = await clientSupabase
         .from('socios_elite')
-        .select('inversion_minima, nivel_socio, porcentaje_utilidad')
+        .select('inversion_minima, nivel_socio, porcentaje_utilidad, pais')
         .eq('id_socio', idSocio)
         .single();
 
@@ -60,6 +63,7 @@ export default function SocioPanel() {
         setBalance(Number(data.inversion_minima));
         setNivelSocio(data.nivel_socio || "Socio Élite");
         setUtilidad(Number(data.porcentaje_utilidad) || 0);
+        if (data.pais) setPaisSocio(data.pais);
       }
     } catch (err) {
       console.error("Error de conexión:", err);
@@ -86,9 +90,10 @@ export default function SocioPanel() {
     }
   }, [loading, balance]);
 
-  const obtenerPendientes = async () => {
-    const { data } = await clientSupabase.from('socios').select('id').eq('estado', 'pendiente');
-    setPendientes(data?.length || 0);
+  const obtenerPendientesAdmin = async () => {
+    const { data: retirosData } = await clientSupabase.from('retiros').select('id').eq('estado', 'pendiente');
+    const { data: sociosData } = await clientSupabase.from('socios').select('id').eq('estado', 'pendiente');
+    setPendientes((retirosData?.length || 0) + (sociosData?.length || 0));
   };
 
   const handleLogout = () => {
@@ -96,62 +101,66 @@ export default function SocioPanel() {
     router.push('/login');
   };
 
-  // 🏥 LÓGICA DE RETIRO QUIRÚRGICA
   const procesarRetiro = async () => {
     const socioId = localStorage.getItem('socio_id');
     const valor = parseFloat(montoRetiro);
 
-    if (!montoRetiro || !billeteraRetiro) {
-      setMensajeRetiro({ tipo: 'error', texto: 'Complete todos los campos de la bóveda.' });
+    if (!montoRetiro || !detallesDestino) {
+      setMensajeRetiro({ tipo: 'error', texto: 'Complete el monto y destino del capital.' });
       return;
     }
 
     if (valor > balance) {
-      setMensajeRetiro({ tipo: 'error', texto: 'Fondos insuficientes en su capital gestionado.' });
+      setMensajeRetiro({ tipo: 'error', texto: 'Fondos insuficientes en su balance.' });
       return;
     }
 
     setEnviandoRetiro(true);
-    setMensajeRetiro({ tipo: '', texto: '' });
-
     try {
       const { error } = await clientSupabase
         .from('retiros')
-        .insert([
-          { 
+        .insert([{ 
             id_socio: socioId, 
             monto: valor, 
-            billetera: billeteraRetiro,
+            billetera: `[${metodoRetiro.toUpperCase()} - ${paisSocio}] ${detallesDestino}`,
             estado: 'pendiente' 
-          }
-        ]);
+        }]);
 
       if (error) throw error;
-
-      setMensajeRetiro({ tipo: 'exito', texto: 'Solicitud enviada. El Gurú procesará su retiro.' });
+      setMensajeRetiro({ tipo: 'exito', texto: 'Solicitud enviada. Verifique su cuenta en 24-48h.' });
       setMontoRetiro('');
-      setBilleteraRetiro('');
+      setDetallesDestino('');
+      obtenerPendientesAdmin();
     } catch (err) {
-      setMensajeRetiro({ tipo: 'error', texto: 'Error de comunicación con la red financiera.' });
+      setMensajeRetiro({ tipo: 'error', texto: 'Error de red bancaria. Intente más tarde.' });
     } finally {
       setEnviandoRetiro(false);
     }
   };
 
-  // --- SUB-COMPONENTES (ÓRGANOS INTERNOS) ---
-  
+  const obtenerPlaceholderBanco = () => {
+    const p = paisSocio.toLowerCase();
+    if (p.includes('colombia')) return 'Ej: Bancolombia/Nequi, Ahorros, #...';
+    if (p.includes('ecuador')) return 'Ej: Banco Pichincha, Corriente, #...';
+    if (p.includes('españa')) return 'Ej: Banco Santander, IBAN ES62..., SWIFT...';
+    if (p.includes('méxico')) return 'Ej: BBVA México, CLABE Interbancaria...';
+    return 'Ej: Nombre Banco, Tipo Cuenta, Número SWIFT/IBAN...';
+  };
+
+  // --- RENDERS ---
+
   const RenderInicio = () => (
     <div className="fade-in">
       <div className="welcome-banner">
         <h1>Bienvenido, <span>{nombre}</span></h1>
-        <p><ShieldCheck size={14} color="#00C853" /> STATUS: {nivelSocio.toUpperCase()}</p>
+        <p><Globe size={14} color="#00C853" /> REGIÓN ESTRATÉGICA: {paisSocio.toUpperCase()}</p>
       </div>
 
       <div className="vault-grid">
         <div className="vault-card-main">
           <div className="card-top">
-            <span className="card-label">CAPITAL TOTAL GESTIONADO</span>
-            <span className="profit-badge">+{utilidad}% PROFIT</span>
+            <span className="card-label">CAPITAL BAJO GESTIÓN</span>
+            <span className="profit-badge">+{utilidad}% RENDIMIENTO</span>
           </div>
           <div className="balance-display">
             <span className="symbol">$</span>
@@ -159,53 +168,63 @@ export default function SocioPanel() {
             <div className="live-status"><div className="dot"></div> LIVE</div>
           </div>
           <div className="progress-container">
-            <div className="progress-labels"><span>PROGRESO DE CARTERA</span><span>{balance > 0 ? 'ACTIVO' : 'EN ESPERA'}</span></div>
-            <div className="bar-bg"><div className="bar-fill" style={{ width: balance > 0 ? '65%' : '5%' }}></div></div>
-            <div className="ai-pulse"><Activity size={12} className="pulse" /> SISTEMA DE ALGORITMOS CALCULANDO...</div>
+            <div className="progress-labels"><span>ESTADO DEL FONDO</span><span>EJECUTANDO</span></div>
+            <div className="bar-bg"><div className="bar-fill" style={{ width: '75%' }}></div></div>
+            <div className="ai-pulse"><Activity size={12} className="pulse" /> CONEXIÓN DIRECTA CON LIQUIDEZ GLOBAL...</div>
           </div>
         </div>
 
         <div className="rank-card-v2">
           <div className="rank-header">
             <Trophy size={32} color="#00C853" />
-            <div><p>NIVEL DE SOCIO</p><h3>{nivelSocio}</h3></div>
+            <div><p>MEMBRESÍA</p><h3>{nivelSocio}</h3></div>
           </div>
           <div className="rank-details">
-            <div className="detail-item"><span>ID Único</span><span>{localStorage.getItem('socio_id')}</span></div>
-            <div className="detail-item"><span>Status</span><span className="active-tag">VERIFICADO</span></div>
+            <div className="detail-item"><span>ID SOCIO</span><span>{localStorage.getItem('socio_id')}</span></div>
+            <div className="detail-item"><span>País Origen</span><span className="active-tag">{paisSocio}</span></div>
           </div>
-          <button className="upgrade-btn">ESTADÍSTICAS PRO</button>
+          <button className="upgrade-btn">CERTIFICADO ÉLITE</button>
         </div>
       </div>
 
-      <div className="section-title">ACCIONES RÁPIDAS</div>
+      <div className="section-title">CENTRO DE OPERACIONES</div>
       <div className="actions-grid-v2">
-        <div className="action-tile" onClick={() => router.push('/panel/objetivos')}><Target color="#00C853" /> <span>Objetivos 2026</span></div>
-        <div className="action-tile" onClick={() => setActiveTab('reportes')}><TrendingUp color="#00C853" /> <span>Rendimientos</span></div>
-        <div className="action-tile" onClick={() => setActiveTab('retiros')}><Wallet color="#00C853" /> <span>Cajero Élite</span></div>
-        <div className="action-tile" onClick={() => setActiveTab('perfil')}><User color="#00C853" /> <span>Mi Perfil</span></div>
+        <div className="action-tile" onClick={() => router.push('/panel/objetivos')}><Target color="#00C853" /> <span>Metas</span></div>
+        <div className="action-tile" onClick={() => setActiveTab('reportes')}><TrendingUp color="#00C853" /> <span>Gráficas</span></div>
+        <div className="action-tile" onClick={() => setActiveTab('retiros')}><Wallet color="#00C853" /> <span>Retiros</span></div>
+        <div className="action-tile" onClick={() => setActiveTab('perfil')}><Settings color="#00C853" /> <span>Seguridad</span></div>
       </div>
     </div>
   );
 
   const RenderReportes = () => (
     <div className="fade-in section-container">
-      <h2 className="section-h2">Reportes y Ganancias</h2>
+      <h2 className="section-h2">Estado de Cuenta</h2>
       <div className="stats-grid-mini">
         <div className="stat-box-mini"><span>Inversión</span><h3>${balance.toLocaleString()}</h3></div>
-        <div className="stat-box-mini"><span>Profit Est.</span><h3>+{(balance * (utilidad/100)).toFixed(2)}</h3></div>
-        <div className="stat-box-mini"><span>Ahorro</span><h3>$0.00</h3></div>
+        <div className="stat-box-mini"><span>Profit</span><h3>+{(balance * (utilidad/100)).toFixed(2)}</h3></div>
+        <div className="stat-box-mini"><span>Proyección</span><h3>${(balance * 1.25).toLocaleString()}</h3></div>
       </div>
-      <div className="empty-state"><BarChart3 size={48} color="#222" /><p>Generando reportes detallados...</p></div>
+      <div className="empty-state"><BarChart3 size={48} color="#222" /><p>Generando reportes de auditoría externa...</p></div>
     </div>
   );
 
   const RenderRetiros = () => (
     <div className="fade-in section-container">
-      <h2 className="section-h2">Gestionar Retiros</h2>
+      <h2 className="section-h2">Cajero Multidivisa</h2>
       <div className="withdraw-card glass-effect">
-        <p className="withdraw-label">Disponible para Retiro</p>
+        <p className="withdraw-label">Saldo Neto en USD</p>
         <h3 className="withdraw-amount">${balanceVisual.toLocaleString()}</h3>
+        
+        <div className="method-selector">
+          <div className={`method-option ${metodoRetiro === 'banco' ? 'active' : ''}`} onClick={() => setMetodoRetiro('banco')}>
+            <Building2 size={18} /> Banco Local
+          </div>
+          <div className={`method-option ${metodoRetiro === 'cripto' ? 'active' : ''}`} onClick={() => setMetodoRetiro('cripto')}>
+            <Zap size={18} /> USDT TRC20
+          </div>
+        </div>
+
         <div className="divider"></div>
         
         {mensajeRetiro.texto && (
@@ -217,33 +236,24 @@ export default function SocioPanel() {
 
         <div className="input-group">
           <label>Monto a Retirar (USD)</label>
-          <input 
-            type="number" 
-            value={montoRetiro}
-            onChange={(e) => setMontoRetiro(e.target.value)}
-            placeholder="0.00" 
-            className="elite-input" 
-          />
+          <input type="number" value={montoRetiro} onChange={(e) => setMontoRetiro(e.target.value)} placeholder="0.00" className="elite-input" />
         </div>
 
         <div className="input-group" style={{ marginTop: '20px' }}>
-          <label>Billetera USDT (TRC20)</label>
-          <input 
-            type="text" 
-            value={billeteraRetiro}
-            onChange={(e) => setBilleteraRetiro(e.target.value)}
-            placeholder="Pegue su dirección de red..." 
+          <label>{metodoRetiro === 'banco' ? `Datos Bancarios (${paisSocio})` : 'Dirección Wallet USDT (TRC20)'}</label>
+          <textarea 
+            rows={2} 
+            value={detallesDestino} 
+            onChange={(e) => setDetallesDestino(e.target.value)} 
+            placeholder={metodoRetiro === 'banco' ? obtenerPlaceholderBanco() : 'Pegue su dirección de red...'} 
             className="elite-input" 
           />
         </div>
 
-        <button 
-          onClick={procesarRetiro} 
-          disabled={enviandoRetiro}
-          className="btn-withdraw-action"
-        >
-          {enviandoRetiro ? 'PROCESANDO...' : 'CONFIRMAR SOLICITUD'}
+        <button onClick={procesarRetiro} disabled={enviandoRetiro} className="btn-withdraw-action">
+          {enviandoRetiro ? 'VERIFICANDO...' : 'CONFIRMAR SOLICITUD'}
         </button>
+        <p className="info-footer">Soporte internacional activo para transferencias en {paisSocio}.</p>
       </div>
     </div>
   );
@@ -254,10 +264,11 @@ export default function SocioPanel() {
       <div className="perfil-card glass-effect">
         <div className="perfil-avatar-large">{nombre.charAt(0)}</div>
         <h3 className="perfil-name">{nombre}</h3>
-        <p className="perfil-rank">{nivelSocio}</p>
+        <p className="perfil-rank">{nivelSocio} - {paisSocio}</p>
         <div className="perfil-settings-list">
-          <div className="settings-item"><span>Seguridad de Cuenta</span> <ChevronRight size={18} /></div>
-          <div className="settings-item"><span>Documentación KYC</span> <span className="tag-on">VALIDADO</span></div>
+          <div className="settings-item"><span>Verificación de Identidad</span> <span className="tag-on">VALIDADA</span></div>
+          <div className="settings-item"><span>Seguridad Bancaria</span> <ChevronRight size={18} /></div>
+          <div className="settings-item"><span>Notificaciones</span> <ChevronRight size={18} /></div>
         </div>
       </div>
     </div>
@@ -266,10 +277,8 @@ export default function SocioPanel() {
   if (loading) {
     return (
       <div className="loader-screen">
-        <div className="guru-loader">
-          <div className="inner-circle"><span className="logo-g">G</span></div>
-        </div>
-        <p className="pulse loading-text">SINCRONIZANDO CON LA BÓVEDA...</p>
+        <div className="guru-loader"><div className="inner-circle"><span className="logo-g">G</span></div></div>
+        <p className="pulse loading-text">SINCRONIZANDO GESTIÓN GLOBAL...</p>
         <style jsx>{`
           .loader-screen { background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: fixed; width: 100%; z-index: 9999; }
           .guru-loader { width: 120px; height: 120px; border-radius: 50%; border: 2px solid #111; display: flex; justify-content: center; align-items: center; position: relative; }
@@ -293,7 +302,7 @@ export default function SocioPanel() {
           <div className={`nav-item ${activeTab === 'inicio' ? 'active' : ''}`} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={20} /> Inicio</div>
           <div className={`nav-item ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}><BarChart3 size={20} /> Reportes</div>
           <div className={`nav-item ${activeTab === 'retiros' ? 'active' : ''}`} onClick={() => setActiveTab('retiros')}><Wallet size={20} /> Retiros</div>
-          <div className={`nav-item ${activeTab === 'perfil' ? 'active' : ''}`} onClick={() => setActiveTab('perfil')}><User size={20} /> Mi Perfil</div>
+          <div className={`nav-item ${activeTab === 'perfil' ? 'active' : ''}`} onClick={() => setActiveTab('perfil')}><User size={20} /> Perfil</div>
           <div className="nav-divider"></div>
           <div className="nav-item"><HelpCircle size={20} /> Soporte</div>
         </nav>
@@ -362,7 +371,7 @@ export default function SocioPanel() {
         .live-status { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #ff4444; font-weight: 900; margin-left: 15px; border: 1px solid rgba(255,68,68,0.2); padding: 4px 10px; border-radius: 20px; }
         .dot { width: 6px; height: 6px; background: #ff4444; border-radius: 50%; animation: blink 1s infinite; }
         .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; margin: 12px 0; overflow: hidden; }
-        .bar-fill { width: 45%; height: 100%; background: var(--neon); box-shadow: 0 0 15px var(--neon); border-radius: 10px; animation: grow 2s ease-out; }
+        .bar-fill { width: 75%; height: 100%; background: var(--neon); box-shadow: 0 0 15px var(--neon); border-radius: 10px; animation: grow 2s ease-out; }
         .ai-pulse { color: #222; font-size: 10px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
         .rank-card-v2 { background: #080808; border: 1px solid var(--border); border-radius: 30px; padding: 35px; display: flex; flex-direction: column; justify-content: space-between; }
         .rank-header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
@@ -374,38 +383,31 @@ export default function SocioPanel() {
         .section-title { font-size: 0.75rem; font-weight: 900; color: #444; letter-spacing: 2px; margin-bottom: 20px; }
         .actions-grid-v2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 25px; border-radius: 20px; display: flex; flex-direction: column; gap: 15px; cursor: pointer; transition: 0.3s; }
-        .section-container { padding-top: 20px; }
-        .section-h2 { font-size: 1.8rem; font-weight: 900; color: var(--neon); margin-bottom: 30px; }
-        .stats-grid-mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stat-box-mini { background: #0a0c10; padding: 20px; border-radius: 15px; border: 1px solid var(--border); }
         .stat-box-mini span { font-size: 0.7rem; color: #444; font-weight: 800; text-transform: uppercase; }
         .stat-box-mini h3 { font-size: 1.5rem; margin-top: 5px; }
-        .empty-state { text-align: center; padding: 60px 0; color: #444; font-weight: 700; }
-        
-        /* 💉 ESTILOS CAJERO DE RETIRO */
         .withdraw-card { background: #0a0c10; padding: 40px; border-radius: 25px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
         .withdraw-amount { font-size: 3rem; font-weight: 900; margin: 10px 0 25px; }
+        .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+        .method-option { background: #000; border: 1px solid #111; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; font-weight: 800; cursor: pointer; transition: 0.3s; color: #444; }
+        .method-option.active { border-color: var(--neon); color: var(--neon); background: rgba(0,200,83,0.05); }
         .status-alert { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
         .status-alert.error { background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.2); }
         .status-alert.exito { background: rgba(0, 200, 83, 0.1); color: var(--neon); border: 1px solid rgba(0, 200, 83, 0.2); }
-        .elite-input { width: 100%; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 12px; color: #fff; margin-top: 10px; font-family: monospace; transition: 0.3s; }
-        .elite-input:focus { border-color: var(--neon); outline: none; box-shadow: 0 0 10px rgba(0,200,83,0.1); }
-        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; margin-top: 25px; cursor: pointer; transition: 0.3s; }
-        .btn-withdraw-action:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-withdraw-action:disabled { background: #1a1c20; color: #444; cursor: not-allowed; transform: none; }
-
+        .elite-input { width: 100%; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 12px; color: #fff; margin-top: 10px; font-family: 'Inter', sans-serif; transition: 0.3s; }
+        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; margin-top: 25px; cursor: pointer; }
+        .btn-withdraw-action:disabled { background: #1a1c20; color: #444; cursor: not-allowed; }
+        .info-footer { color: #333; font-size: 10px; font-weight: 800; text-align: center; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; }
         .perfil-card { text-align: center; background: #0a0c10; padding: 40px; border-radius: 25px; border: 1px solid var(--border); max-width: 400px; margin: 0 auto; }
         .perfil-avatar-large { width: 80px; height: 80px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 900; margin: 0 auto 20px; }
-        .perfil-settings-list { margin-top: 30px; text-align: left; }
         .settings-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; font-weight: 700; cursor: pointer; }
         .tag-on { color: var(--neon); font-size: 0.7rem; }
         .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 15px; z-index: 100; }
         @media (min-width: 1024px) { .mobile-tab-bar { display: none; } }
-        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #444; cursor: pointer; transition: 0.3s; }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #444; cursor: pointer; }
         .tab-item.active { color: var(--neon); }
         .tab-item span { font-size: 10px; font-weight: 700; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        @keyframes grow { from { width: 0%; } to { width: 45%; } }
+        @keyframes grow { from { width: 0%; } to { width: 75%; } }
         .fade-in { animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
