@@ -25,9 +25,9 @@ export default function SocioPanel() {
   const [balanceVisual, setBalanceVisual] = useState(0);
   const [nivelSocio, setNivelSocio] = useState("Socio Élite");
   const [utilidad, setUtilidad] = useState(0);
-  const [paisSocio, setPaisSocio] = useState("Colombia"); // Localización por defecto
+  const [paisSocio, setPaisSocio] = useState("Colombia");
 
-  // 💰 ESTADOS DE RETIRO AVANZADO (MULTIPAÍS)
+  // 💰 ESTADOS DE RETIRO AVANZADO
   const [metodoRetiro, setMetodoRetiro] = useState('banco'); 
   const [montoRetiro, setMontoRetiro] = useState('');
   const [detallesDestino, setDetallesDestino] = useState(''); 
@@ -106,12 +106,12 @@ export default function SocioPanel() {
     const valor = parseFloat(montoRetiro);
 
     if (!montoRetiro || !detallesDestino) {
-      setMensajeRetiro({ tipo: 'error', texto: 'Complete el monto y destino del capital.' });
+      setMensajeRetiro({ tipo: 'error', texto: 'Complete todos los datos.' });
       return;
     }
 
     if (valor > balance) {
-      setMensajeRetiro({ tipo: 'error', texto: 'Fondos insuficientes en su balance.' });
+      setMensajeRetiro({ tipo: 'error', texto: 'Fondos insuficientes.' });
       return;
     }
 
@@ -127,12 +127,12 @@ export default function SocioPanel() {
         }]);
 
       if (error) throw error;
-      setMensajeRetiro({ tipo: 'exito', texto: 'Solicitud enviada. Verifique su cuenta en 24-48h.' });
+      setMensajeRetiro({ tipo: 'exito', texto: 'Solicitud enviada con éxito.' });
       setMontoRetiro('');
       setDetallesDestino('');
       obtenerPendientesAdmin();
     } catch (err) {
-      setMensajeRetiro({ tipo: 'error', texto: 'Error de red bancaria. Intente más tarde.' });
+      setMensajeRetiro({ tipo: 'error', texto: 'Error de red bancaria.' });
     } finally {
       setEnviandoRetiro(false);
     }
@@ -142,12 +142,9 @@ export default function SocioPanel() {
     const p = paisSocio.toLowerCase();
     if (p.includes('colombia')) return 'Ej: Bancolombia/Nequi, Ahorros, #...';
     if (p.includes('ecuador')) return 'Ej: Banco Pichincha, Corriente, #...';
-    if (p.includes('españa')) return 'Ej: Banco Santander, IBAN ES62..., SWIFT...';
-    if (p.includes('méxico')) return 'Ej: BBVA México, CLABE Interbancaria...';
-    return 'Ej: Nombre Banco, Tipo Cuenta, Número SWIFT/IBAN...';
+    if (p.includes('españa')) return 'Ej: Banco Santander, IBAN ES62...';
+    return 'Ej: Banco, Tipo Cuenta, Número...';
   };
-
-  // --- RENDERS ---
 
   const RenderInicio = () => (
     <div className="fade-in">
@@ -168,7 +165,10 @@ export default function SocioPanel() {
             <div className="live-status"><div className="dot"></div> LIVE</div>
           </div>
           <div className="progress-container">
-            <div className="progress-labels"><span>ESTADO DEL FONDO</span><span>EJECUTANDO</span></div>
+            <div className="progress-labels">
+              <span>ESTADO DEL FONDO</span>
+              <span className="exec-text">EJECUTANDO</span>
+            </div>
             <div className="bar-bg"><div className="bar-fill" style={{ width: '75%' }}></div></div>
             <div className="ai-pulse"><Activity size={12} className="pulse" /> CONEXIÓN DIRECTA CON LIQUIDEZ GLOBAL...</div>
           </div>
@@ -192,7 +192,7 @@ export default function SocioPanel() {
         <div className="action-tile" onClick={() => router.push('/panel/objetivos')}><Target color="#00C853" /> <span>Metas</span></div>
         <div className="action-tile" onClick={() => setActiveTab('reportes')}><TrendingUp color="#00C853" /> <span>Gráficas</span></div>
         <div className="action-tile" onClick={() => setActiveTab('retiros')}><Wallet color="#00C853" /> <span>Retiros</span></div>
-        <div className="action-tile" onClick={() => setActiveTab('perfil')}><Settings color="#00C853" /> <span>Seguridad</span></div>
+        <div className="action-tile" onClick={() => setActiveTab('perfil')}><Settings color="#00C853" /> <span>Perfil</span></div>
       </div>
     </div>
   );
@@ -205,7 +205,7 @@ export default function SocioPanel() {
         <div className="stat-box-mini"><span>Profit</span><h3>+{(balance * (utilidad/100)).toFixed(2)}</h3></div>
         <div className="stat-box-mini"><span>Proyección</span><h3>${(balance * 1.25).toLocaleString()}</h3></div>
       </div>
-      <div className="empty-state"><BarChart3 size={48} color="#222" /><p>Generando reportes de auditoría externa...</p></div>
+      <div className="empty-state"><BarChart3 size={48} color="#222" /><p>Generando reportes de auditoría...</p></div>
     </div>
   );
 
@@ -240,20 +240,13 @@ export default function SocioPanel() {
         </div>
 
         <div className="input-group" style={{ marginTop: '20px' }}>
-          <label>{metodoRetiro === 'banco' ? `Datos Bancarios (${paisSocio})` : 'Dirección Wallet USDT (TRC20)'}</label>
-          <textarea 
-            rows={2} 
-            value={detallesDestino} 
-            onChange={(e) => setDetallesDestino(e.target.value)} 
-            placeholder={metodoRetiro === 'banco' ? obtenerPlaceholderBanco() : 'Pegue su dirección de red...'} 
-            className="elite-input" 
-          />
+          <label>{metodoRetiro === 'banco' ? `Datos Bancarios (${paisSocio})` : 'Wallet USDT (TRC20)'}</label>
+          <textarea rows={2} value={detallesDestino} onChange={(e) => setDetallesDestino(e.target.value)} placeholder={metodoRetiro === 'banco' ? obtenerPlaceholderBanco() : 'Pegue dirección...'} className="elite-input" />
         </div>
 
         <button onClick={procesarRetiro} disabled={enviandoRetiro} className="btn-withdraw-action">
           {enviandoRetiro ? 'VERIFICANDO...' : 'CONFIRMAR SOLICITUD'}
         </button>
-        <p className="info-footer">Soporte internacional activo para transferencias en {paisSocio}.</p>
       </div>
     </div>
   );
@@ -264,11 +257,10 @@ export default function SocioPanel() {
       <div className="perfil-card glass-effect">
         <div className="perfil-avatar-large">{nombre.charAt(0)}</div>
         <h3 className="perfil-name">{nombre}</h3>
-        <p className="perfil-rank">{nivelSocio} - {paisSocio}</p>
+        <p className="perfil-rank">{nivelSocio}</p>
         <div className="perfil-settings-list">
-          <div className="settings-item"><span>Verificación de Identidad</span> <span className="tag-on">VALIDADA</span></div>
-          <div className="settings-item"><span>Seguridad Bancaria</span> <ChevronRight size={18} /></div>
-          <div className="settings-item"><span>Notificaciones</span> <ChevronRight size={18} /></div>
+          <div className="settings-item"><span>Verificación KYC</span> <span className="tag-on">VALIDADA</span></div>
+          <div className="settings-item"><span>Seguridad</span> <ChevronRight size={18} /></div>
         </div>
       </div>
     </div>
@@ -278,7 +270,7 @@ export default function SocioPanel() {
     return (
       <div className="loader-screen">
         <div className="guru-loader"><div className="inner-circle"><span className="logo-g">G</span></div></div>
-        <p className="pulse loading-text">SINCRONIZANDO GESTIÓN GLOBAL...</p>
+        <p className="pulse loading-text">SINCRONIZANDO GESTIÓN...</p>
         <style jsx>{`
           .loader-screen { background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: fixed; width: 100%; z-index: 9999; }
           .guru-loader { width: 120px; height: 120px; border-radius: 50%; border: 2px solid #111; display: flex; justify-content: center; align-items: center; position: relative; }
@@ -338,16 +330,16 @@ export default function SocioPanel() {
 
       <style jsx global>{`
         :root { --neon: #00C853; --dark: #0a0c10; --border: #1a1c20; }
-        .app-layout { background: #000; min-height: 100vh; display: flex; font-family: 'Inter', sans-serif; color: #fff; }
-        .sidebar-desktop { width: 280px; background: #050505; border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 30px 20px; position: sticky; top: 0; height: 100vh; }
+        .app-layout { background: #000; min-height: 100vh; display: flex; font-family: 'Inter', sans-serif; color: #fff; overflow-x: hidden; }
+        .sidebar-desktop { width: 260px; background: #050505; border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 30px 20px; position: sticky; top: 0; height: 100vh; }
         @media (min-width: 1024px) { .sidebar-desktop { display: flex; } }
         .brand-elite { font-weight: 900; font-size: 1.4rem; letter-spacing: -1px; margin-bottom: 40px; }
         .brand-elite span { color: var(--neon); }
         .nav-item { padding: 14px 18px; border-radius: 12px; display: flex; align-items: center; gap: 15px; color: #444; cursor: pointer; transition: 0.3s; margin-bottom: 5px; font-weight: 600; font-size: 0.95rem; }
         .nav-item:hover, .nav-item.active { background: rgba(0,200,83,0.05); color: var(--neon); }
         .nav-divider { height: 1px; background: var(--border); margin: 20px 0; }
-        .logout-sidebar { background: rgba(255,68,68,0.05); color: #ff4444; border: 1px solid rgba(255,68,68,0.1); padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 0.8rem; }
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .logout-sidebar { background: rgba(255,68,68,0.05); color: #ff4444; border: 1px solid rgba(255,68,68,0.1); padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 0.8rem; margin-top: auto; }
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
         .top-navbar { height: 70px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
         .mobile-brand { font-weight: 900; font-size: 1.1rem; }
         .mobile-brand span { color: var(--neon); }
@@ -355,58 +347,61 @@ export default function SocioPanel() {
         .header-actions { display: flex; align-items: center; gap: 20px; }
         .user-avatar { width: 35px; height: 35px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; cursor: pointer; }
         .badge { position: absolute; top: -5px; right: -5px; background: red; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; }
-        .panel-content { padding: 25px; max-width: 1200px; margin: 0 auto; width: 100%; padding-bottom: 100px; }
-        .welcome-banner h1 { font-size: 2.2rem; font-weight: 900; margin-bottom: 8px; }
+        .panel-content { padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; padding-bottom: 100px; }
+        @media (min-width: 768px) { .panel-content { padding: 35px; } }
+        .welcome-banner h1 { font-size: 1.8rem; font-weight: 900; margin-bottom: 8px; }
+        @media (min-width: 768px) { .welcome-banner h1 { font-size: 2.5rem; } }
         .welcome-banner h1 span { color: var(--neon); }
-        .welcome-banner p { color: #555; font-size: 0.8rem; font-weight: 800; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .vault-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 30px 0; }
-        @media (min-width: 1024px) { .vault-grid { grid-template-columns: 1.5fr 1fr; } }
-        .vault-card-main { background: linear-gradient(145deg, #0a0c10, #030303); border: 1px solid var(--border); border-radius: 30px; padding: 35px; }
-        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .card-label { font-size: 0.75rem; font-weight: 900; color: #444; letter-spacing: 2px; }
-        .profit-badge { background: rgba(0,200,83,0.1); color: var(--neon); padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 900; }
-        .balance-display { display: flex; align-items: baseline; gap: 10px; margin-bottom: 30px; }
-        .symbol { font-size: 2rem; color: #222; font-weight: 900; }
-        .value { font-size: 4rem; font-weight: 900; letter-spacing: -3px; font-variant-numeric: tabular-nums; }
-        .live-status { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #ff4444; font-weight: 900; margin-left: 15px; border: 1px solid rgba(255,68,68,0.2); padding: 4px 10px; border-radius: 20px; }
-        .dot { width: 6px; height: 6px; background: #ff4444; border-radius: 50%; animation: blink 1s infinite; }
-        .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; margin: 12px 0; overflow: hidden; }
-        .bar-fill { width: 75%; height: 100%; background: var(--neon); box-shadow: 0 0 15px var(--neon); border-radius: 10px; animation: grow 2s ease-out; }
-        .ai-pulse { color: #222; font-size: 10px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
-        .rank-card-v2 { background: #080808; border: 1px solid var(--border); border-radius: 30px; padding: 35px; display: flex; flex-direction: column; justify-content: space-between; }
-        .rank-header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
-        .rank-header p { font-size: 10px; color: #444; font-weight: 900; margin: 0; }
-        .rank-header h3 { font-size: 1.5rem; font-weight: 900; margin: 0; }
-        .detail-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; font-weight: 700; }
+        .welcome-banner p { color: #555; font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .vault-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 25px 0; }
+        @media (min-width: 1024px) { .vault-grid { grid-template-columns: 1.6fr 1fr; } }
+        .vault-card-main { background: linear-gradient(145deg, #0a0c10, #030303); border: 1px solid var(--border); border-radius: 25px; padding: 25px; position: relative; overflow: hidden; }
+        @media (min-width: 768px) { .vault-card-main { padding: 35px; border-radius: 35px; } }
+        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-label { font-size: 0.7rem; font-weight: 900; color: #444; letter-spacing: 1.5px; }
+        .profit-badge { background: rgba(0,200,83,0.1); color: var(--neon); padding: 5px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 900; }
+        .balance-display { display: flex; align-items: baseline; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; }
+        .symbol { font-size: 1.5rem; color: #222; font-weight: 900; }
+        .value { font-size: 2.8rem; font-weight: 900; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+        @media (min-width: 768px) { .value { font-size: 4.2rem; } }
+        .live-status { display: flex; align-items: center; gap: 6px; font-size: 9px; color: #ff4444; font-weight: 900; border: 1px solid rgba(255,68,68,0.2); padding: 3px 10px; border-radius: 20px; }
+        .dot { width: 5px; height: 5px; background: #ff4444; border-radius: 50%; animation: blink 1s infinite; }
+        .progress-labels { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 900; color: #444; margin-bottom: 8px; }
+        .exec-text { color: var(--neon); }
+        .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--neon); box-shadow: 0 0 15px var(--neon); border-radius: 10px; animation: grow 2s ease-out; }
+        .ai-pulse { color: #222; font-size: 9px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+        .rank-card-v2 { background: #080808; border: 1px solid var(--border); border-radius: 25px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        @media (min-width: 768px) { .rank-card-v2 { border-radius: 35px; padding: 35px; } }
+        .rank-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .rank-header p { font-size: 9px; color: #444; font-weight: 900; margin: 0; }
+        .rank-header h3 { font-size: 1.3rem; font-weight: 900; margin: 0; }
+        .detail-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; font-weight: 700; }
         .active-tag { color: var(--neon); }
-        .upgrade-btn { width: 100%; background: transparent; border: 1px solid #222; padding: 14px; border-radius: 12px; color: #fff; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 20px; }
-        .section-title { font-size: 0.75rem; font-weight: 900; color: #444; letter-spacing: 2px; margin-bottom: 20px; }
-        .actions-grid-v2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 25px; border-radius: 20px; display: flex; flex-direction: column; gap: 15px; cursor: pointer; transition: 0.3s; }
+        .upgrade-btn { width: 100%; background: transparent; border: 1px solid #1a1a1a; padding: 12px; border-radius: 10px; color: #fff; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 15px; font-size: 0.8rem; }
+        .section-title { font-size: 0.7rem; font-weight: 900; color: #333; letter-spacing: 2px; margin-bottom: 15px; margin-top: 10px; }
+        .actions-grid-v2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (min-width: 768px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); gap: 15px; } }
+        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 20px; border-radius: 18px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: 0.3s; }
+        .action-tile span { font-size: 0.85rem; font-weight: 800; }
+        .stats-grid-mini { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 25px; }
+        @media (min-width: 768px) { .stats-grid-mini { grid-template-columns: repeat(3, 1fr); } }
         .stat-box-mini { background: #0a0c10; padding: 20px; border-radius: 15px; border: 1px solid var(--border); }
-        .stat-box-mini span { font-size: 0.7rem; color: #444; font-weight: 800; text-transform: uppercase; }
-        .stat-box-mini h3 { font-size: 1.5rem; margin-top: 5px; }
-        .withdraw-card { background: #0a0c10; padding: 40px; border-radius: 25px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
-        .withdraw-amount { font-size: 3rem; font-weight: 900; margin: 10px 0 25px; }
-        .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
-        .method-option { background: #000; border: 1px solid #111; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; font-weight: 800; cursor: pointer; transition: 0.3s; color: #444; }
+        .stat-box-mini span { font-size: 0.65rem; color: #444; font-weight: 800; text-transform: uppercase; }
+        .stat-box-mini h3 { font-size: 1.4rem; margin-top: 5px; font-weight: 900; }
+        .withdraw-card { background: #0a0c10; padding: 25px; border-radius: 25px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
+        @media (min-width: 768px) { .withdraw-card { padding: 40px; } }
+        .withdraw-amount { font-size: 2.5rem; font-weight: 900; margin: 10px 0 20px; }
+        .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .method-option { background: #000; border: 1px solid #111; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: 0.3s; color: #444; }
         .method-option.active { border-color: var(--neon); color: var(--neon); background: rgba(0,200,83,0.05); }
-        .status-alert { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .status-alert.error { background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.2); }
-        .status-alert.exito { background: rgba(0, 200, 83, 0.1); color: var(--neon); border: 1px solid rgba(0, 200, 83, 0.2); }
-        .elite-input { width: 100%; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 12px; color: #fff; margin-top: 10px; font-family: 'Inter', sans-serif; transition: 0.3s; }
-        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; margin-top: 25px; cursor: pointer; }
-        .btn-withdraw-action:disabled { background: #1a1c20; color: #444; cursor: not-allowed; }
-        .info-footer { color: #333; font-size: 10px; font-weight: 800; text-align: center; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        .perfil-card { text-align: center; background: #0a0c10; padding: 40px; border-radius: 25px; border: 1px solid var(--border); max-width: 400px; margin: 0 auto; }
-        .perfil-avatar-large { width: 80px; height: 80px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 900; margin: 0 auto 20px; }
-        .settings-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; font-weight: 700; cursor: pointer; }
-        .tag-on { color: var(--neon); font-size: 0.7rem; }
-        .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 15px; z-index: 100; }
+        .elite-input { width: 100%; background: #000; border: 1px solid var(--border); padding: 14px; border-radius: 10px; color: #fff; margin-top: 8px; font-size: 0.9rem; }
+        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 16px; border-radius: 10px; font-weight: 900; margin-top: 20px; cursor: pointer; font-size: 0.9rem; }
+        .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; z-index: 100; }
         @media (min-width: 1024px) { .mobile-tab-bar { display: none; } }
-        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #444; cursor: pointer; }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #333; cursor: pointer; }
         .tab-item.active { color: var(--neon); }
-        .tab-item span { font-size: 10px; font-weight: 700; }
+        .tab-item span { font-size: 9px; font-weight: 700; }
         @keyframes grow { from { width: 0%; } to { width: 75%; } }
         .fade-in { animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
