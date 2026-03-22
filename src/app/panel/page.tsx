@@ -280,6 +280,7 @@ export default function SocioPanel() {
           .loading-text { color: #00C853; letter-spacing: 4px; font-size: 0.8rem; font-weight: 900; margin-top: 30px; }
           @keyframes ripple { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
           .pulse { animation: pulse-text 2s infinite; }
+          @keyframes pulse-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
         `}</style>
       </div>
     );
@@ -303,7 +304,7 @@ export default function SocioPanel() {
       <div className="main-wrapper">
         <header className="top-navbar">
           <div className="mobile-brand">GURÚ <span>ÉLITE</span></div>
-          <div className="header-actions-container">
+          <div className="header-actions">
             <div className="header-icon" onClick={() => esAdmin && router.push('/admin')}>
               <Bell size={22} color={esAdmin && pendientes > 0 ? "#00C853" : "#555"} />
               {esAdmin && pendientes > 0 && <span className="badge">{pendientes}</span>}
@@ -329,78 +330,81 @@ export default function SocioPanel() {
 
       <style jsx global>{`
         :root { --neon: #00C853; --dark: #0a0c10; --border: #1a1c20; }
-        .app-layout { background: #000; min-height: 100vh; display: flex; font-family: 'Inter', sans-serif; color: #fff; overflow-x: hidden; width: 100%; }
-        
+        .app-layout { background: #000; min-height: 100vh; display: flex; font-family: 'Inter', sans-serif; color: #fff; overflow-x: hidden; }
         .sidebar-desktop { width: 260px; background: #050505; border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 30px 20px; position: sticky; top: 0; height: 100vh; }
         @media (min-width: 1024px) { .sidebar-desktop { display: flex; } }
-        
         .brand-elite { font-weight: 900; font-size: 1.4rem; letter-spacing: -1px; margin-bottom: 40px; }
         .brand-elite span { color: var(--neon); }
         .nav-item { padding: 14px 18px; border-radius: 12px; display: flex; align-items: center; gap: 15px; color: #444; cursor: pointer; transition: 0.3s; margin-bottom: 5px; font-weight: 600; font-size: 0.95rem; }
         .nav-item:hover, .nav-item.active { background: rgba(0,200,83,0.05); color: var(--neon); }
-        .logout-sidebar { background: rgba(255,68,68,0.05); color: #ff4444; border: 1px solid rgba(255,68,68,0.1); padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: auto; }
-        
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; width: 100%; }
-        
-        .top-navbar { height: 70px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: flex-end; padding: 0 25px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; width: 100%; }
-        .header-actions-container { display: flex; align-items: center; gap: 20px; margin-left: auto; }
-        
-        .mobile-brand { font-weight: 900; font-size: 1.1rem; position: absolute; left: 25px; }
+        .nav-divider { height: 1px; background: var(--border); margin: 20px 0; }
+        .logout-sidebar { background: rgba(255,68,68,0.05); color: #ff4444; border: 1px solid rgba(255,68,68,0.1); padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 0.8rem; margin-top: auto; }
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+        .top-navbar { height: 70px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .mobile-brand { font-weight: 900; font-size: 1.1rem; }
         .mobile-brand span { color: var(--neon); }
         @media (min-width: 1024px) { .mobile-brand { display: none; } }
-        
-        .user-avatar { width: 35px; height: 35px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; cursor: pointer; border: 2px solid #000; }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+        .user-avatar { width: 35px; height: 35px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; cursor: pointer; }
         .badge { position: absolute; top: -5px; right: -5px; background: red; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; }
-        
-        .panel-content { padding: 20px; width: 100%; max-width: 1600px; margin: 0; flex: 1; padding-bottom: 100px; }
-        @media (min-width: 1024px) { .panel-content { padding: 40px; } }
-        
-        .welcome-banner { margin-bottom: 30px; width: 100%; }
-        .welcome-banner h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 900; margin-bottom: 8px; }
+        .panel-content { padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; padding-bottom: 100px; }
+        @media (min-width: 768px) { .panel-content { padding: 35px; } }
+        .welcome-banner h1 { font-size: 1.8rem; font-weight: 900; margin-bottom: 8px; }
+        @media (min-width: 768px) { .welcome-banner h1 { font-size: 2.5rem; } }
         .welcome-banner h1 span { color: var(--neon); }
         .welcome-banner p { color: #555; font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        
-        .vault-grid { display: grid; grid-template-columns: 1fr; gap: 25px; margin-bottom: 30px; width: 100%; }
-        @media (min-width: 1200px) { .vault-grid { grid-template-columns: 1.8fr 1fr; } }
-        
-        .vault-card-main { background: #050505; border: 1px solid var(--border); border-radius: 35px; padding: clamp(25px, 4vw, 40px); width: 100%; position: relative; }
-        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; width: 100%; }
-        .card-label { font-size: 0.75rem; font-weight: 900; color: #444; letter-spacing: 2px; }
-        .profit-badge { background: rgba(0,200,83,0.1); color: var(--neon); padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 900; }
-        
-        .balance-display { display: flex; align-items: baseline; gap: 10px; margin-bottom: 30px; width: 100%; flex-wrap: wrap; }
-        .symbol { font-size: clamp(1.5rem, 3vw, 2.5rem); color: #222; font-weight: 900; }
-        .value { font-size: clamp(3rem, 8vw, 5rem); font-weight: 900; letter-spacing: -3px; font-variant-numeric: tabular-nums; }
-        .live-status { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #ff4444; font-weight: 900; border: 1px solid rgba(255,68,68,0.2); padding: 4px 10px; border-radius: 20px; }
-        .dot { width: 6px; height: 6px; background: #ff4444; border-radius: 50%; animation: blink 1.5s infinite; }
-        
-        .progress-labels { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 900; color: #444; margin-bottom: 12px; }
-        .exec-text { color: var(--neon); letter-spacing: 1px; }
-        .bar-bg { width: 100%; height: 10px; background: #111; border-radius: 10px; margin-bottom: 15px; overflow: hidden; }
-        .bar-fill { height: 100%; background: var(--neon); box-shadow: 0 0 20px rgba(0,200,83,0.4); border-radius: 10px; animation: grow 2s ease-out forwards; }
-        
-        .rank-card-v2 { background: #080808; border: 1px solid var(--border); border-radius: 35px; padding: 40px; display: flex; flex-direction: column; justify-content: center; width: 100%; }
-        .rank-header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
-        .rank-header h3 { font-size: 1.6rem; font-weight: 900; margin: 0; }
-        .detail-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; font-weight: 700; }
+        .vault-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 25px 0; }
+        @media (min-width: 1024px) { .vault-grid { grid-template-columns: 1.6fr 1fr; } }
+        .vault-card-main { background: linear-gradient(145deg, #0a0c10, #030303); border: 1px solid var(--border); border-radius: 25px; padding: 25px; position: relative; overflow: hidden; }
+        @media (min-width: 768px) { .vault-card-main { padding: 35px; border-radius: 35px; } }
+        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-label { font-size: 0.7rem; font-weight: 900; color: #444; letter-spacing: 1.5px; }
+        .profit-badge { background: rgba(0,200,83,0.1); color: var(--neon); padding: 5px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 900; }
+        .balance-display { display: flex; align-items: baseline; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; }
+        .symbol { font-size: 1.5rem; color: #222; font-weight: 900; }
+        .value { font-size: 2.8rem; font-weight: 900; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+        @media (min-width: 768px) { .value { font-size: 4.2rem; } }
+        .live-status { display: flex; align-items: center; gap: 6px; font-size: 9px; color: #ff4444; font-weight: 900; border: 1px solid rgba(255,68,68,0.2); padding: 3px 10px; border-radius: 20px; }
+        .dot { width: 5px; height: 5px; background: #ff4444; border-radius: 50%; animation: blink 1s infinite; }
+        .progress-labels { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 900; color: #444; margin-bottom: 8px; }
+        .exec-text { color: var(--neon); }
+        .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--neon); box-shadow: 0 0 15px var(--neon); border-radius: 10px; animation: grow 2s ease-out; }
+        .ai-pulse { color: #222; font-size: 9px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+        .rank-card-v2 { background: #080808; border: 1px solid var(--border); border-radius: 25px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        @media (min-width: 768px) { .rank-card-v2 { border-radius: 35px; padding: 35px; } }
+        .rank-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .rank-header p { font-size: 9px; color: #444; font-weight: 900; margin: 0; }
+        .rank-header h3 { font-size: 1.3rem; font-weight: 900; margin: 0; }
+        .detail-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; font-weight: 700; }
         .active-tag { color: var(--neon); }
-        .upgrade-btn { width: 100%; background: transparent; border: 1px solid #1a1a1a; padding: 15px; border-radius: 12px; color: #fff; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 20px; }
-        
-        .actions-grid-v2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; }
-        @media (min-width: 768px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); } }
-        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 25px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
-        .action-tile:hover { border-color: var(--neon); transform: translateY(-3px); }
-        
-        .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; z-index: 100; }
+        .upgrade-btn { width: 100%; background: transparent; border: 1px solid #1a1a1a; padding: 12px; border-radius: 10px; color: #fff; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 15px; font-size: 0.8rem; }
+        .section-title { font-size: 0.7rem; font-weight: 900; color: #333; letter-spacing: 2px; margin-bottom: 15px; margin-top: 10px; }
+        .actions-grid-v2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (min-width: 768px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); gap: 15px; } }
+        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 20px; border-radius: 18px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: 0.3s; }
+        .action-tile span { font-size: 0.85rem; font-weight: 800; }
+        .stats-grid-mini { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 25px; }
+        @media (min-width: 768px) { .stats-grid-mini { grid-template-columns: repeat(3, 1fr); } }
+        .stat-box-mini { background: #0a0c10; padding: 20px; border-radius: 15px; border: 1px solid var(--border); }
+        .stat-box-mini span { font-size: 0.65rem; color: #444; font-weight: 800; text-transform: uppercase; }
+        .stat-box-mini h3 { font-size: 1.4rem; margin-top: 5px; font-weight: 900; }
+        .withdraw-card { background: #0a0c10; padding: 25px; border-radius: 25px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
+        @media (min-width: 768px) { .withdraw-card { padding: 40px; } }
+        .withdraw-amount { font-size: 2.5rem; font-weight: 900; margin: 10px 0 20px; }
+        .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .method-option { background: #000; border: 1px solid #111; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: 0.3s; color: #444; }
+        .method-option.active { border-color: var(--neon); color: var(--neon); background: rgba(0,200,83,0.05); }
+        .elite-input { width: 100%; background: #000; border: 1px solid var(--border); padding: 14px; border-radius: 10px; color: #fff; margin-top: 8px; font-size: 0.9rem; }
+        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 16px; border-radius: 10px; font-weight: 900; margin-top: 20px; cursor: pointer; font-size: 0.9rem; }
+        .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; z-index: 100; }
         @media (min-width: 1024px) { .mobile-tab-bar { display: none; } }
-        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #444; }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #333; cursor: pointer; }
         .tab-item.active { color: var(--neon); }
-        .tab-item span { font-size: 10px; font-weight: 700; }
-        
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .tab-item span { font-size: 9px; font-weight: 700; }
         @keyframes grow { from { width: 0%; } to { width: 75%; } }
-        .fade-in { animation: fadeIn 0.6s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
