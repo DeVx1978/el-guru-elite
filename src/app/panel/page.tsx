@@ -7,8 +7,8 @@ import {
   Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard,
   ArrowUpRight, Activity, ShieldAlert, Trophy, ArrowRightCircle,
   Settings, HelpCircle, BarChart3, PieChart, History, PlusCircle, ChevronRight, CheckCircle2,
-  Building2, Landmark, CreditCard, Smartphone, Globe, Camera, Save, Phone, Mail, ShieldEllipsis, UserCheck,
-  CandlestickChart, Download, FileText
+  Building2, Landmark, CreditCard, Smartphone, Globe, Camera, Save, Phone, Mail, 
+  ShieldEllipsis, UserCheck, CandlestickChart, Download, FileText, MapPin
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -35,10 +35,11 @@ export default function SocioPanel() {
   const [enviandoRetiro, setEnviandoRetiro] = useState(false);
   const [mensajeRetiro, setMensajeRetiro] = useState({ tipo: '', texto: '' });
 
-  // 👤 ESTADOS DE IDENTIDAD ÉLITE
+  // 👤 ESTADOS DE IDENTIDAD ÉLITE (EDITABLES)
   const [editNombre, setEditNombre] = useState("");
   const [editPais, setEditPais] = useState("");
   const [editTelefono, setEditTelefono] = useState("");
+  const [editCiudad, setEditCiudad] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [guardandoPerfil, setGuardandoPerfil] = useState(false);
 
@@ -115,15 +116,30 @@ export default function SocioPanel() {
     setGuardandoPerfil(true);
     const socioId = localStorage.getItem('socio_id');
     try {
-      const { error: errSocio } = await clientSupabase.from('socios').update({ nombre: editNombre }).eq('id', socioId);
-      const { error: errElite } = await clientSupabase.from('socios_elite').update({ pais: editPais }).eq('id_socio', socioId);
+      // 1. Actualización en tabla socios (Nombre)
+      const { error: errSocio } = await clientSupabase
+        .from('socios')
+        .update({ nombre: editNombre })
+        .eq('id', socioId);
+      
+      // 2. Actualización en tabla socios_elite (País)
+      const { error: errElite } = await clientSupabase
+        .from('socios_elite')
+        .update({ pais: editPais })
+        .eq('id_socio', socioId);
+
       if (!errSocio && !errElite) {
-        setNombre(editNombre); setPaisSocio(editPais);
+        setNombre(editNombre);
+        setPaisSocio(editPais);
         localStorage.setItem('socio_nombre', editNombre);
         alert("Sincronización de Identidad Exitosa");
       }
-    } catch (err) { alert("Error en la red"); }
-    finally { setGuardandoPerfil(false); }
+    } catch (err) { 
+      console.error(err);
+      alert("Error en la sincronización"); 
+    } finally { 
+      setGuardandoPerfil(false); 
+    }
   };
 
   const procesarRetiro = async () => {
@@ -325,15 +341,29 @@ export default function SocioPanel() {
               <div className="field-group">
                 <label>Nombre Legal</label>
                 <div className="input-wrapper">
-                  <User size={16} />
-                  <input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} />
+                  <User size={16} color="#555" />
+                  <input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} placeholder="Nombre Completo" />
                 </div>
               </div>
               <div className="field-group">
                 <label>País de Jurisdicción</label>
                 <div className="input-wrapper">
-                  <Globe size={16} />
-                  <input type="text" value={editPais} onChange={(e) => setEditPais(e.target.value)} />
+                  <Globe size={16} color="#555" />
+                  <input type="text" value={editPais} onChange={(e) => setEditPais(e.target.value)} placeholder="País" />
+                </div>
+              </div>
+              <div className="field-group">
+                <label>Teléfono de Contacto</label>
+                <div className="input-wrapper">
+                  <Smartphone size={16} color="#555" />
+                  <input type="text" value={editTelefono} onChange={(e) => setEditTelefono(e.target.value)} placeholder="+00 000 00000" />
+                </div>
+              </div>
+              <div className="field-group">
+                <label>Ciudad / Provincia</label>
+                <div className="input-wrapper">
+                  <MapPin size={16} color="#555" />
+                  <input type="text" value={editCiudad} onChange={(e) => setEditCiudad(e.target.value)} placeholder="Ubicación" />
                 </div>
               </div>
               <button onClick={actualizarPerfil} disabled={guardandoPerfil} className="identity-btn-save">
@@ -344,23 +374,39 @@ export default function SocioPanel() {
 
           <div className="identity-card glass-effect">
             <div className="card-header-inner">
-              <h3>Seguridad de Bóveda</h3>
+              <h3>Seguridad & Estatus</h3>
               <ShieldEllipsis size={20} color="#00C853" />
             </div>
             <div className="security-stack">
               <div className="sec-row">
                 <div className="sec-data">
-                  <h4>Correo Electrónico</h4>
+                  <h4>Email Corporativo</h4>
                   <p>{editEmail}</p>
                 </div>
                 <div className="sec-status-tag">CONFIRMADO</div>
               </div>
               <div className="sec-row">
                 <div className="sec-data">
+                  <h4>ID de Inversor</h4>
+                  <p className="text-neon">{localStorage.getItem('socio_id')}</p>
+                </div>
+              </div>
+              <div className="sec-row">
+                <div className="sec-data">
                   <h4>Doble Factor (2FA)</h4>
-                  <p>Protección extra activa</p>
+                  <p>Protección biométrica activa</p>
                 </div>
                 <div className="sec-toggle">ON</div>
+              </div>
+              <div className="identity-stats-preview">
+                <div className="stat-preview-item">
+                  <span>Antigüedad</span>
+                  <p>Mar 2026</p>
+                </div>
+                <div className="stat-preview-item">
+                  <span>Auditoría</span>
+                  <p>Al día</p>
+                </div>
               </div>
             </div>
           </div>
@@ -377,6 +423,7 @@ export default function SocioPanel() {
         <style jsx>{`
           .loader-screen { background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: fixed; width: 100%; z-index: 9999; }
           .guru-loader { width: 120px; height: 120px; border-radius: 50%; border: 2px solid #111; display: flex; justify-content: center; align-items: center; position: relative; }
+          .guru-loader::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #00C853; animation: ripple 2s infinite; }
           .inner-circle { width: 80px; height: 80px; border-radius: 50%; background: #050505; border: 3px solid #00C853; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 30px rgba(0, 200, 83, 0.4); }
           .logo-g { color: #00C853; font-weight: 900; font-size: 2.5rem; }
           .loading-text { color: #00C853; letter-spacing: 4px; font-size: 0.8rem; font-weight: 900; margin-top: 30px; }
@@ -452,73 +499,82 @@ export default function SocioPanel() {
         .panel-content { padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; padding-bottom: 100px; }
         @media (min-width: 768px) { .panel-content { padding: 35px; } }
         
-        .welcome-banner h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 900; margin-bottom: 8px; }
-        .welcome-banner h1 span { color: var(--neon); }
-        .welcome-banner p { color: #555; font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        /* 🏆 DISEÑO DE IDENTIDAD ÉLITE (PERFIL) */
+        .identity-master-layout { display: flex; flex-direction: column; gap: 30px; }
+        .identity-header { background: #050505; border: 1px solid var(--border); border-radius: 35px; overflow: hidden; position: relative; }
+        .identity-banner { height: 120px; background: linear-gradient(90deg, #000, #0a0c10, #00C85322); }
+        .identity-content { padding: 0 40px 40px; display: flex; align-items: flex-end; gap: 30px; margin-top: -50px; }
+        .identity-avatar-container { position: relative; }
+        .identity-avatar-glow { position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; background: var(--neon); filter: blur(25px); opacity: 0.2; border-radius: 50%; }
+        .identity-avatar-main { width: 130px; height: 130px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 900; border: 8px solid #050505; position: relative; z-index: 2; }
+        .identity-camera { position: absolute; bottom: 10px; right: 10px; background: #fff; color: #000; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; }
+        .identity-info h2 { font-size: 2.2rem; font-weight: 900; margin-bottom: 10px; }
+        .identity-tags { display: flex; gap: 12px; }
+        .tag-verify { background: rgba(0,200,83,0.1); color: var(--neon); padding: 6px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+        .tag-rank { background: #111; color: #fff; padding: 6px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 8px; border: 1px solid #222; }
 
+        .identity-grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
+        @media (min-width: 1024px) { .identity-grid { grid-template-columns: 1.2fr 1fr; } }
+        .identity-card { background: #050505; border: 1px solid var(--border); border-radius: 35px; padding: 35px; }
+        .card-header-inner { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .card-header-inner h3 { font-size: 1.2rem; font-weight: 900; }
+        
+        .field-group { margin-bottom: 20px; }
+        .field-group label { font-size: 0.75rem; font-weight: 900; color: #444; margin-bottom: 10px; display: block; text-transform: uppercase; }
+        .input-wrapper { background: #000; border: 1px solid #111; border-radius: 15px; display: flex; align-items: center; padding: 0 20px; gap: 15px; transition: 0.3s; }
+        .input-wrapper:focus-within { border-color: var(--neon); box-shadow: 0 0 15px rgba(0,200,83,0.1); }
+        .input-wrapper input { background: transparent; border: none; padding: 18px 0; color: #fff; width: 100%; font-weight: 600; outline: none; }
+        .identity-btn-save { width: 100%; background: var(--neon); color: #000; border: none; padding: 20px; border-radius: 18px; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+
+        .sec-row { display: flex; align-items: center; gap: 20px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 20px; margin-bottom: 15px; border: 1px solid #111; }
+        .sec-data h4 { font-size: 0.9rem; font-weight: 800; margin-bottom: 4px; }
+        .sec-data p { font-size: 0.8rem; color: #444; }
+        .sec-status-tag { margin-left: auto; background: rgba(0,200,83,0.1); color: var(--neon); font-size: 0.65rem; font-weight: 900; padding: 4px 10px; border-radius: 8px; }
+        .sec-toggle { margin-left: auto; color: var(--neon); font-weight: 900; font-size: 0.8rem; }
+        .identity-stats-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+        .stat-preview-item { background: #000; padding: 20px; border-radius: 20px; border: 1px solid #111; text-align: center; }
+        .stat-preview-item span { font-size: 0.65rem; font-weight: 900; color: #444; text-transform: uppercase; }
+        .stat-preview-item p { font-size: 1.1rem; font-weight: 900; margin-top: 5px; }
+
+        /* REUTILIZABLES CHASIS ESTABLE */
+        .welcome-banner h1 { font-size: 2.5rem; font-weight: 900; margin-bottom: 8px; }
         .vault-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 25px 0; }
         @media (min-width: 1024px) { .vault-grid { grid-template-columns: 1.6fr 1fr; } }
-        .vault-card-main { background: linear-gradient(145deg, #0a0c10, #030303); border: 1px solid var(--border); border-radius: 25px; padding: 25px; position: relative; overflow: hidden; }
-        @media (min-width: 768px) { .vault-card-main { padding: 35px; border-radius: 35px; } }
+        .vault-card-main { background: #050505; border: 1px solid var(--border); border-radius: 35px; padding: 35px; }
         .balance-display { display: flex; align-items: baseline; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; }
-        .symbol { font-size: 1.5rem; color: #222; font-weight: 900; }
-        .value { font-size: 2.8rem; font-weight: 900; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
-        @media (min-width: 768px) { .value { font-size: 4.2rem; } }
-        .live-status { display: flex; align-items: center; gap: 6px; font-size: 9px; color: #ff4444; font-weight: 900; border: 1px solid rgba(255,68,68,0.2); padding: 3px 10px; border-radius: 20px; }
-        .dot { width: 5px; height: 5px; background: #ff4444; border-radius: 50%; animation: blink 1s infinite; }
-        .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+        .value { font-size: 4.2rem; font-weight: 900; letter-spacing: -2px; }
+        .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--neon); box-shadow: 0 0 15px var(--neon); border-radius: 10px; animation: grow 2s ease-out; }
-        
-        .rank-card-v2 { background: #080808; border: 1px solid var(--border); border-radius: 25px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
-        @media (min-width: 768px) { .rank-card-v2 { border-radius: 35px; padding: 35px; } }
-        .rank-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
-        .rank-header h3 { font-size: 1.3rem; font-weight: 900; margin: 0; }
-        .active-tag { color: var(--neon); }
-        .upgrade-btn { width: 100%; background: transparent; border: 1px solid #1a1a1a; padding: 12px; border-radius: 10px; color: #fff; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 15px; font-size: 0.8rem; }
-        
         .actions-grid-v2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        @media (min-width: 768px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); gap: 15px; } }
-        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 20px; border-radius: 18px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: 0.3s; }
-        .action-tile:hover { border-color: var(--neon); transform: translateY(-3px); }
-
-        /* 📊 REPORTES ÉLITE */
+        @media (min-width: 768px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); } }
+        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 25px; border-radius: 18px; cursor: pointer; }
+        .withdraw-card { background: #0a0c10; padding: 40px; border-radius: 35px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
+        .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .method-option { background: #000; border: 1px solid #111; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+        .method-option.active { border-color: var(--neon); color: var(--neon); }
+        .elite-input { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 12px; color: #fff; margin-top: 10px; }
+        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; margin-top: 25px; cursor: pointer; }
+        .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; z-index: 100; }
+        @media (min-width: 1024px) { .mobile-tab-bar { display: none; } }
+        @keyframes grow { from { width: 0%; } to { width: 75%; } }
+        .fade-in { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 📊 REPORTES ÉLITE CSS ADICIONAL */
         .report-header-premium { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .btn-export { background: #111; border: 1px solid #222; color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .stat-box-pro { background: #050505; border: 1px solid var(--border); padding: 20px; border-radius: 18px; display: flex; align-items: center; gap: 15px; }
         .icon-wrap { width: 40px; height: 40px; background: rgba(0,200,83,0.05); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .report-main-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 25px; }
-        @media (min-width: 1024px) { .report-main-grid { grid-template-columns: 1.8fr 1fr; } }
         .chart-container { background: #050505; border: 1px solid var(--border); border-radius: 25px; padding: 30px; min-height: 300px; }
         .fake-chart-bars { height: 180px; display: flex; align-items: flex-end; gap: 15px; margin: 30px 0; border-bottom: 1px solid #111; padding-bottom: 10px; }
-        .v-bar { flex: 1; background: #111; border-radius: 4px 4px 0 0; position: relative; transition: 0.5s; }
+        .v-bar { flex: 1; background: #111; border-radius: 4px 4px 0 0; position: relative; transition: 0.5s; overflow: hidden; }
         .v-bar:last-child { background: var(--neon); box-shadow: 0 0 15px rgba(0,200,83,0.3); }
+        .v-glow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, transparent, var(--neon)); opacity: 0.2; }
         .chart-labels { display: flex; justify-content: space-between; color: #333; font-size: 0.65rem; font-weight: 800; }
         .audit-card { background: #080808; border: 1px solid var(--border); border-radius: 25px; padding: 25px; }
         .audit-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #111; }
         .audit-item span { font-size: 0.85rem; font-weight: 700; display: block; }
         .audit-item p { font-size: 0.7rem; color: #444; }
-
-        /* 👤 IDENTIDAD ÉLITE */
-        .identity-master-layout { display: flex; flex-direction: column; gap: 30px; }
-        .identity-header { background: #050505; border: 1px solid var(--border); border-radius: 35px; overflow: hidden; position: relative; }
-        .identity-banner { height: 100px; background: linear-gradient(90deg, #000, #00C85311); }
-        .identity-content { padding: 0 40px 40px; display: flex; align-items: flex-end; gap: 30px; margin-top: -40px; }
-        .identity-avatar-main { width: 110px; height: 110px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid #050505; position: relative; z-index: 2; box-shadow: 0 0 20px rgba(0,200,83,0.2); }
-        .identity-card { background: #050505; border: 1px solid var(--border); border-radius: 30px; padding: 30px; }
-        .input-wrapper { background: #000; border: 1px solid #111; border-radius: 12px; display: flex; align-items: center; padding: 0 15px; gap: 12px; margin-top: 8px; }
-        .input-wrapper input { background: transparent; border: none; padding: 15px 0; color: #fff; width: 100%; outline: none; font-weight: 600; }
-        .identity-btn-save { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; cursor: pointer; margin-top: 20px; transition: 0.3s; }
-
-        .withdraw-card { background: #0a0c10; padding: 35px; border-radius: 30px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
-        .elite-input { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 12px; color: #fff; margin-top: 10px; }
-        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; margin-top: 25px; cursor: pointer; }
-        .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; z-index: 100; }
-        @media (min-width: 1024px) { .mobile-tab-bar { display: none; } }
-        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #333; }
-        .tab-item.active { color: var(--neon); }
-        @keyframes grow { from { width: 0%; } to { width: 75%; } }
-        .fade-in { animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
