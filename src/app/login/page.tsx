@@ -7,40 +7,40 @@ import { Lock, Mail, Eye, EyeOff, Loader2, ShieldAlert, CheckCircle } from 'luci
 export default function LoginPage() {
   const router = useRouter();
   
-  // --- ESTADOS ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // --- LÓGICA DE ACCESO MAESTRO ---
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      // 1. Buscamos al socio en la tabla exacta de tu captura de Supabase
+      // 1. Buscamos al socio
       const { data: socio, error: authError } = await supabase
         .from('socios')
         .select('*')
         .eq('email', email.trim())
-        .eq('password', password) // Validación directa de contraseña
+        .eq('password', password)
         .single();
 
       if (authError || !socio) {
         throw new Error("Socio no encontrado o credenciales incorrectas.");
       }
 
-      // 2. FILTRO CRÍTICO: ¿Está activado por el Admin?
+      // 2. FILTRO DE AUDITORÍA
       if (socio.estado !== 'activo') {
         throw new Error("⚠️ ACCESO RESTRINGIDO: Su cuenta está en proceso de verificación por auditoría.");
       }
 
-      // 3. ÉXITO: Guardamos sesión y entramos
+      // 3. ÉXITO: GUARDAMOS LA LLAVE MAESTRA (Aquí estaba el fallo)
       localStorage.setItem('socio_id', socio.id);
       localStorage.setItem('socio_nombre', socio.nombre);
+      localStorage.setItem('socio_rol', socio.rol); // <--- INYECCIÓN DE PODER ACTIVADA
+      
       router.push('/panel');
 
     } catch (err: any) {
