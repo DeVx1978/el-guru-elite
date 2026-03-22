@@ -12,7 +12,6 @@ export default function LandingPage() {
   const [modalAbierto, setModalAbierto] = useState<{titulo: string, contenido: string} | null>(null);
   const router = useRouter();
 
-  // --- 1. CARGA INICIAL (5 SEGUNDOS) ---
   useEffect(() => {
     router.prefetch('/panel');
     router.prefetch('/unete');
@@ -20,7 +19,6 @@ export default function LandingPage() {
     return () => clearTimeout(timer);
   }, [router]);
 
-  // --- 2. NAVEGACIÓN BLINDADA ---
   const ejecutarTransicion = (e: React.MouseEvent, ruta: string) => {
     e.preventDefault(); 
     setIsNavigating(true); 
@@ -38,7 +36,6 @@ export default function LandingPage() {
     { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
   ];
 
-  // --- 3. LÓGICA LEGAL E INFORMACIÓN (RESTAURADA AL 100%) ---
   const abrirLegal = (tipo: string) => {
     const textos: {[key: string]: {t: string, c: string}} = {
       terminos: { t: "Términos de Servicio", c: "Al participar en nuestros fondos, el inversor reconoce que la gestión algorítmica busca maximizar la eficiencia. El Gurú Élite opera bajo protocolos de transparencia institucional." },
@@ -63,9 +60,7 @@ export default function LandingPage() {
       <div className="splash-master">
         <div className={`loader-container ${isNavigating ? 'nav-mode' : ''}`}>
           <div className="pulse-ring"></div>
-          <div className="image-wrapper">
-            <img src="/images/guru.jpg" alt="El Guru Elite" />
-          </div>
+          <div className="image-wrapper"><img src="/images/guru.jpg" alt="El Guru Elite" /></div>
           <div className="scan-line"></div>
         </div>
         <div className="welcome-container-luxe">
@@ -116,7 +111,8 @@ export default function LandingPage() {
           </div>
           <div className="nav-actions-master">
             <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-nav-access desktop-only">ACCESO EXCLUSIVO</button>
-            <button className="menu-toggle" onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}>
+            {/* 💉 LUNAR EXTIRPADO: Solo visible en móvil */}
+            <button className="menu-toggle mobile-only" onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}>
               {menuMovilAbierto ? <X size={28} color="#00C853" /> : <Menu size={28} color="#00C853" />}
             </button>
           </div>
@@ -209,30 +205,40 @@ export default function LandingPage() {
         .nav-links-desktop { display: none; gap: 30px; }
         @media (min-width: 1024px) { .nav-links-desktop { display: flex; } }
         .link-elite { color: #888; text-transform: uppercase; font-size: 11px; font-weight: 900; letter-spacing: 2px; transition: 0.3s; cursor: pointer; }
+        
         .btn-nav-access { display: none; background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 10px 24px; border-radius: 4px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; }
         .btn-nav-access:hover { background: var(--neon); color: black; box-shadow: 0 0 15px var(--neon); }
-        @media (min-width: 1024px) { .btn-nav-access { display: block; } .menu-toggle { display: none; } }
+        
+        @media (min-width: 1024px) { 
+            .btn-nav-access { display: block; } 
+            .mobile-only { display: none !important; }
+            .menu-toggle { display: none !important; } /* 💉 RECTIFICADO: Hamburguesa muerta en PC */
+        }
+        
         .menu-toggle { display: block; background: none; border: none; cursor: pointer; }
         .mobile-menu-overlay { position: fixed; top: 80px; left: 0; width: 100%; height: 0; background: #000; overflow: hidden; transition: 0.5s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; z-index: 999; }
         .mobile-menu-overlay.active { height: calc(100vh - 80px); }
         .mobile-link { color: white; font-size: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; }
+        
         .hero-elite { max-width: 1400px; margin: 0 auto; padding: 40px 20px; text-align: left; display: flex; flex-direction: column; }
         @media (min-width: 1024px) { 
           .hero-elite { padding: 100px 30px; flex-direction: row; align-items: center; justify-content: space-between; min-height: 75vh; } 
           .hero-content { flex: 1.2; }
           .hero-visuals-right { flex: 0.8; display: flex; flex-direction: column !important; align-items: flex-end !important; gap: 20px; }
         }
+        
         .hero-main-title { font-size: clamp(2.5rem, 8vw, 5.5rem); font-weight: 900; line-height: 0.95; margin-bottom: 25px; letter-spacing: -2px; }
         .text-glow-neon { background: linear-gradient(180deg, #fff 30%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .hero-subtext { color: #666; font-size: 1.1rem; line-height: 1.6; max-width: 550px; margin-bottom: 35px; }
         .hero-cta-btn-group { display: flex; gap: 8px; width: 100%; }
         .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 18px 25px; border-radius: 4px; font-weight: 900; cursor: pointer; flex: 1.5; display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 0.85rem; }
         .btn-hero-secondary { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 18px 15px; border-radius: 4px; font-weight: 900; cursor: pointer; flex: 1; display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 0.8rem; }
+        
         @media (min-width: 1024px) { 
           .hero-cta-btn-group { width: auto; gap: 20px; }
           .btn-hero-primary { flex: none; width: 280px; padding: 22px; font-size: 1.1rem; }
-          .mobile-only { display: none !important; }
         }
+        
         .hero-visuals-right { display: flex; flex-direction: column; gap: 15px; margin-top: 50px; width: 100%; }
         .stat-card { background: rgba(10,10,10,0.8); border: 1px solid #111; padding: 25px; border-radius: 12px; display: flex; align-items: center; gap: 20px; width: 100%; transition: 0.3s; }
         .stat-card:hover { border-color: var(--neon); transform: scale(1.02); }
