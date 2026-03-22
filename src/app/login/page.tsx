@@ -1,133 +1,156 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Lock, Mail, Eye, EyeOff, Loader2, ShieldAlert, CheckCircle } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPass, setShowPass] = useState(false);
+
+  // --- BLINDAJE 1: LIMPIEZA TOTAL AL CARGAR ---
+  useEffect(() => {
+    localStorage.clear(); // Borramos sesiones viejas para evitar el auto-ingreso
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) return; // No hace nada si los campos están vacíos
+
     setError(null);
     setLoading(true);
 
     try {
-      // 1. Buscamos al socio
-      const { data: socio, error: authError } = await supabase
+      // Consulta directa a la tabla de socios
+      const { data, error: err } = await supabase
         .from('socios')
         .select('*')
-        .eq('email', email.trim())
-        .eq('password', password)
+        .eq('email', email)
+        .eq('password', password) // En producción se recomienda hashing, pero mantenemos tu lógica
         .single();
 
-      if (authError || !socio) {
-        throw new Error("Socio no encontrado o credenciales incorrectas.");
+      if (err || !data) {
+        throw new Error('Credenciales incorrectas. Verifica tu acceso.');
       }
 
-      // 2. FILTRO DE AUDITORÍA
-      if (socio.estado !== 'activo') {
-        throw new Error("⚠️ ACCESO RESTRINGIDO: Su cuenta está en proceso de verificación por auditoría.");
+      if (data.estado === 'pendiente') {
+        router.push('/revision-pendiente');
+        return;
       }
 
-      // 3. ÉXITO: GUARDAMOS LA LLAVE MAESTRA (Aquí estaba el fallo)
-      localStorage.setItem('socio_id', socio.id);
-      localStorage.setItem('socio_nombre', socio.nombre);
-      localStorage.setItem('socio_rol', socio.rol); // <--- INYECCIÓN DE PODER ACTIVADA
-      
+      // Guardamos la sesión
+      localStorage.setItem('socio_id', data.id);
+      localStorage.setItem('socio_nombre', data.nombre);
+      localStorage.setItem('socio_rol', data.rol || 'socio');
+
+      // Redirección al panel Élite
       router.push('/panel');
 
     } catch (err: any) {
       setError(err.message);
-    } finally {
-      setLoading(false);
+      setLoading(false); // IMPORTANTE: Esto detiene el "circulito de carga" si hay error
     }
   };
 
+  const inputStyle = {
+    width: '100%', padding: '16px', background: '#0a0c10', border: '1px solid #111',
+    borderRadius: '14px', color: 'white', fontSize: '1rem', outline: 'none', marginBottom: '20px'
+  };
+
+  // --- SEMÁFORO DE INGRESO ---
+  const listoParaIngresar = email.length > 5 && password.length >= 6;
+
   return (
-    <div style={{ backgroundColor: '#020406', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', fontFamily: 'sans-serif', padding: '20px' }}>
-      <div style={{ background: '#0a0c10', padding: '50px 40px', borderRadius: '30px', border: '1px solid #111', width: '100%', maxWidth: '420px', textAlign: 'center' }}>
+    <div style={{ backgroundColor: '#020406', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+      <div style={{ width: '100%', maxWidth: '400px', background: '#050505', border: '1px solid #111', padding: '40px', borderRadius: '30px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
         
-        <h1 style={{ color: '#00C853', fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>EL GURÚ <span style={{color: '#fff'}}>ÉLITE</span></h1>
-        <p style={{ color: '#555', fontSize: '0.9rem', marginBottom: '40px' }}>ACCESO EXCLUSIVO PARA SOCIOS</p>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <div style={{ display: 'inline-flex', padding: '15px', background: 'rgba(0,200,83,0.05)', borderRadius: '20px', marginBottom: '20px', border: '1px solid rgba(0,200,83,0.1)' }}>
+            <ShieldCheck size={40} color="#00C853" />
+          </div>
+          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900 }}>ACCESO <span style={{ color: '#00C853' }}>ÉLITE</span></h1>
+          <p style={{ color: '#555', fontSize: '0.9rem', marginTop: '10px' }}>Ingresa tus credenciales de socio verificado.</p>
+        </div>
 
         <form onSubmit={handleLogin}>
-          <div style={{ textAlign: 'left', marginBottom: '20px' }}>
-            <label style={{ color: '#888', fontSize: '0.8rem', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
-              <Mail size={14} style={{ marginRight: '5px', verticalAlign: 'middle' }} /> CORREO ELECTRÓNICO
-            </label>
+          <label style={{ color: '#888', fontSize: '0.8rem', fontWeight: 900, display: 'block', marginBottom: '8px', letterSpacing: '1px' }}>
+            CORREO ELECTRÓNICO
+          </label>
+          <div style={{ position: 'relative' }}>
+            <Mail size={18} color="#333" style={{ position: 'absolute', left: '15px', top: '16px' }} />
             <input 
               type="email" 
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="socio@elite.com"
-              style={{ width: '100%', padding: '15px', background: '#020406', border: '1px solid #222', borderRadius: '12px', color: 'white', outline: 'none' }}
+              placeholder="socio@elguruelite.com" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              style={{ ...inputStyle, paddingLeft: '45px' }} 
             />
           </div>
 
-          <div style={{ textAlign: 'left', marginBottom: '30px' }}>
-            <label style={{ color: '#888', fontSize: '0.8rem', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
-              <Lock size={14} style={{ marginRight: '5px', verticalAlign: 'middle' }} /> CONTRASEÑA
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input 
-                type={showPass ? "text" : "password"} 
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                style={{ width: '100%', padding: '15px', background: '#020406', border: '1px solid #222', borderRadius: '12px', color: 'white', outline: 'none' }}
-              />
-              <button 
-                type="button" 
-                onClick={() => setShowPass(!showPass)}
-                style={{ position: 'absolute', right: '15px', top: '15px', background: 'none', border: 'none', color: '#444', cursor: 'pointer' }}
-              >
-                {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
+          <label style={{ color: '#888', fontSize: '0.8rem', fontWeight: 900, display: 'block', marginBottom: '8px', letterSpacing: '1px' }}>
+            CONTRASEÑA
+          </label>
+          <div style={{ position: 'relative' }}>
+            <Lock size={18} color="#333" style={{ position: 'absolute', left: '15px', top: '16px' }} />
+            <input 
+              type={showPass ? "text" : "password"} 
+              placeholder="••••••••" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              style={{ ...inputStyle, paddingLeft: '45px' }} 
+            />
+            <button 
+              type="button" 
+              onClick={() => setShowPass(!showPass)} 
+              style={{ position: 'absolute', right: '15px', top: '16px', background: 'none', border: 'none', color: '#333', cursor: 'pointer' }}
+            >
+              {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
           </div>
 
           {error && (
-            <div style={{ background: 'rgba(255,68,68,0.1)', color: '#ff4444', padding: '15px', borderRadius: '12px', marginBottom: '25px', fontSize: '0.85rem', border: '1px solid rgba(255,68,68,0.2)' }}>
-              {error}
+            <div style={{ background: 'rgba(255,68,68,0.1)', color: '#ff4444', padding: '12px', borderRadius: '12px', fontSize: '0.85rem', marginBottom: '20px', textAlign: 'center', border: '1px solid rgba(255,68,68,0.1)' }}>
+              ⚠️ {error}
             </div>
           )}
 
           <button 
             type="submit" 
-            disabled={loading}
+            disabled={!listoParaIngresar || loading}
             style={{ 
               width: '100%', 
               padding: '18px', 
-              background: '#00C853', 
-              color: 'black', 
-              borderRadius: '12px', 
+              background: listoParaIngresar ? '#00C853' : '#111', 
+              color: listoParaIngresar ? 'black' : '#444', 
+              border: 'none', 
+              borderRadius: '15px', 
+              fontSize: '1rem', 
               fontWeight: 900, 
-              fontSize: '1rem',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              border: 'none',
-              transition: '0.3s'
-            }}>
-            {loading ? <Loader2 className="animate-spin" style={{ margin: '0 auto' }} /> : 'INGRESAR AL PANEL'}
+              cursor: listoParaIngresar ? 'pointer' : 'not-allowed',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '10px'
+            }}
+          >
+            {loading ? <Loader2 size={20} className="spin" /> : 'INGRESAR AL PANEL'}
           </button>
         </form>
 
-        <p style={{ marginTop: '30px', color: '#444', fontSize: '0.85rem' }}>
-          ¿No tienes cuenta? <span onClick={() => router.push('/unete')} style={{ color: '#00C853', cursor: 'pointer', fontWeight: 'bold' }}>Únete aquí</span>
+        <p style={{ textAlign: 'center', marginTop: '30px', color: '#444', fontSize: '0.85rem' }}>
+          ¿Problemas con tu acceso? <br />
+          <span style={{ color: '#00C853', fontWeight: 'bold', cursor: 'pointer' }}>Contacta a Soporte VIP</span>
         </p>
       </div>
 
-      <style jsx global>{`
-        .animate-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      <style jsx>{`
+        .spin { animation: rotate 1s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );
