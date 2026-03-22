@@ -28,12 +28,20 @@ const paises = [
   { nombre: 'Otros', codigo: '', flag: '🌐' },
 ];
 
-const metodosPago = [
-  { id: 'nequi', nombre: 'Nequi (Colombia)', info: 'Número de Celular: [INSERTAR TU CELULAR NEQUI AQUÍ] - Nombre: [INSERTAR TU NOMBRE AQUÍ]' },
-  { id: 'bancolombia', nombre: 'Cuenta Bancolombia (Colombia)', info: 'Número de Cuenta (Ahorros): [INSERTAR NÚMERO AQUÍ] - Nombre Titular: [INSERTAR NOMBRE COMPLETO AQUÍ] - Cédula: [INSERTAR CÓDIGO AQUÍ]' },
-  { id: 'davivienda', nombre: 'Cuenta Davivienda (Colombia)', info: 'Número de Cuenta (Ahorros/Corriente): [INSERTAR NÚMERO AQUÍ] - Nombre Titular: [INSERTAR NOMBRE COMPLETO AQUÍ] - Cédula: [INSERTAR CÓDIGO AQUÍ]' },
-  { id: 'western', nombre: 'Western Union', info: 'Beneficiario: [INSERTAR NOMBRE COMPLETO AQUÍ] - Cédula/DNI: [INSERTAR CÓDIGO AQUÍ] - Ciudad/País: [INSERTAR AQUÍ]' },
-  { id: 'usdt', nombre: 'USDT (Red TRC20)', info: 'Dirección de Billetera (Wallet Address): [INSERTAR DIRECCIÓN TRC20 AQUÍ] - Asegúrate de usar la RED TRC20.' },
+// --- MÉTODOS DE PAGO OPTIMIZADOS (NUEVA LÓGICA QUIRÚRGICA) ---
+const metodosPagoGlobal = [
+  { id: 'nequi', nombre: 'Nequi (Colombia/Internacional)', info: 'Número de Celular: [INSERTAR CELULAR] - Nombre: [INSERTAR NOMBRE] - Disponible para transferencias y corresponsales.' },
+  { id: 'bancolombia', nombre: 'Cuenta Bancolombia (Colombia)', info: 'Número de Cuenta (Ahorros): [INSERTAR NÚMERO] - Nombre Titular: [INSERTAR NOMBRE]' },
+  { id: 'western', nombre: 'Western Union', info: 'Beneficiario: [INSERTAR NOMBRE] - Cédula/DNI: [INSERTAR CÓDIGO] - Ciudad/País: [INSERTAR CIUDAD]' },
+  { id: 'usdt', nombre: 'USDT (Red TRC20)', info: 'Dirección de Billetera (Wallet): [INSERTAR DIRECCIÓN] - Asegúrate de usar la RED TRC20.' },
+];
+
+const metodosPagoEcuador = [
+  { id: 'pichincha', nombre: 'Banco Pichincha (Ecuador)', info: 'Tipo: Cuenta de Ahorros - Número: [PROVISIONAL] - Titular: [PROVISIONAL] - CI: [PROVISIONAL]' },
+  { id: 'guayaquil', nombre: 'Banco Guayaquil (Ecuador)', info: 'Tipo: Cuenta Corriente - Número: [PROVISIONAL] - Titular: [PROVISIONAL] - CI: [PROVISIONAL]' },
+  { id: 'western_ec', nombre: 'Western Union (Ecuador)', info: 'Beneficiario: [PROVISIONAL] - Ciudad: [PROVISIONAL] - País: Ecuador. Enviar comprobante con MTCN.' },
+  { id: 'nequi_ec', nombre: 'Depósito Nequi (Ecuador)', info: 'Transferencia transaccional a cuenta: [PROVISIONAL] - Nombre: [PROVISIONAL]' },
+  { id: 'usdt_ec', nombre: 'USDT (Red TRC20)', info: 'Dirección: [PROVISIONAL] - Red: TRC20. Pago verificado en Blockchain.' },
 ];
 
 export default function UnetePage() {
@@ -128,7 +136,6 @@ export default function UnetePage() {
     window.scrollTo(0, 0);
   };
 
-  // --- FUNCIÓN CORREGIDA ---
   const finalizarRegistro = async () => {
     setError(null);
     setLoading(true);
@@ -162,13 +169,11 @@ export default function UnetePage() {
           plan: formData.plan,
           metodo_pago: formData.metodoPago,
           comprobante_url: urlData.publicUrl,
-          estado: 'pendiente' // Aseguramos que siempre sea pendiente
+          estado: 'pendiente'
         }]);
 
       if (insertError) throw new Error('Error al guardar datos. El correo ya existe.');
 
-      // CORRECCIÓN: Eliminamos la redirección al panel
-      // Enviamos a la página de revisión que crearemos a continuación
       router.push('/revision-pendiente');
 
     } catch (err: any) {
@@ -254,15 +259,22 @@ export default function UnetePage() {
           </div>
         );
       case 3:
+        // --- LÓGICA DINÁMICA DE MÉTODOS POR PAÍS ---
+        const opcionesPago = formData.pais === 'Ecuador' ? metodosPagoEcuador : metodosPagoGlobal;
+        const metodoSeleccionado = opcionesPago.find(m => m.id === formData.metodoPago) || opcionesPago[0];
+
         return (
           <div className="fade-in">
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '10px' }}>Método de Pago</h2>
+            <p style={{ color: '#00C853', fontSize: '0.9rem', marginBottom: '15px', fontWeight: 'bold' }}>
+              📍 Opciones disponibles para {formData.pais}
+            </p>
             <select name="metodoPago" value={formData.metodoPago} onChange={handleInputChange} style={inputStyle}>
-              {metodosPago.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+              {opcionesPago.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
             </select>
             <div style={{ background: 'rgba(0,200,83,0.05)', border: '1px solid #00C85330', padding: '20px', borderRadius: '12px', color: '#ccc', marginBottom: '30px', fontSize: '0.95rem', lineHeight: '1.5' }}>
                 <b style={{color: '#00C853', display: 'block', marginBottom: '10px'}}>Datos para realizar el pago:</b>
-                {metodosPago.find(m => m.id === formData.metodoPago)?.info.split(' - ').map(line => <p key={line} style={{margin: '0 0 5px 0'}}>{line}</p>)}
+                {metodoSeleccionado.info.split(' - ').map(line => <p key={line} style={{margin: '0 0 5px 0'}}>{line}</p>)}
             </div>
             <div style={{ display: 'flex', gap: '15px' }}>
               <button onClick={pasoAnterior} style={{ flex: 1, padding: '18px', background: '#111', color: '#888', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>Atrás</button>
