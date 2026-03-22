@@ -6,7 +6,7 @@ import {
   User, Wallet, TrendingUp, ShieldCheck, LogOut,
   Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard,
   ArrowUpRight, Activity, ShieldAlert, Trophy, ArrowRightCircle,
-  Settings, HelpCircle, BarChart3, PieChart, History, PlusCircle, ChevronRight
+  Settings, HelpCircle, BarChart3, PieChart, History, PlusCircle, ChevronRight, CheckCircle2
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -19,11 +19,17 @@ export default function SocioPanel() {
   const [pendientes, setPendientes] = useState(0);
   const [activeTab, setActiveTab] = useState('inicio');
 
-  // 💉 ESTADOS FINANCIEROS REALES (CONEXIÓN BÓVEDA)
+  // 💉 ESTADOS FINANCIEROS REALES
   const [balance, setBalance] = useState(0);
   const [balanceVisual, setBalanceVisual] = useState(0);
   const [nivelSocio, setNivelSocio] = useState("Socio Élite");
   const [utilidad, setUtilidad] = useState(0);
+
+  // 💰 ESTADOS DE RETIRO
+  const [montoRetiro, setMontoRetiro] = useState('');
+  const [billeteraRetiro, setBilleteraRetiro] = useState('');
+  const [enviandoRetiro, setEnviandoRetiro] = useState(false);
+  const [mensajeRetiro, setMensajeRetiro] = useState({ tipo: '', texto: '' });
 
   useEffect(() => {
     const socioId = localStorage.getItem('socio_id');
@@ -38,7 +44,6 @@ export default function SocioPanel() {
         setEsAdmin(true);
         obtenerPendientes();
       }
-      // Inyectamos la conexión a la base de datos
       conectarBovedaElite(socioId);
     }
   }, [router]);
@@ -59,12 +64,10 @@ export default function SocioPanel() {
     } catch (err) {
       console.error("Error de conexión:", err);
     } finally {
-      // Mantenemos los 4 segundos de elegancia en el loader
       setTimeout(() => setLoading(false), 2000);
     }
   };
 
-  // Animación de números para el balance
   useEffect(() => {
     if (!loading && balance > 0) {
       let start = 0;
@@ -93,7 +96,49 @@ export default function SocioPanel() {
     router.push('/login');
   };
 
-  // --- SUB-COMPONENTES (ÓRGANOS INTERNOS RESTAURADOS) ---
+  // 🏥 LÓGICA DE RETIRO QUIRÚRGICA
+  const procesarRetiro = async () => {
+    const socioId = localStorage.getItem('socio_id');
+    const valor = parseFloat(montoRetiro);
+
+    if (!montoRetiro || !billeteraRetiro) {
+      setMensajeRetiro({ tipo: 'error', texto: 'Complete todos los campos de la bóveda.' });
+      return;
+    }
+
+    if (valor > balance) {
+      setMensajeRetiro({ tipo: 'error', texto: 'Fondos insuficientes en su capital gestionado.' });
+      return;
+    }
+
+    setEnviandoRetiro(true);
+    setMensajeRetiro({ tipo: '', texto: '' });
+
+    try {
+      const { error } = await clientSupabase
+        .from('retiros')
+        .insert([
+          { 
+            id_socio: socioId, 
+            monto: valor, 
+            billetera: billeteraRetiro,
+            estado: 'pendiente' 
+          }
+        ]);
+
+      if (error) throw error;
+
+      setMensajeRetiro({ tipo: 'exito', texto: 'Solicitud enviada. El Gurú procesará su retiro.' });
+      setMontoRetiro('');
+      setBilleteraRetiro('');
+    } catch (err) {
+      setMensajeRetiro({ tipo: 'error', texto: 'Error de comunicación con la red financiera.' });
+    } finally {
+      setEnviandoRetiro(false);
+    }
+  };
+
+  // --- SUB-COMPONENTES (ÓRGANOS INTERNOS) ---
   
   const RenderInicio = () => (
     <div className="fade-in">
@@ -162,11 +207,43 @@ export default function SocioPanel() {
         <p className="withdraw-label">Disponible para Retiro</p>
         <h3 className="withdraw-amount">${balanceVisual.toLocaleString()}</h3>
         <div className="divider"></div>
+        
+        {mensajeRetiro.texto && (
+          <div className={`status-alert ${mensajeRetiro.tipo}`}>
+            {mensajeRetiro.tipo === 'exito' ? <CheckCircle2 size={16} /> : <ShieldAlert size={16} />}
+            {mensajeRetiro.texto}
+          </div>
+        )}
+
         <div className="input-group">
-          <label>Wallet USDT (TRC20)</label>
-          <input type="text" placeholder="Ej: TXxxxx..." className="elite-input" />
+          <label>Monto a Retirar (USD)</label>
+          <input 
+            type="number" 
+            value={montoRetiro}
+            onChange={(e) => setMontoRetiro(e.target.value)}
+            placeholder="0.00" 
+            className="elite-input" 
+          />
         </div>
-        <button className="btn-withdraw-action">SOLICITAR RETIRO</button>
+
+        <div className="input-group" style={{ marginTop: '20px' }}>
+          <label>Billetera USDT (TRC20)</label>
+          <input 
+            type="text" 
+            value={billeteraRetiro}
+            onChange={(e) => setBilleteraRetiro(e.target.value)}
+            placeholder="Pegue su dirección de red..." 
+            className="elite-input" 
+          />
+        </div>
+
+        <button 
+          onClick={procesarRetiro} 
+          disabled={enviandoRetiro}
+          className="btn-withdraw-action"
+        >
+          {enviandoRetiro ? 'PROCESANDO...' : 'CONFIRMAR SOLICITUD'}
+        </button>
       </div>
     </div>
   );
@@ -179,7 +256,7 @@ export default function SocioPanel() {
         <h3 className="perfil-name">{nombre}</h3>
         <p className="perfil-rank">{nivelSocio}</p>
         <div className="perfil-settings-list">
-          <div className="settings-item"><span>Seguridad</span> <ChevronRight size={18} /></div>
+          <div className="settings-item"><span>Seguridad de Cuenta</span> <ChevronRight size={18} /></div>
           <div className="settings-item"><span>Documentación KYC</span> <span className="tag-on">VALIDADO</span></div>
         </div>
       </div>
@@ -304,11 +381,19 @@ export default function SocioPanel() {
         .stat-box-mini span { font-size: 0.7rem; color: #444; font-weight: 800; text-transform: uppercase; }
         .stat-box-mini h3 { font-size: 1.5rem; margin-top: 5px; }
         .empty-state { text-align: center; padding: 60px 0; color: #444; font-weight: 700; }
+        
+        /* 💉 ESTILOS CAJERO DE RETIRO */
         .withdraw-card { background: #0a0c10; padding: 40px; border-radius: 25px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
         .withdraw-amount { font-size: 3rem; font-weight: 900; margin: 10px 0 25px; }
-        .divider { height: 1px; background: var(--border); margin: 25px 0; }
-        .elite-input { width: 100%; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 12px; color: #fff; margin-top: 10px; font-family: monospace; }
-        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; margin-top: 25px; cursor: pointer; }
+        .status-alert { padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .status-alert.error { background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.2); }
+        .status-alert.exito { background: rgba(0, 200, 83, 0.1); color: var(--neon); border: 1px solid rgba(0, 200, 83, 0.2); }
+        .elite-input { width: 100%; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 12px; color: #fff; margin-top: 10px; font-family: monospace; transition: 0.3s; }
+        .elite-input:focus { border-color: var(--neon); outline: none; box-shadow: 0 0 10px rgba(0,200,83,0.1); }
+        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; margin-top: 25px; cursor: pointer; transition: 0.3s; }
+        .btn-withdraw-action:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-withdraw-action:disabled { background: #1a1c20; color: #444; cursor: not-allowed; transform: none; }
+
         .perfil-card { text-align: center; background: #0a0c10; padding: 40px; border-radius: 25px; border: 1px solid var(--border); max-width: 400px; margin: 0 auto; }
         .perfil-avatar-large { width: 80px; height: 80px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 900; margin: 0 auto 20px; }
         .perfil-settings-list { margin-top: 30px; text-align: left; }
