@@ -52,20 +52,20 @@ export default function SocioPanel() {
     router.push('/login');
   };
 
-  // --- CAPA DE SEGURIDAD: LOGO GURÚ ÉLITE ---
+  // --- CAPA DE SEGURIDAD: LOGO GURÚ ÉLITE (ANIMACIÓN 4 SEG) ---
   if (loading) {
     return (
       <div style={{ backgroundColor: '#020406', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: '20px', position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 9999 }}>
         <div className="guru-loader">
           <div className="inner-circle">
-            <span style={{ color: '#00C853', fontWeight: 900, fontSize: '2rem' }}>G</span>
+            <span style={{ color: '#00C853', fontWeight: 900, fontSize: '2.5rem' }}>G</span>
           </div>
         </div>
         <p style={{ color: '#00C853', letterSpacing: '4px', fontSize: '0.9rem', fontWeight: '900' }} className="pulse">ACCESO ÉLITE</p>
         <style jsx>{`
           .guru-loader { width: 120px; height: 120px; border-radius: 50%; border: 2px solid #111; display: flex; justify-content: center; align-items: center; position: relative; }
           .guru-loader::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #00C853; animation: ripple 2s infinite; }
-          .inner-circle { width: 70px; height: 70px; border-radius: 50%; background: #050505; border: 1px solid #00C853; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 30px rgba(0, 200, 83, 0.4); }
+          .inner-circle { width: 80px; height: 80px; border-radius: 50%; background: #050505; border: 3px solid #00C853; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 30px rgba(0, 200, 83, 0.4); }
           @keyframes ripple { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
           .pulse { animation: pulse-text 2s infinite; }
           @keyframes pulse-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
@@ -117,8 +117,8 @@ export default function SocioPanel() {
           </div>
         </header>
 
+        {/* MONITOR DE CRECIMIENTO */}
         <div style={{ background: 'linear-gradient(145deg, #0a0c10 0%, #050505 100%)', border: '1px solid #111', padding: '40px', borderRadius: '35px', marginBottom: '30px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', position: 'relative', overflow: 'hidden' }}>
-           <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'rgba(0, 200, 83, 0.05)', filter: 'blur(50px)', borderRadius: '50%' }}></div>
            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px', position: 'relative', zIndex: 1 }}>
               <div>
                 <p style={{ color: '#555', fontSize: '0.8rem', fontWeight: 900, letterSpacing: '2px', marginBottom: '15px' }}>ESTADO ACTUAL DE RENDIMIENTO</p>
@@ -127,6 +127,12 @@ export default function SocioPanel() {
                   <span style={{ color: '#00C853', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '1.2rem' }}>
                     <ArrowUpRight size={20} /> +0.00%
                   </span>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ background: 'rgba(129, 212, 250, 0.1)', padding: '10px 20px', borderRadius: '15px', border: '1px solid rgba(129, 212, 250, 0.2)', display: 'inline-block' }}>
+                  <p style={{ color: '#81D4FA', fontSize: '0.7rem', fontWeight: 900, margin: 0 }}>NIVEL DE SOCIO</p>
+                  <p style={{ color: '#fff', fontWeight: 900, margin: 0, fontSize: '1.1rem' }}>PLAN INICIAL</p>
                 </div>
               </div>
            </div>
