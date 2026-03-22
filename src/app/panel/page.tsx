@@ -17,7 +17,7 @@ export default function SocioPanel() {
   const [pendientes, setPendientes] = useState(0);
 
   useEffect(() => {
-    // 1. SEGURO MAESTRO: Forzamos el cronómetro de 4 segundos
+    // --- INYECCIÓN DEL CRONÓMETRO DE 4 SEGUNDOS ---
     const timer = setTimeout(() => {
       setLoading(false);
     }, 4000);
@@ -51,7 +51,7 @@ export default function SocioPanel() {
     router.push('/login');
   };
 
-  // --- CAPA DE SEGURIDAD: LOGO GURÚ ÉLITE ---
+  // --- CAPA DE SEGURIDAD: LOGO GURÚ ÉLITE (POR 4 SEGUNDOS) ---
   if (loading) {
     return (
       <div style={{ backgroundColor: '#020406', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: '20px', position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 9999 }}>
