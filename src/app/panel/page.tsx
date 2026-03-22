@@ -7,7 +7,8 @@ import {
   Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard,
   ArrowUpRight, Activity, ShieldAlert, Trophy, ArrowRightCircle,
   Settings, HelpCircle, BarChart3, PieChart, History, PlusCircle, ChevronRight, CheckCircle2,
-  Building2, Landmark, CreditCard, Smartphone, Globe, Camera, Save, Phone, Mail, ShieldEllipsis, UserCheck
+  Building2, Landmark, CreditCard, Smartphone, Globe, Camera, Save, Phone, Mail, ShieldEllipsis, UserCheck,
+  CandlestickChart, Download, FileText
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -76,7 +77,6 @@ export default function SocioPanel() {
           setEditPais(data.pais);
         }
       }
-      // Simulamos la obtención de email de la cuenta base
       setEditEmail(`${idSocio}@elguruelite.com`);
     } catch (err) { console.error("Error de conexión:", err); }
     finally { setTimeout(() => setLoading(false), 2000); }
@@ -197,7 +197,7 @@ export default function SocioPanel() {
       <div className="section-title">CENTRO DE OPERACIONES</div>
       <div className="actions-grid-v2">
         <div className="action-tile" onClick={() => router.push('/panel/objetivos')}><Target color="#00C853" /> <span>Metas</span></div>
-        <div className="action-tile" onClick={() => setActiveTab('reportes')}><TrendingUp color="#00C853" /> <span>Gráficas</span></div>
+        <div className="action-tile" onClick={() => setActiveTab('reportes')}><TrendingUp color="#00C853" /> <span>Reportes</span></div>
         <div className="action-tile" onClick={() => setActiveTab('retiros')}><Wallet color="#00C853" /> <span>Retiros</span></div>
         <div className="action-tile" onClick={() => setActiveTab('perfil')}><Settings color="#00C853" /> <span>Perfil</span></div>
       </div>
@@ -206,13 +206,49 @@ export default function SocioPanel() {
 
   const RenderReportes = () => (
     <div className="fade-in section-container">
-      <h2 className="section-h2">Estado de Cuenta</h2>
-      <div className="stats-grid-mini">
-        <div className="stat-box-mini"><span>Inversión</span><h3>${balance.toLocaleString()}</h3></div>
-        <div className="stat-box-mini"><span>Profit</span><h3>+{(balance * (utilidad/100)).toFixed(2)}</h3></div>
-        <div className="stat-box-mini"><span>Proyección</span><h3>${(balance * 1.25).toLocaleString()}</h3></div>
+      <div className="report-header-premium">
+        <h2 className="section-h2">Análisis de Activos</h2>
+        <button className="btn-export"><Download size={16} /> PDF INFORME</button>
       </div>
-      <div className="empty-state"><BarChart3 size={48} color="#222" /><p>Generando reportes de auditoría...</p></div>
+      
+      <div className="stats-grid-mini">
+        <div className="stat-box-pro">
+          <div className="icon-wrap"><Wallet size={18} color="#00C853" /></div>
+          <div><span>Inversión</span><h3>${balance.toLocaleString()}</h3></div>
+        </div>
+        <div className="stat-box-pro">
+          <div className="icon-wrap"><TrendingUp size={18} color="#00C853" /></div>
+          <div><span>Utilidad Neta</span><h3 className="text-neon">+{(balance * (utilidad/100)).toFixed(2)}</h3></div>
+        </div>
+        <div className="stat-box-pro">
+          <div className="icon-wrap"><Activity size={18} color="#00C853" /></div>
+          <div><span>Rendimiento</span><h3>{utilidad}% Anual</h3></div>
+        </div>
+      </div>
+
+      <div className="report-main-grid">
+        <div className="chart-container glass-effect">
+           <div className="chart-head"><h4>Crecimiento Histórico</h4><span>TIEMPO REAL</span></div>
+           <div className="fake-chart-bars">
+              {[35, 60, 45, 80, 55, 95].map((h, i) => (
+                <div key={i} className="v-bar" style={{height: `${h}%`}}><div className="v-glow"></div></div>
+              ))}
+           </div>
+           <div className="chart-labels"><span>ENE</span><span>FEB</span><span>MAR</span><span>ABR</span><span>MAY</span><span>JUN</span></div>
+        </div>
+        
+        <div className="audit-card glass-effect">
+          <h4>Últimas Auditorías</h4>
+          <div className="audit-item">
+            <ShieldCheck size={16} color="#00C853" />
+            <div><span>Bóveda Verificada</span><p>Hace 2 horas</p></div>
+          </div>
+          <div className="audit-item">
+            <CheckCircle2 size={16} color="#00C853" />
+            <div><span>Liquidez Confirmada</span><p>22/03/2026</p></div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -261,7 +297,6 @@ export default function SocioPanel() {
   const RenderPerfil = () => (
     <div className="fade-in section-container">
       <div className="identity-master-layout">
-        {/* Cabecera de Poder */}
         <div className="identity-header glass-effect">
           <div className="identity-banner"></div>
           <div className="identity-content">
@@ -281,7 +316,6 @@ export default function SocioPanel() {
         </div>
 
         <div className="identity-grid">
-          {/* Tarjeta de Gestión */}
           <div className="identity-card glass-effect">
             <div className="card-header-inner">
               <h3>Gestión de Identidad</h3>
@@ -302,20 +336,12 @@ export default function SocioPanel() {
                   <input type="text" value={editPais} onChange={(e) => setEditPais(e.target.value)} />
                 </div>
               </div>
-              <div className="field-group">
-                <label>Contacto Telefónico</label>
-                <div className="input-wrapper">
-                  <Phone size={16} />
-                  <input type="text" placeholder="+00 000 00000" />
-                </div>
-              </div>
               <button onClick={actualizarPerfil} disabled={guardandoPerfil} className="identity-btn-save">
                 {guardandoPerfil ? 'SINCRONIZANDO...' : <><Save size={18}/> ACTUALIZAR IDENTIDAD</>}
               </button>
             </div>
           </div>
 
-          {/* Tarjeta de Seguridad y Estatus */}
           <div className="identity-card glass-effect">
             <div className="card-header-inner">
               <h3>Seguridad de Bóveda</h3>
@@ -323,7 +349,6 @@ export default function SocioPanel() {
             </div>
             <div className="security-stack">
               <div className="sec-row">
-                <div className="sec-icon"><Mail size={20} /></div>
                 <div className="sec-data">
                   <h4>Correo Electrónico</h4>
                   <p>{editEmail}</p>
@@ -331,22 +356,11 @@ export default function SocioPanel() {
                 <div className="sec-status-tag">CONFIRMADO</div>
               </div>
               <div className="sec-row">
-                <div className="sec-icon"><ShieldCheck size={20} /></div>
                 <div className="sec-data">
                   <h4>Doble Factor (2FA)</h4>
                   <p>Protección extra activa</p>
                 </div>
                 <div className="sec-toggle">ON</div>
-              </div>
-              <div className="identity-stats-preview">
-                <div className="stat-preview-item">
-                  <span>Antigüedad</span>
-                  <p>Marzo 2026</p>
-                </div>
-                <div className="stat-preview-item">
-                  <span>Operaciones</span>
-                  <p>Activas</p>
-                </div>
               </div>
             </div>
           </div>
@@ -363,7 +377,6 @@ export default function SocioPanel() {
         <style jsx>{`
           .loader-screen { background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; position: fixed; width: 100%; z-index: 9999; }
           .guru-loader { width: 120px; height: 120px; border-radius: 50%; border: 2px solid #111; display: flex; justify-content: center; align-items: center; position: relative; }
-          .guru-loader::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #00C853; animation: ripple 2s infinite; }
           .inner-circle { width: 80px; height: 80px; border-radius: 50%; background: #050505; border: 3px solid #00C853; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 30px rgba(0, 200, 83, 0.4); }
           .logo-g { color: #00C853; font-weight: 900; font-size: 2.5rem; }
           .loading-text { color: #00C853; letter-spacing: 4px; font-size: 0.8rem; font-weight: 900; margin-top: 30px; }
@@ -426,72 +439,83 @@ export default function SocioPanel() {
         .brand-elite span { color: var(--neon); }
         .nav-item { padding: 14px 18px; border-radius: 12px; display: flex; align-items: center; gap: 15px; color: #444; cursor: pointer; transition: 0.3s; margin-bottom: 5px; font-weight: 600; font-size: 0.95rem; }
         .nav-item:hover, .nav-item.active { background: rgba(0,200,83,0.05); color: var(--neon); }
+        .nav-divider { height: 1px; background: var(--border); margin: 20px 0; }
         .logout-sidebar { background: rgba(255,68,68,0.05); color: #ff4444; border: 1px solid rgba(255,68,68,0.1); padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: auto; }
         .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
         .top-navbar { height: 70px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .mobile-brand { font-weight: 900; font-size: 1.1rem; }
+        .mobile-brand span { color: var(--neon); }
+        @media (min-width: 1024px) { .mobile-brand { display: none; } }
         .header-actions { display: flex; align-items: center; gap: 20px; }
         .user-avatar { width: 35px; height: 35px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; cursor: pointer; }
+        .badge { position: absolute; top: -5px; right: -5px; background: red; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; }
         .panel-content { padding: 20px; max-width: 1200px; margin: 0 auto; width: 100%; padding-bottom: 100px; }
         @media (min-width: 768px) { .panel-content { padding: 35px; } }
         
-        /* 🏆 DISEÑO DE IDENTIDAD ÉLITE (PERFIL) */
-        .identity-master-layout { display: flex; flex-direction: column; gap: 30px; }
-        .identity-header { background: #050505; border: 1px solid var(--border); border-radius: 35px; overflow: hidden; position: relative; }
-        .identity-banner { height: 120px; background: linear-gradient(90deg, #000, #0a0c10, #00C85322); }
-        .identity-content { padding: 0 40px 40px; display: flex; align-items: flex-end; gap: 30px; margin-top: -50px; }
-        .identity-avatar-container { position: relative; }
-        .identity-avatar-glow { position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; background: var(--neon); filter: blur(25px); opacity: 0.2; border-radius: 50%; }
-        .identity-avatar-main { width: 130px; height: 130px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 900; border: 8px solid #050505; position: relative; z-index: 2; }
-        .identity-camera { position: absolute; bottom: 10px; right: 10px; background: #fff; color: #000; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; }
-        .identity-info h2 { font-size: 2.2rem; font-weight: 900; margin-bottom: 10px; }
-        .identity-tags { display: flex; gap: 12px; }
-        .tag-verify { background: rgba(0,200,83,0.1); color: var(--neon); padding: 6px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 8px; }
-        .tag-rank { background: #111; color: #fff; padding: 6px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 8px; border: 1px solid #222; }
+        .welcome-banner h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 900; margin-bottom: 8px; }
+        .welcome-banner h1 span { color: var(--neon); }
+        .welcome-banner p { color: #555; font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .identity-grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
-        @media (min-width: 1024px) { .identity-grid { grid-template-columns: 1.2fr 1fr; } }
-        .identity-card { background: #050505; border: 1px solid var(--border); border-radius: 35px; padding: 35px; }
-        .card-header-inner { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .card-header-inner h3 { font-size: 1.2rem; font-weight: 900; }
-        
-        .field-group { margin-bottom: 20px; }
-        .field-group label { font-size: 0.75rem; font-weight: 900; color: #444; margin-bottom: 10px; display: block; text-transform: uppercase; }
-        .input-wrapper { background: #000; border: 1px solid #111; border-radius: 15px; display: flex; align-items: center; padding: 0 20px; gap: 15px; transition: 0.3s; }
-        .input-wrapper:focus-within { border-color: var(--neon); box-shadow: 0 0 15px rgba(0,200,83,0.1); }
-        .input-wrapper input { background: transparent; border: none; padding: 18px 0; color: #fff; width: 100%; font-weight: 600; outline: none; }
-        .identity-btn-save { width: 100%; background: var(--neon); color: #000; border: none; padding: 20px; border-radius: 18px; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-
-        .sec-row { display: flex; align-items: center; gap: 20px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 20px; margin-bottom: 15px; border: 1px solid #111; }
-        .sec-icon { color: var(--neon); opacity: 0.5; }
-        .sec-data h4 { font-size: 0.9rem; font-weight: 800; margin-bottom: 4px; }
-        .sec-data p { font-size: 0.8rem; color: #444; }
-        .sec-status-tag { margin-left: auto; background: rgba(0,200,83,0.1); color: var(--neon); font-size: 0.65rem; font-weight: 900; padding: 4px 10px; border-radius: 8px; }
-        .sec-toggle { margin-left: auto; color: var(--neon); font-weight: 900; font-size: 0.8rem; }
-        .identity-stats-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
-        .stat-preview-item { background: #000; padding: 20px; border-radius: 20px; border: 1px solid #111; text-align: center; }
-        .stat-preview-item span { font-size: 0.65rem; font-weight: 900; color: #444; text-transform: uppercase; }
-        .stat-preview-item p { font-size: 1.1rem; font-weight: 900; margin-top: 5px; }
-
-        /* REUTILIZABLES CHASIS ESTABLE */
-        .welcome-banner h1 { font-size: 2.5rem; font-weight: 900; margin-bottom: 8px; }
         .vault-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 25px 0; }
         @media (min-width: 1024px) { .vault-grid { grid-template-columns: 1.6fr 1fr; } }
-        .vault-card-main { background: #050505; border: 1px solid var(--border); border-radius: 35px; padding: 35px; }
+        .vault-card-main { background: linear-gradient(145deg, #0a0c10, #030303); border: 1px solid var(--border); border-radius: 25px; padding: 25px; position: relative; overflow: hidden; }
+        @media (min-width: 768px) { .vault-card-main { padding: 35px; border-radius: 35px; } }
         .balance-display { display: flex; align-items: baseline; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; }
-        .value { font-size: 4.2rem; font-weight: 900; letter-spacing: -2px; }
-        .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; overflow: hidden; }
+        .symbol { font-size: 1.5rem; color: #222; font-weight: 900; }
+        .value { font-size: 2.8rem; font-weight: 900; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+        @media (min-width: 768px) { .value { font-size: 4.2rem; } }
+        .live-status { display: flex; align-items: center; gap: 6px; font-size: 9px; color: #ff4444; font-weight: 900; border: 1px solid rgba(255,68,68,0.2); padding: 3px 10px; border-radius: 20px; }
+        .dot { width: 5px; height: 5px; background: #ff4444; border-radius: 50%; animation: blink 1s infinite; }
+        .bar-bg { width: 100%; height: 8px; background: #111; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--neon); box-shadow: 0 0 15px var(--neon); border-radius: 10px; animation: grow 2s ease-out; }
+        
+        .rank-card-v2 { background: #080808; border: 1px solid var(--border); border-radius: 25px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        @media (min-width: 768px) { .rank-card-v2 { border-radius: 35px; padding: 35px; } }
+        .rank-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .rank-header h3 { font-size: 1.3rem; font-weight: 900; margin: 0; }
+        .active-tag { color: var(--neon); }
+        .upgrade-btn { width: 100%; background: transparent; border: 1px solid #1a1a1a; padding: 12px; border-radius: 10px; color: #fff; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 15px; font-size: 0.8rem; }
+        
         .actions-grid-v2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        @media (min-width: 768px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); } }
-        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 25px; border-radius: 18px; cursor: pointer; }
-        .withdraw-card { background: #0a0c10; padding: 40px; border-radius: 35px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
-        .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .method-option { background: #000; border: 1px solid #111; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
-        .method-option.active { border-color: var(--neon); color: var(--neon); }
+        @media (min-width: 768px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); gap: 15px; } }
+        .action-tile { background: #0a0c10; border: 1px solid var(--border); padding: 20px; border-radius: 18px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: 0.3s; }
+        .action-tile:hover { border-color: var(--neon); transform: translateY(-3px); }
+
+        /* 📊 REPORTES ÉLITE */
+        .report-header-premium { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .btn-export { background: #111; border: 1px solid #222; color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .stat-box-pro { background: #050505; border: 1px solid var(--border); padding: 20px; border-radius: 18px; display: flex; align-items: center; gap: 15px; }
+        .icon-wrap { width: 40px; height: 40px; background: rgba(0,200,83,0.05); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .report-main-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 25px; }
+        @media (min-width: 1024px) { .report-main-grid { grid-template-columns: 1.8fr 1fr; } }
+        .chart-container { background: #050505; border: 1px solid var(--border); border-radius: 25px; padding: 30px; min-height: 300px; }
+        .fake-chart-bars { height: 180px; display: flex; align-items: flex-end; gap: 15px; margin: 30px 0; border-bottom: 1px solid #111; padding-bottom: 10px; }
+        .v-bar { flex: 1; background: #111; border-radius: 4px 4px 0 0; position: relative; transition: 0.5s; }
+        .v-bar:last-child { background: var(--neon); box-shadow: 0 0 15px rgba(0,200,83,0.3); }
+        .chart-labels { display: flex; justify-content: space-between; color: #333; font-size: 0.65rem; font-weight: 800; }
+        .audit-card { background: #080808; border: 1px solid var(--border); border-radius: 25px; padding: 25px; }
+        .audit-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #111; }
+        .audit-item span { font-size: 0.85rem; font-weight: 700; display: block; }
+        .audit-item p { font-size: 0.7rem; color: #444; }
+
+        /* 👤 IDENTIDAD ÉLITE */
+        .identity-master-layout { display: flex; flex-direction: column; gap: 30px; }
+        .identity-header { background: #050505; border: 1px solid var(--border); border-radius: 35px; overflow: hidden; position: relative; }
+        .identity-banner { height: 100px; background: linear-gradient(90deg, #000, #00C85311); }
+        .identity-content { padding: 0 40px 40px; display: flex; align-items: flex-end; gap: 30px; margin-top: -40px; }
+        .identity-avatar-main { width: 110px; height: 110px; background: var(--neon); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; border: 6px solid #050505; position: relative; z-index: 2; box-shadow: 0 0 20px rgba(0,200,83,0.2); }
+        .identity-card { background: #050505; border: 1px solid var(--border); border-radius: 30px; padding: 30px; }
+        .input-wrapper { background: #000; border: 1px solid #111; border-radius: 12px; display: flex; align-items: center; padding: 0 15px; gap: 12px; margin-top: 8px; }
+        .input-wrapper input { background: transparent; border: none; padding: 15px 0; color: #fff; width: 100%; outline: none; font-weight: 600; }
+        .identity-btn-save { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+
+        .withdraw-card { background: #0a0c10; padding: 35px; border-radius: 30px; border: 1px solid var(--border); max-width: 500px; margin: 0 auto; }
         .elite-input { width: 100%; background: #000; border: 1px solid #111; padding: 15px; border-radius: 12px; color: #fff; margin-top: 10px; }
         .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 18px; border-radius: 12px; font-weight: 900; margin-top: 25px; cursor: pointer; }
         .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; z-index: 100; }
         @media (min-width: 1024px) { .mobile-tab-bar { display: none; } }
+        .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #333; }
+        .tab-item.active { color: var(--neon); }
         @keyframes grow { from { width: 0%; } to { width: 75%; } }
         .fade-in { animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
