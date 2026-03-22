@@ -46,7 +46,7 @@ export default function SocioPanel() {
     router.push('/login');
   };
 
-  // --- CAPA DE CARGA: EL LOGO DEL GURÚ ---
+  // --- SEGURO MAESTRO: CAPA DE CARGA (EL LOGO DEL GURÚ) ---
   if (loading) {
     return (
       <div style={{ backgroundColor: '#020406', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: '20px' }}>
@@ -68,6 +68,7 @@ export default function SocioPanel() {
     );
   }
 
+  // --- SEGURO ACTIVADO: ESTO SOLO SE RENDERIZA SI LOADING ES FALSE ---
   return (
     <div style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif' }}>
       
@@ -174,8 +175,6 @@ export default function SocioPanel() {
         .investor-banner { transition: 0.4s; }
         .investor-banner:hover { transform: scale(1.01); border-color: #fff; box-shadow: 0 0 30px rgba(0,200,83,0.2); }
         .bell-badge { position: absolute; top: -8px; right: -8px; background: #ff4444; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #050505; }
-        .pulse { animation: pulse-animation 2s infinite; }
-        @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         .fade-in { animation: fadeIn 0.8s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
