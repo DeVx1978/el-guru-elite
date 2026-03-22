@@ -65,7 +65,7 @@ export default function SocioPanel() {
     try {
       const { data, error } = await clientSupabase
         .from('socios_elite')
-        .select('inversion_minima, nivel_socio, porcentaje_utilidad, pais')
+        .select('*') // Extraemos todo para cargar teléfono y ciudad
         .eq('id_socio', idSocio)
         .single();
 
@@ -73,10 +73,10 @@ export default function SocioPanel() {
         setBalance(Number(data.inversion_minima));
         setNivelSocio(data.nivel_socio || "Socio Élite");
         setUtilidad(Number(data.porcentaje_utilidad) || 0);
-        if (data.pais) {
-          setPaisSocio(data.pais);
-          setEditPais(data.pais);
-        }
+        setPaisSocio(data.pais || "Colombia");
+        setEditPais(data.pais || "Colombia");
+        setEditTelefono(data.telefono || "");
+        setEditCiudad(data.ciudad || "");
       }
       setEditEmail(`${idSocio}@elguruelite.com`);
     } catch (err) { console.error("Error de conexión:", err); }
@@ -122,10 +122,14 @@ export default function SocioPanel() {
         .update({ nombre: editNombre })
         .eq('id', socioId);
       
-      // 2. Actualización en tabla socios_elite (País)
+      // 2. Actualización en tabla socios_elite (País + Teléfono + Ciudad)
       const { error: errElite } = await clientSupabase
         .from('socios_elite')
-        .update({ pais: editPais })
+        .update({ 
+          pais: editPais,
+          telefono: editTelefono,
+          ciudad: editCiudad
+        })
         .eq('id_socio', socioId);
 
       if (!errSocio && !errElite) {
@@ -134,11 +138,11 @@ export default function SocioPanel() {
         localStorage.setItem('socio_nombre', editNombre);
         alert("Sincronización de Identidad Exitosa");
       }
-    } catch (err) { 
+    } catch (err) {
       console.error(err);
-      alert("Error en la sincronización"); 
-    } finally { 
-      setGuardandoPerfil(false); 
+      alert("Error en la sincronización");
+    } finally {
+      setGuardandoPerfil(false);
     }
   };
 
@@ -527,6 +531,7 @@ export default function SocioPanel() {
         .identity-btn-save { width: 100%; background: var(--neon); color: #000; border: none; padding: 20px; border-radius: 18px; font-weight: 900; cursor: pointer; transition: 0.3s; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
         .sec-row { display: flex; align-items: center; gap: 20px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 20px; margin-bottom: 15px; border: 1px solid #111; }
+        .sec-icon { color: var(--neon); opacity: 0.5; }
         .sec-data h4 { font-size: 0.9rem; font-weight: 800; margin-bottom: 4px; }
         .sec-data p { font-size: 0.8rem; color: #444; }
         .sec-status-tag { margin-left: auto; background: rgba(0,200,83,0.1); color: var(--neon); font-size: 0.65rem; font-weight: 900; padding: 4px 10px; border-radius: 8px; }
