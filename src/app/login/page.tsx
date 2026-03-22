@@ -14,23 +14,25 @@ export default function LoginPage() {
 
   // --- BLINDAJE 1: LIMPIEZA TOTAL AL CARGAR ---
   useEffect(() => {
-    localStorage.clear(); // Borramos sesiones viejas para evitar el auto-ingreso
+    // Borramos rastro de sesiones pasadas para que no haya auto-ingreso
+    localStorage.clear(); 
+    sessionStorage.clear();
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return; // No hace nada si los campos están vacíos
+    if (!email || !password) return;
 
     setError(null);
     setLoading(true);
 
     try {
-      // Consulta directa a la tabla de socios
+      // Consulta a la base de datos
       const { data, error: err } = await supabase
         .from('socios')
         .select('*')
         .eq('email', email)
-        .eq('password', password) // En producción se recomienda hashing, pero mantenemos tu lógica
+        .eq('password', password)
         .single();
 
       if (err || !data) {
@@ -42,17 +44,21 @@ export default function LoginPage() {
         return;
       }
 
-      // Guardamos la sesión
+      // --- BLINDAJE 2: CREACIÓN DE LLAVE POR CLIC ---
+      // Guardamos la sesión persistente
       localStorage.setItem('socio_id', data.id);
       localStorage.setItem('socio_nombre', data.nombre);
       localStorage.setItem('socio_rol', data.rol || 'socio');
+      
+      // CREAMOS EL TICKET DE ENTRADA (Solo vive en esta pestaña y muere al cerrarla)
+      sessionStorage.setItem('sesion_activa', 'true');
 
       // Redirección al panel Élite
       router.push('/panel');
 
     } catch (err: any) {
       setError(err.message);
-      setLoading(false); // IMPORTANTE: Esto detiene el "circulito de carga" si hay error
+      setLoading(false);
     }
   };
 
@@ -61,7 +67,6 @@ export default function LoginPage() {
     borderRadius: '14px', color: 'white', fontSize: '1rem', outline: 'none', marginBottom: '20px'
   };
 
-  // --- SEMÁFORO DE INGRESO ---
   const listoParaIngresar = email.length > 5 && password.length >= 6;
 
   return (
@@ -76,7 +81,7 @@ export default function LoginPage() {
           <p style={{ color: '#555', fontSize: '0.9rem', marginTop: '10px' }}>Ingresa tus credenciales de socio verificado.</p>
         </div>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin} autoComplete="off">
           <label style={{ color: '#888', fontSize: '0.8rem', fontWeight: 900, display: 'block', marginBottom: '8px', letterSpacing: '1px' }}>
             CORREO ELECTRÓNICO
           </label>
@@ -84,6 +89,8 @@ export default function LoginPage() {
             <Mail size={18} color="#333" style={{ position: 'absolute', left: '15px', top: '16px' }} />
             <input 
               type="email" 
+              name="email_login"
+              autoComplete="off"
               placeholder="socio@elguruelite.com" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
@@ -98,6 +105,8 @@ export default function LoginPage() {
             <Lock size={18} color="#333" style={{ position: 'absolute', left: '15px', top: '16px' }} />
             <input 
               type={showPass ? "text" : "password"} 
+              name="password_login"
+              autoComplete="new-password"
               placeholder="••••••••" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
