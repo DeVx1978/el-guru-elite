@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Trophy, Globe, Target, Calendar, Star, 
-  ArrowRightCircle, barChart as Chart, Zap, ShieldCheck, ChevronRight
+  ArrowRightCircle, BarChart, Zap, ShieldCheck, ChevronRight
 } from 'lucide-react';
 
 // --- DATOS ESTRATÉGICOS ---
@@ -64,9 +64,9 @@ export default function ObjetivosPage() {
           <img src="/images/guru.jpg" alt="El Gurú" className="guru-loader-img" />
         </div>
         <style jsx>{`
-          .loader-container { position: relative; width: 150px; height: 150px; display: flex; justifyContent: center; alignItems: center; }
-          .guru-loader-img { width: 80px; height: 80px; borderRadius: 50%; border: 3px solid #00C853; z-index: 2; box-shadow: 0 0 30px #00C853; }
-          .pulse-ring { position: absolute; width: 100%; height: 100%; border: 2px solid #00C853; borderRadius: 50%; animation: pulse 1.5s infinite; }
+          .loader-container { position: relative; width: 150px; height: 150px; display: flex; justify-content: center; alignItems: center; }
+          .guru-loader-img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #00C853; z-index: 2; box-shadow: 0 0 30px #00C853; }
+          .pulse-ring { position: absolute; width: 100%; height: 100%; border: 2px solid #00C853; border-radius: 50%; animation: pulse 1.5s infinite; }
           @keyframes pulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
         `}</style>
       </div>
@@ -78,7 +78,7 @@ export default function ObjetivosPage() {
       
       {/* HEADER DE NAVEGACIÓN */}
       <nav style={{ padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #111' }}>
-        <button onClick={() => router.back()} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}>
+        <button onClick={() => router.push('/panel')} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}>
           <ChevronRight style={{ transform: 'rotate(180deg)' }} /> VOLVER AL PANEL
         </button>
         <div style={{ fontWeight: 900, color: '#00C853' }}>OBJETIVOS ESTRATÉGICOS 2026</div>
@@ -101,7 +101,6 @@ export default function ObjetivosPage() {
 
         {/* CONTENEDOR DE LA RUTA (TIMELINE) */}
         <div style={{ position: 'relative' }}>
-          {/* Línea central decorativa */}
           <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', width: '2px', height: '100%', background: 'linear-gradient(to bottom, #00C853, transparent)', opacity: 0.2 }}></div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
@@ -173,7 +172,7 @@ export default function ObjetivosPage() {
       <style jsx>{`
         .fade-in { animation: fadeIn 1s ease; }
         .hito-card:hover { border-color: #00C853; transform: scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .mini-card { background: #020406; padding: 20px; borderRadius: 20px; border: 1px solid #111; fontWeight: bold; fontSize: 0.9rem; color: #888; transition: 0.3s; }
+        .mini-card { background: #020406; padding: 20px; border-radius: 20px; border: 1px solid #111; font-weight: bold; font-size: 0.9rem; color: #888; transition: 0.3s; }
         .mini-card:hover { color: #00C853; border-color: #00C853; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
