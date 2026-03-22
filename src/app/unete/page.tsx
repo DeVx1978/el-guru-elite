@@ -28,7 +28,7 @@ const paises = [
   { nombre: 'Otros', codigo: '', flag: '🌐' },
 ];
 
-// --- MÉTODOS DE PAGO OPTIMIZADOS (NUEVA LÓGICA QUIRÚRGICA) ---
+// --- MÉTODOS DE PAGO OPTIMIZADOS ---
 const metodosPagoGlobal = [
   { id: 'nequi', nombre: 'Nequi (Colombia/Internacional)', info: 'Número de Celular: [INSERTAR CELULAR] - Nombre: [INSERTAR NOMBRE] - Disponible para transferencias y corresponsales.' },
   { id: 'bancolombia', nombre: 'Cuenta Bancolombia (Colombia)', info: 'Número de Cuenta (Ahorros): [INSERTAR NÚMERO] - Nombre Titular: [INSERTAR NOMBRE]' },
@@ -201,15 +201,35 @@ export default function UnetePage() {
             <input type="text" name="nombre" placeholder="Juan Pérez" value={formData.nombre} onChange={handleInputChange} style={inputStyle} />
             <label style={labelStyle}><Mail size={16} style={{marginRight: '5px'}}/> Correo Electrónico (Real)</label>
             <input type="email" name="email" placeholder="juan@ejemplo.com" value={formData.email} onChange={handleInputChange} style={inputStyle} />
+            
+            {/* --- SELECTOR DE PAÍS INDEPENDIENTE (BISTURÍ LÁSER AQUÍ) --- */}
+            <label style={labelStyle}><MapPin size={16} style={{marginRight: '5px'}}/> País de Residencia</label>
+            <select 
+              name="pais" 
+              value={formData.pais} 
+              onChange={(e) => {
+                const selectedPais = paises.find(p => p.nombre === e.target.value);
+                setFormData(prev => ({ 
+                  ...prev, 
+                  pais: e.target.value, 
+                  codigoArea: selectedPais?.codigo || '',
+                  // Reset inteligente: Si es Ecuador, por defecto Pichincha, si no, Nequi
+                  metodoPago: e.target.value === 'Ecuador' ? 'pichincha' : 'nequi' 
+                }));
+              }} 
+              style={inputStyle}
+            >
+              {paises.map(p => <option key={p.nombre} value={p.nombre}>{p.flag} {p.nombre}</option>)}
+            </select>
+
             <label style={labelStyle}><Phone size={16} style={{marginRight: '5px'}}/> Número de Teléfono</label>
             <div style={{display: 'flex', gap: '10px', marginBottom: '15px'}}>
-                <select name="codigoArea" value={formData.codigoArea} onChange={handleInputChange} style={{...inputStyle, width: '35%', marginBottom: 0}}>
-                    {paises.map(p => (
-                        <option key={p.nombre} value={p.codigo}>{p.flag} {p.codigo}</option>
-                    ))}
-                </select>
+                <div style={{...inputStyle, width: '30%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', marginBottom: 0}}>
+                  {formData.codigoArea || '--'}
+                </div>
                 <input type="tel" name="telefono" placeholder="3001234567" value={formData.telefono} onChange={handleInputChange} style={{...inputStyle, flex: 1, marginBottom: 0}} />
             </div>
+
             <label style={labelStyle}><Lock size={16} style={{marginRight: '5px'}}/> Contraseña</label>
             <div style={{position: 'relative'}}>
                 <input type={showPass ? "text" : "password"} name="password" placeholder="••••••••" value={formData.password} onChange={handleInputChange} style={inputStyle} />
@@ -259,7 +279,7 @@ export default function UnetePage() {
           </div>
         );
       case 3:
-        // --- LÓGICA DINÁMICA DE MÉTODOS POR PAÍS ---
+        // --- LÓGICA DINÁMICA RECTIFICADA POR EL CIRUJANO ---
         const opcionesPago = formData.pais === 'Ecuador' ? metodosPagoEcuador : metodosPagoGlobal;
         const metodoSeleccionado = opcionesPago.find(m => m.id === formData.metodoPago) || opcionesPago[0];
 
