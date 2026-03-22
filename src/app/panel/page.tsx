@@ -11,14 +11,16 @@ const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, proce
 
 export default function SocioPanel() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true); // El logo empieza activo
+  const [loading, setLoading] = useState(true); 
   const [nombre, setNombre] = useState("Socio");
   const [esAdmin, setEsAdmin] = useState(false);
   const [pendientes, setPendientes] = useState(0);
 
   useEffect(() => {
-    // 1. Efecto de carga del Logo Élite (4 segundos obligatorios para impacto visual)
-    const timer = setTimeout(() => setLoading(false), 4000);
+    // 1. SEGURO MAESTRO: Forzamos el cronómetro de 4 segundos
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 4000);
 
     const socioNombre = localStorage.getItem('socio_nombre');
     const socioId = localStorage.getItem('socio_id');
@@ -37,7 +39,10 @@ export default function SocioPanel() {
   }, [router]);
 
   const obtenerPendientes = async () => {
-    const { data } = await clientSupabase.from('socios').select('id').eq('estado', 'pendiente');
+    const { data } = await clientSupabase
+      .from('socios')
+      .select('id')
+      .eq('estado', 'pendiente');
     setPendientes(data?.length || 0);
   };
 
@@ -46,33 +51,32 @@ export default function SocioPanel() {
     router.push('/login');
   };
 
-  // --- SEGURO MAESTRO: CAPA DE CARGA (EL LOGO DEL GURÚ) ---
+  // --- CAPA DE SEGURIDAD: LOGO GURÚ ÉLITE ---
   if (loading) {
     return (
-      <div style={{ backgroundColor: '#020406', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ backgroundColor: '#020406', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: '20px', position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 9999 }}>
         <div className="guru-loader">
           <div className="inner-circle">
-            <span style={{ color: '#00C853', fontWeight: 900, fontSize: '1.5rem' }}>G</span>
+            <span style={{ color: '#00C853', fontWeight: 900, fontSize: '2rem' }}>G</span>
           </div>
         </div>
-        <p style={{ color: '#00C853', letterSpacing: '3px', fontSize: '0.8rem', fontWeight: 'bold' }} className="pulse">ACCESO ÉLITE</p>
+        <p style={{ color: '#00C853', letterSpacing: '4px', fontSize: '0.9rem', fontWeight: '900' }} className="pulse">ACCESO ÉLITE</p>
         <style jsx>{`
-          .guru-loader { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #111; display: flex; justify-content: center; align-items: center; position: relative; }
+          .guru-loader { width: 120px; height: 120px; border-radius: 50%; border: 2px solid #111; display: flex; justify-content: center; align-items: center; position: relative; }
           .guru-loader::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #00C853; animation: ripple 2s infinite; }
-          .inner-circle { width: 60px; height: 60px; border-radius: 50%; background: #050505; border: 1px solid #00C853; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 20px rgba(0, 200, 83, 0.2); }
-          @keyframes ripple { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+          .inner-circle { width: 70px; height: 70px; border-radius: 50%; background: #050505; border: 1px solid #00C853; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 30px rgba(0, 200, 83, 0.4); }
+          @keyframes ripple { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
           .pulse { animation: pulse-text 2s infinite; }
-          @keyframes pulse-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+          @keyframes pulse-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
         `}</style>
       </div>
     );
   }
 
-  // --- SEGURO ACTIVADO: ESTO SOLO SE RENDERIZA SI LOADING ES FALSE ---
+  // --- PANEL COMPLETO (SIN RECORTES) ---
   return (
     <div style={{ backgroundColor: '#020406', minHeight: '100vh', color: 'white', fontFamily: 'sans-serif' }}>
       
-      {/* BARRA SUPERIOR */}
       <nav style={{ display: 'flex', justifyContent: 'space-between', padding: '20px 40px', borderBottom: '1px solid #111', background: '#050505', alignItems: 'center' }}>
         <div style={{ color: '#00C853', fontWeight: 900, fontSize: '1.2rem', letterSpacing: '1px' }}>
           GURÚ <span style={{color: '#fff'}}>ÉLITE</span>
@@ -80,7 +84,9 @@ export default function SocioPanel() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ position: 'relative', cursor: esAdmin ? 'pointer' : 'default' }} onClick={() => esAdmin && router.push('/admin')}>
             <Bell size={20} color={esAdmin && pendientes > 0 ? "#00C853" : "#333"} />
-            {esAdmin && pendientes > 0 && <span className="bell-badge">{pendientes}</span>}
+            {esAdmin && pendientes > 0 && (
+              <span className="bell-badge">{pendientes}</span>
+            )}
           </div>
           <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', fontWeight: 'bold' }}>
             <LogOut size={16} /> SALIR
@@ -111,18 +117,36 @@ export default function SocioPanel() {
           </div>
         </header>
 
-        {/* MONITOR DE CRECIMIENTO */}
         <div style={{ background: 'linear-gradient(145deg, #0a0c10 0%, #050505 100%)', border: '1px solid #111', padding: '40px', borderRadius: '35px', marginBottom: '30px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', position: 'relative', overflow: 'hidden' }}>
+           <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'rgba(0, 200, 83, 0.05)', filter: 'blur(50px)', borderRadius: '50%' }}></div>
            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px', position: 'relative', zIndex: 1 }}>
               <div>
                 <p style={{ color: '#555', fontSize: '0.8rem', fontWeight: 900, letterSpacing: '2px', marginBottom: '15px' }}>ESTADO ACTUAL DE RENDIMIENTO</p>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '15px' }}>
-                  <h2 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0 }}>$0.00</h2>
+                  <h2 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0, letterSpacing: '-2px' }}>$0.00</h2>
                   <span style={{ color: '#00C853', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '1.2rem' }}>
                     <ArrowUpRight size={20} /> +0.00%
                   </span>
                 </div>
               </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ background: 'rgba(129, 212, 250, 0.1)', padding: '10px 20px', borderRadius: '15px', border: '1px solid rgba(129, 212, 250, 0.2)', display: 'inline-block' }}>
+                  <p style={{ color: '#81D4FA', fontSize: '0.7rem', fontWeight: 900, margin: 0, letterSpacing: '1px' }}>NIVEL DE SOCIO</p>
+                  <p style={{ color: '#fff', fontWeight: 900, margin: 0, fontSize: '1.1rem' }}>PLAN INICIAL</p>
+                </div>
+              </div>
+           </div>
+           <div style={{ marginTop: '40px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '0.8rem', fontWeight: 'bold', color: '#444' }}>
+                <span>PROGRESO DE CARTERA</span>
+                <span style={{ color: '#00C853' }}>EN ESPERA DE MERCADO</span>
+              </div>
+              <div style={{ width: '100%', height: '12px', background: '#111', borderRadius: '20px', overflow: 'hidden', border: '1px solid #1a1a1a' }}>
+                <div className="progress-bar-glow" style={{ width: '5%', height: '100%', background: '#00C853', borderRadius: '20px' }}></div>
+              </div>
+              <p style={{ color: '#333', fontSize: '0.7rem', marginTop: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity size={12} className="pulse" /> SISTEMA DE ALGORITMOS CALCULANDO UTILIDADES EN TIEMPO REAL...
+              </p>
            </div>
         </div>
 
@@ -130,7 +154,11 @@ export default function SocioPanel() {
         <div 
           onClick={() => router.push('/panel/objetivos')}
           className="investor-banner"
-          style={{ background: 'linear-gradient(90deg, rgba(0,200,83,0.15) 0%, rgba(10,12,16,1) 100%)', border: '1px solid #00C853', padding: '25px', borderRadius: '25px', marginBottom: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          style={{ 
+            background: 'linear-gradient(90deg, rgba(0,200,83,0.15) 0%, rgba(10,12,16,1) 100%)', 
+            border: '1px solid #00C853', padding: '25px', borderRadius: '25px', marginBottom: '40px', 
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+          }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ background: '#00C853', padding: '12px', borderRadius: '15px', color: 'black' }}>
@@ -167,6 +195,7 @@ export default function SocioPanel() {
             </div>
           </div>
         </div>
+
       </main>
 
       <style jsx>{`
@@ -175,6 +204,10 @@ export default function SocioPanel() {
         .investor-banner { transition: 0.4s; }
         .investor-banner:hover { transform: scale(1.01); border-color: #fff; box-shadow: 0 0 30px rgba(0,200,83,0.2); }
         .bell-badge { position: absolute; top: -8px; right: -8px; background: #ff4444; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #050505; }
+        .progress-bar-glow { box-shadow: 0 0 15px #00C853; animation: loading 2s infinite ease-in-out; }
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes loading { 0% { filter: brightness(1); } 50% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
         .fade-in { animation: fadeIn 0.8s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
