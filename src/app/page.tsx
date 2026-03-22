@@ -111,7 +111,6 @@ export default function LandingPage() {
           </div>
           <div className="nav-actions-master">
             <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-nav-access desktop-only">ACCESO EXCLUSIVO</button>
-            {/* 💉 LUNAR EXTIRPADO: Solo visible en móvil */}
             <button className="menu-toggle mobile-only" onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}>
               {menuMovilAbierto ? <X size={28} color="#00C853" /> : <Menu size={28} color="#00C853" />}
             </button>
@@ -146,7 +145,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="hero-visuals-right">
+        {/* 💉 REUBICACIÓN ESTRUCTURAL: Estadísticas ahora van debajo en Desktop */}
+        <div className="hero-visuals-horizontal">
           <div className="stat-card glass-effect">
             <Activity color="#00C853" size={24} />
             <div className="stat-info"><span className="stat-label">RENDIMIENTO PROMEDIO</span><span className="stat-value">+18.5% MES</span></div>
@@ -174,12 +174,10 @@ export default function LandingPage() {
               <div className="card-energy-bar"></div>
               <div className="m-card-inner">
                 <div className="m-card-header"><span className="m-fondo-tag">FONDO DE INVERSIÓN</span><h3 className="m-card-name" style={{color:'white'}}>{plan.name}</h3></div>
-                <div className="m-card-body">
-                  <div className="m-card-price"><span className="m-sign" style={{color: plan.color}}>$</span>{plan.price}<span className="m-usd">USD</span></div>
-                  <div className="m-card-profit"><span>PROFIT: <strong style={{color: plan.color}}>{plan.profit}</strong></span></div>
-                  <div className="m-divider-luxe"></div>
-                  <p className="m-perk-text">{plan.perk}</p>
-                </div>
+                <div className="m-card-price"><span className="m-sign" style={{color: plan.color}}>$</span>{plan.price}<span className="m-usd">USD</span></div>
+                <div className="m-card-profit"><span>PROFIT: <strong style={{color: plan.color}}>{plan.profit}</strong></span></div>
+                <div className="m-divider-luxe"></div>
+                <p className="m-perk-text">{plan.perk}</p>
                 <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-m-acquire" style={{ '--btn-color': plan.color } as React.CSSProperties}>ADQUIRIR</button>
               </div>
             </div>
@@ -212,7 +210,7 @@ export default function LandingPage() {
         @media (min-width: 1024px) { 
             .btn-nav-access { display: block; } 
             .mobile-only { display: none !important; }
-            .menu-toggle { display: none !important; } /* 💉 RECTIFICADO: Hamburguesa muerta en PC */
+            .menu-toggle { display: none !important; } 
         }
         
         .menu-toggle { display: block; background: none; border: none; cursor: pointer; }
@@ -220,16 +218,17 @@ export default function LandingPage() {
         .mobile-menu-overlay.active { height: calc(100vh - 80px); }
         .mobile-link { color: white; font-size: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; }
         
-        .hero-elite { max-width: 1400px; margin: 0 auto; padding: 40px 20px; text-align: left; display: flex; flex-direction: column; }
+        /* 💉 HERO - REDISEÑO PARA DESKTOP (STATS ABAJO) */
+        .hero-elite { max-width: 1400px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; }
         @media (min-width: 1024px) { 
-          .hero-elite { padding: 100px 30px; flex-direction: row; align-items: center; justify-content: space-between; min-height: 75vh; } 
-          .hero-content { flex: 1.2; }
-          .hero-visuals-right { flex: 0.8; display: flex; flex-direction: column !important; align-items: flex-end !important; gap: 20px; }
+          .hero-elite { padding: 100px 30px; min-height: 85vh; justify-content: center; } 
+          .hero-content { max-width: 900px; }
         }
         
         .hero-main-title { font-size: clamp(2.5rem, 8vw, 5.5rem); font-weight: 900; line-height: 0.95; margin-bottom: 25px; letter-spacing: -2px; }
         .text-glow-neon { background: linear-gradient(180deg, #fff 30%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-subtext { color: #666; font-size: 1.1rem; line-height: 1.6; max-width: 550px; margin-bottom: 35px; }
+        .hero-subtext { color: #666; font-size: 1.1rem; line-height: 1.6; max-width: 600px; margin-bottom: 35px; }
+        
         .hero-cta-btn-group { display: flex; gap: 8px; width: 100%; }
         .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 18px 25px; border-radius: 4px; font-weight: 900; cursor: pointer; flex: 1.5; display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 0.85rem; }
         .btn-hero-secondary { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 18px 15px; border-radius: 4px; font-weight: 900; cursor: pointer; flex: 1; display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 0.8rem; }
@@ -239,12 +238,19 @@ export default function LandingPage() {
           .btn-hero-primary { flex: none; width: 280px; padding: 22px; font-size: 1.1rem; }
         }
         
-        .hero-visuals-right { display: flex; flex-direction: column; gap: 15px; margin-top: 50px; width: 100%; }
+        /* 💉 STATS CARDS - DISTRIBUCIÓN HORIZONTAL EN PC */
+        .hero-visuals-horizontal { display: flex; flex-direction: column; gap: 15px; margin-top: 50px; width: 100%; }
+        @media (min-width: 1024px) {
+          .hero-visuals-horizontal { flex-direction: row; justify-content: space-between; gap: 20px; margin-top: 80px; }
+        }
+        
         .stat-card { background: rgba(10,10,10,0.8); border: 1px solid #111; padding: 25px; border-radius: 12px; display: flex; align-items: center; gap: 20px; width: 100%; transition: 0.3s; }
-        .stat-card:hover { border-color: var(--neon); transform: scale(1.02); }
-        @media (min-width: 1024px) { .stat-card { max-width: 380px; } }
+        .stat-card:hover { border-color: var(--neon); transform: translateY(-5px); }
+        @media (min-width: 1024px) { .stat-card { flex: 1; max-width: none; } }
+        
         .stat-label { font-size: 10px; color: #444; font-weight: 900; letter-spacing: 2px; }
         .stat-value { font-size: 1.3rem; font-weight: 900; }
+        
         .plans-section-luxe { padding: 80px 20px; max-width: 1400px; margin: 0 auto; text-align: center; }
         .plans-grid-luxe { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 50px; }
         @media (min-width: 1280px) { .plans-grid-luxe { grid-template-columns: repeat(5, 1fr); gap: 15px; } }
