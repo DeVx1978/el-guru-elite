@@ -2,13 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, ArrowUpRight, Lock, FileText, Scale, Activity, Zap, TrendingUp, Globe, ChevronDown, X 
+  ShieldCheck, ArrowUpRight, Lock, FileText, Scale, Activity, Zap, TrendingUp, Globe, ChevronDown, X, Menu 
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
-  const [seccionExpandida, setSeccionExpandida] = useState<string | null>(null);
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
   const [modalAbierto, setModalAbierto] = useState<{titulo: string, contenido: string} | null>(null);
   const router = useRouter();
 
@@ -22,6 +22,7 @@ export default function LandingPage() {
   const ejecutarTransicion = (e: React.MouseEvent, ruta: string) => {
     e.preventDefault(); 
     setIsNavigating(true); 
+    setMenuMovilAbierto(false);
     setTimeout(() => {
       router.push(ruta);
     }, 4000); 
@@ -51,6 +52,7 @@ export default function LandingPage() {
       inversionistas: { t: "Inversionistas", c: "Diseñamos portafolios blindados para capitales que buscan rentabilidad constante. Nuestra infraestructura permite una gestión de activos auditada y segura." }
     };
     setModalAbierto({titulo: info[seccion].t, contenido: info[seccion].c});
+    setMenuMovilAbierto(false);
   };
 
   if (loading || isNavigating) {
@@ -72,16 +74,17 @@ export default function LandingPage() {
           </h2>
         </div>
         <style jsx global>{`
-          .splash-master { background: radial-gradient(circle at center, #0a0c10 0%, #000 100%); height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; }
-          .loader-container { position: relative; width: clamp(140px, 30vw, 200px); height: clamp(140px, 30vw, 200px); margin-bottom: 30px; }
-          .image-wrapper { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid #00C853; box-shadow: 0 0 40px rgba(0, 200, 83, 0.4); position: relative; z-index: 2; }
+          .splash-master { background: radial-gradient(circle at center, #0a0c10 0%, #000 100%) !important; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; }
+          .loader-container { position: relative; width: 220px; height: 220px; margin-bottom: 40px; }
+          .image-wrapper { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; border: 2px solid #00C853; box-shadow: 0 0 60px rgba(0, 200, 83, 0.5); position: relative; z-index: 2; }
           .image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-          .pulse-ring { position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; border: 1px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.3; }
-          .loading-bar-master { width: 200px; height: 1px; background: rgba(255,255,255,0.05); margin-bottom: 15px; }
+          .pulse-ring { position: absolute; top: -15%; left: -15%; width: 130%; height: 130%; border: 2px solid #00C853; border-radius: 50%; animation: pulse-master 2s infinite; opacity: 0.4; }
+          .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: linear-gradient(to right, transparent, #00C853, transparent); box-shadow: 0 0 20px #00C853; z-index: 3; animation: scan-master 3s ease-in-out infinite; }
           .loading-bar-fill { width: 0%; height: 100%; background: #00C853; animation: progress-master 4s linear forwards; }
-          .loading-text-elite { color: #00C853; font-size: 10px; letter-spacing: 4px; font-weight: 300; text-transform: uppercase; }
-          @keyframes pulse-master { 0% { transform: scale(0.9); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+          .loading-text-elite { color: #00C853; font-size: 11px; letter-spacing: 6px; font-weight: 300; text-transform: uppercase; margin-bottom: 10px; }
+          @keyframes pulse-master { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
           @keyframes progress-master { 100% { width: 100%; } }
+          @keyframes scan-master { 0%, 100% { top: 0%; } 50% { top: 100%; } }
         `}</style>
       </div>
     );
@@ -105,63 +108,98 @@ export default function LandingPage() {
       <nav className="navbar-elite">
         <div className="nav-container-master">
           <div className="nav-brand">
-            <span className="brand-text">GURÚ <span className="brand-neon">ÉLITE</span></span>
+            <span className="brand-text">EL GURÚ <span className="brand-neon">ÉLITE</span></span>
           </div>
+
+          {/* MENÚ DESKTOP */}
           <div className="nav-links-desktop">
-            <span onClick={() => abrirInfoSeccion('quienes')} className="link-elite pointer">Quiénes</span>
-            <span onClick={() => abrirInfoSeccion('proyecto')} className="link-elite pointer">Proyecto</span>
+            <span onClick={() => abrirInfoSeccion('quienes')} className="link-elite pointer">Quiénes Somos</span>
+            <span onClick={() => abrirInfoSeccion('proyecto')} className="link-elite pointer">Proyecto Gurú</span>
             <span onClick={() => abrirInfoSeccion('inversionistas')} className="link-elite pointer">Inversionistas</span>
           </div>
-          <button onClick={(e) => ejecutarTransicion(e, '/panel')} className="btn-access-master">ACCESO</button>
+
+          <div className="nav-actions-master">
+            <button onClick={(e) => ejecutarTransicion(e, '/panel')} className="btn-access-master desktop-only">ACCESO EXCLUSIVO</button>
+            <button className="menu-toggle" onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}>
+              {menuMovilAbierto ? <X size={28} color="#00C853" /> : <Menu size={28} color="#00C853" />}
+            </button>
+          </div>
+        </div>
+
+        {/* MENÚ MÓVIL (HAMBURGUESA) */}
+        <div className={`mobile-menu-overlay ${menuMovilAbierto ? 'active' : ''}`}>
+           <span onClick={() => abrirInfoSeccion('quienes')} className="mobile-link">Quiénes Somos</span>
+           <span onClick={() => abrirInfoSeccion('proyecto')} className="mobile-link">Proyecto Gurú</span>
+           <span onClick={() => abrirInfoSeccion('inversionistas')} className="mobile-link">Inversionistas</span>
+           <button onClick={(e) => ejecutarTransicion(e, '/panel')} className="btn-mobile-access">ACCESO EXCLUSIVO</button>
         </div>
       </nav>
 
       <section className="hero-elite">
         <div className="hero-layout">
-          <div className="hero-status-tag"><Zap size={12} color="#00C853" /> INVERSIÓN EXCLUSIVA</div>
-          <h1 className="hero-main-title">
-            <span className="text-glow-neon">LA CIENCIA DE</span> <br/>
-            PREDECIR
-          </h1>
-          <p className="hero-subtext">
-            Optimización de activos mediante algoritmos de IA. 
-            Seguridad institucional para inversores de alto perfil.
-          </p>
-          <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-hero-primary">
-            COMENZAR <ArrowUpRight size={18} />
-          </button>
+          <div className="hero-info-text">
+            <div className="hero-status-tag"><Zap size={14} color="#00C853" /> ÉLITE DE INVERSIÓN EXCLUSIVA</div>
+            <h1 className="hero-main-title">
+              <span className="text-glow-neon">LA CIENCIA DE</span> <br/>
+              PREDECIR
+            </h1>
+            <p className="hero-subtext">
+              Optimización estratégica de activos mediante algoritmos de IA de alta frecuencia. 
+              Seguridad blindada para inversores de alto perfil.
+            </p>
+            <div className="hero-cta-btn-group">
+              <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-hero-primary">
+                COMENZAR AHORA <ArrowUpRight size={20} />
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="hero-visuals-horizontal">
-          {[
-            { icon: Activity, label: "PROMEDIO", val: "+18.5%" },
-            { icon: ShieldCheck, label: "CAPITAL", val: "100% Auditado" },
-            { icon: Lock, label: "SEGURIDAD", val: "Validación IA" }
-          ].map((item, i) => (
-            <div key={i} className="stat-card-horizontal glass-effect">
-              <item.icon color="#00C853" size={20} />
-              <div className="stat-info">
-                <span className="stat-label">{item.label}</span>
-                <span className="stat-value">{item.val}</span>
-              </div>
+          <div className="master-glow-orb"></div>
+          <div className="stat-card-horizontal glass-effect">
+            <div className="stat-icon-glow"><Activity color="#00C853" size={24} /></div>
+            <div className="stat-info">
+              <span className="stat-label">RENDIMIENTO PROMEDIO</span>
+              <span className="stat-value">+18.5% <small>MES</small></span>
             </div>
-          ))}
+          </div>
+          <div className="stat-card-horizontal glass-effect">
+            <div className="stat-icon-glow"><ShieldCheck color="#00C853" size={24} /></div>
+            <div className="stat-info">
+              <span className="stat-label">PROTECCIÓN DE CAPITAL</span>
+              <span className="stat-value">100% Auditado</span>
+            </div>
+          </div>
+          <div className="stat-card-horizontal glass-effect">
+            <div className="stat-icon-glow"><Lock color="#00C853" size={24} /></div>
+            <div className="stat-info">
+              <span className="stat-label">SEGURIDAD INSTITUCIONAL</span>
+              <span className="stat-value">Validación IA</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="plans-section-luxe">
+      {/* RESTO DE SECCIONES (MEMBRESÍAS) SE MANTIENEN IGUAL */}
+      <section id="proyecto-inversionistas" className="plans-section-luxe">
         <div className="section-header-luxe">
-          <span className="header-tag-luxe">MERCADO PRIVADO</span>
-          <h2 className="header-title-luxe">MEMBRESÍAS <span className="brand-neon">ÉLITE</span></h2>
+          <span className="header-tag-luxe">MERCADO DE CAPITAL PRIVADO</span>
+          <h2 className="header-title-luxe">PORTAFOLIO DE MEMBRESIAS <span className="brand-neon">EXCLUSIVAS</span></h2>
+          <div className="header-line-luxe"></div>
         </div>
         <div className="plans-grid-luxe">
           {membresias.map((plan) => (
-            <div key={plan.name} className="membership-card-luxe fade-up-card" style={{animationDelay: plan.delay, '--card-color': plan.color} as React.CSSProperties}>
+            <div key={plan.name} className="membership-card-luxe fade-up-card shadow-hover" style={{animationDelay: plan.delay, '--card-color': plan.color} as React.CSSProperties}>
               <div className="card-energy-bar"></div>
               <div className="m-card-inner">
-                <h3 className="m-card-name">{plan.name}</h3>
-                <div className="m-card-price"><span>$</span>{plan.price}</div>
-                <p className="m-card-profit">Profit: {plan.profit}</p>
+                <div className="m-card-header"><span className="m-fondo-tag">FONDO DE INVERSIÓN</span><h3 className="m-card-name">{plan.name}</h3></div>
+                <div className="m-card-body">
+                  <div className="m-card-price"><span className="m-sign">$</span><span className="m-num">{plan.price}</span><span className="m-usd">USD</span></div>
+                  <div className="m-card-profit"><TrendingUp size={18} color={plan.color} /><span>PROFIT: <strong>{plan.profit}</strong></span></div>
+                  <div className="m-divider-luxe"></div>
+                  <p className="m-perk-text">{plan.perk}</p>
+                </div>
                 <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-m-acquire">ADQUIRIR</button>
               </div>
             </div>
@@ -171,52 +209,59 @@ export default function LandingPage() {
 
       <footer className="footer-elite-master">
         <div className="footer-links-row">
-          <span className="f-item-elite" onClick={() => abrirLegal('terminos')}>Términos</span>
-          <span className="f-item-elite" onClick={() => abrirLegal('privacidad')}>Privacidad</span>
+          <span className="f-item-elite" onClick={() => abrirLegal('terminos')}><Scale size={16} color="#00C853" /> Términos</span>
+          <span className="f-item-elite" onClick={() => abrirLegal('privacidad')}><FileText size={16} color="#00C853" /> Privacidad</span>
         </div>
-        <p className="f-copyright-text">© 2026 EL GURÚ ÉLITE</p>
+        <p className="f-copyright-text">© 2026 EL GURÚ ÉLITE. TODOS LOS DERECHOS RESERVADOS.</p>
       </footer>
 
       <style jsx global>{`
         :root { --neon: #00C853; }
-        .elite-landing-master { background-color: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; padding-top: 60px; }
+        .elite-landing-master { background-color: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; padding-top: 80px; }
         
-        /* NAVBAR COMPACTA */
-        .navbar-elite { width: 100%; position: fixed; top: 0; z-index: 1000; background: rgba(0, 0, 0, 0.9); border-bottom: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px); }
-        .nav-container-master { max-width: 1200px; margin: 0 auto; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .brand-text { font-weight: 900; font-size: clamp(1rem, 4vw, 1.3rem); }
-        .btn-access-master { border: 1px solid var(--neon); color: var(--neon); padding: 8px 16px; border-radius: 4px; font-weight: 900; font-size: 10px; background: transparent; cursor: pointer; }
+        /* NAVBAR RESPONSIVA */
+        .navbar-elite { width: 100%; position: fixed; top: 0; z-index: 1000; background: rgba(0, 0, 0, 0.95); border-bottom: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(20px); }
+        .nav-container-master { max-width: 1400px; margin: 0 auto; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .brand-text { font-weight: 900; font-size: 1.5rem; letter-spacing: -1px; }
+        .brand-neon { color: var(--neon); text-shadow: 0 0 15px rgba(0,200,83,0.4); }
+        
+        .nav-links-desktop { display: none; gap: 30px; }
+        @media (min-width: 1024px) { .nav-links-desktop { display: flex; } }
+        .link-elite { color: #888; text-transform: uppercase; font-size: 11px; font-weight: 900; letter-spacing: 2px; transition: 0.3s; cursor: pointer; }
+        .link-elite:hover { color: var(--neon); }
 
-        /* HERO AJUSTADO */
-        .hero-elite { max-width: 1200px; margin: 0 auto; padding: 60px 20px; text-align: center; }
-        .hero-layout { display: flex; flex-direction: column; align-items: center; }
-        .hero-status-tag { background: rgba(0,200,83,0.1); padding: 6px 12px; border-radius: 20px; color: var(--neon); font-size: 10px; font-weight: 900; margin-bottom: 20px; display: flex; gap: 8px; align-items: center; }
-        .hero-main-title { font-size: clamp(2.2rem, 10vw, 4.5rem); font-weight: 900; line-height: 1; margin-bottom: 20px; letter-spacing: -2px; }
-        .hero-subtext { color: #666; font-size: clamp(0.9rem, 3vw, 1.1rem); line-height: 1.5; margin-bottom: 30px; max-width: 500px; }
-        .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 16px 32px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; }
+        .menu-toggle { display: block; background: none; border: none; cursor: pointer; }
+        @media (min-width: 1024px) { .menu-toggle { display: none; } .desktop-only { display: block; } }
+        .desktop-only { display: none; }
 
-        /* STATS COMPACTOS */
-        .hero-visuals-horizontal { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 50px; width: 100%; }
-        .stat-card-horizontal { background: #080808; border: 1px solid #111; border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; text-align: left; }
-        .stat-label { font-size: 9px; color: #444; font-weight: 900; display: block; }
-        .stat-value { font-size: 14px; font-weight: 900; color: white; }
+        /* MENÚ MÓVIL ESTILO GURÚ */
+        .mobile-menu-overlay { position: fixed; top: 80px; left: 0; width: 100%; height: 0; background: #000; overflow: hidden; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; z-index: 999; }
+        .mobile-menu-overlay.active { height: calc(100vh - 80px); }
+        .mobile-link { color: white; font-size: 1.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; }
+        .btn-mobile-access { background: var(--neon); color: black; border: none; padding: 15px 30px; border-radius: 4px; font-weight: 900; }
 
-        /* MEMBRESÍAS RESPONSIVAS */
-        .plans-section-luxe { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
-        .section-header-luxe { text-align: center; margin-bottom: 40px; }
-        .header-title-luxe { font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 900; }
-        .plans-grid-luxe { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 12px; padding: 30px 15px; text-align: center; position: relative; transition: 0.3s; }
-        .m-card-name { font-size: 1rem; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; color: #555; }
-        .m-card-price { font-size: 2rem; font-weight: 900; color: white; margin-bottom: 10px; }
-        .m-card-price span { font-size: 1rem; color: var(--neon); vertical-align: top; }
-        .m-card-profit { font-size: 0.8rem; color: #00C853; font-weight: bold; margin-bottom: 20px; }
-        .btn-m-acquire { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--card-color); color: var(--card-color); font-weight: 900; border-radius: 4px; cursor: pointer; font-size: 10px; }
+        /* HERO RECTIFICADO (EL DEGRADADO BLANCO/VERDE) */
+        .hero-elite { max-width: 1400px; margin: 0 auto; padding: 100px 30px; }
+        .hero-main-title { font-size: clamp(2.8rem, 8vw, 5.5rem); font-weight: 900; line-height: 0.95; margin-bottom: 35px; letter-spacing: -3px; text-align: left; }
+        .text-glow-neon { background: linear-gradient(180deg, #fff 30%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-subtext { color: #666; font-size: 1.25rem; line-height: 1.6; max-width: 600px; margin-bottom: 40px; }
+        .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 20px 40px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; gap: 15px; cursor: pointer; }
 
-        .footer-elite-master { padding: 40px 20px; text-align: center; border-top: 1px solid #111; color: #333; }
-        .footer-links-row { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
-        .f-item-elite { font-size: 11px; font-weight: 900; cursor: pointer; }
-        .f-copyright-text { font-size: 9px; letter-spacing: 2px; }
+        /* STATS CARDS */
+        .hero-visuals-horizontal { display: flex; flex-direction: column; gap: 20px; margin-top: 60px; }
+        @media (min-width: 1024px) { .hero-visuals-horizontal { flex-direction: row; } }
+        .stat-card-horizontal { background: rgba(10,10,10,0.8); border: 1px solid #111; padding: 25px; border-radius: 12px; display: flex; align-items: center; gap: 20px; flex: 1; }
+        .stat-label { font-size: 10px; color: #444; font-weight: 900; letter-spacing: 2px; }
+        .stat-value { font-size: 1.5rem; font-weight: 900; }
+
+        /* PLANES GRID */
+        .plans-grid-luxe { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; padding: 40px 20px; position: relative; overflow: hidden; transition: 0.4s; text-align: center; }
+        .membership-card-luxe:hover { border-color: var(--card-color); transform: translateY(-10px); }
+        .card-energy-bar { position: absolute; top:0; left:0; width: 100%; height: 4px; background: var(--card-color); }
+        .m-card-price { font-size: 2.5rem; font-weight: 900; margin: 20px 0; }
+        .m-card-price .m-sign { color: var(--neon); font-size: 1.2rem; vertical-align: top; }
+        .btn-m-acquire { width: 100%; padding: 15px; background: transparent; border: 1px solid var(--card-color); color: var(--card-color); font-weight: 900; cursor: pointer; margin-top: 20px; }
 
         @keyframes progress-master { 100% { width: 100%; } }
         .fade-up-card { opacity: 0; animation: fadeUp 0.8s ease forwards; }
