@@ -29,10 +29,10 @@ export default function LandingPage() {
   };
 
   const membresias = [
-    { name: 'Micro', price: '100', profit: '+8-10%', perk: 'Nivel 1: Acceso Base', delay: '0.1s', color: '#444' },
-    { name: 'Inicial', price: '250', profit: '+12-15%', perk: 'Nivel 2: Gestión Activa', delay: '0.2s', color: '#00E5FF' },
-    { name: 'Activo', price: '500', profit: '+18.5%', perk: 'Nivel 3: Capital Auditado', delay: '0.3s', color: '#00C853' },
-    { name: 'Premium', price: '1000', profit: '+20-25%', perk: 'Nivel 4: Prioridad Institucional', delay: '0.4s', color: '#FFD600' },
+    { name: 'Micro', price: '100', profit: '+8-10%', perk: 'Nivel 1: Acceso Base', delay: '0.1s', color: '#E0E0E0' },
+    { name: 'Inicial', price: '250', profit: '+12-15%', perk: 'Nivel 2: Gestión Activa', delay: '0.2s', color: '#81D4FA' },
+    { name: 'Activo', price: '500', profit: '+18.5%', perk: 'Nivel 3: Capital Auditado', delay: '0.3s', color: '#FFD54F' },
+    { name: 'Premium', price: '1000', profit: '+20-25%', perk: 'Nivel 4: Prioridad Institucional', delay: '0.4s', color: '#FF8A65' },
     { name: 'Élite', price: '1500', profit: '+30% VIP', perk: 'Nivel 5: Fondo Global VIP', delay: '0.5s', color: '#AA00FF' }
   ];
 
@@ -191,16 +191,37 @@ export default function LandingPage() {
         <div className="plans-grid-luxe">
           {membresias.map((plan) => (
             <div key={plan.name} className="membership-card-luxe fade-up-card shadow-hover" style={{animationDelay: plan.delay, '--card-color': plan.color} as React.CSSProperties}>
+              
+              {/* REBORDE SUPERIOR BRILLANTE RESTAURADO */}
               <div className="card-energy-bar"></div>
+              
               <div className="m-card-inner">
-                <div className="m-card-header"><span className="m-fondo-tag">FONDO DE INVERSIÓN</span><h3 className="m-card-name">{plan.name}</h3></div>
+                <div className="m-card-header">
+                  <span className="m-fondo-tag">FONDO DE INVERSIÓN</span>
+                  <h3 className="m-card-name" style={{color: 'white', fontWeight: 900}}>{plan.name}</h3>
+                </div>
                 <div className="m-card-body">
-                  <div className="m-card-price"><span className="m-sign">$</span><span className="m-num">{plan.price}</span><span className="m-usd">USD</span></div>
-                  <div className="m-card-profit"><TrendingUp size={18} color={plan.color} /><span>PROFIT: <strong>{plan.profit}</strong></span></div>
+                  <div className="m-card-price">
+                    <span className="m-sign" style={{color: plan.color}}>$</span>
+                    <span className="m-num">{plan.price}</span>
+                    <span className="m-usd">USD</span>
+                  </div>
+                  <div className="m-card-profit">
+                    <TrendingUp size={18} color={plan.color} />
+                    <span>PROFIT: <strong style={{color: plan.color}}>{plan.profit}</strong></span>
+                  </div>
                   <div className="m-divider-luxe"></div>
                   <p className="m-perk-text">{plan.perk}</p>
                 </div>
-                <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-m-acquire">ADQUIRIR</button>
+                
+                {/* BOTÓN CON COLOR DINÁMICO SEGÚN EL PLAN */}
+                <button 
+                  onClick={(e) => ejecutarTransicion(e, '/unete')} 
+                  className="btn-m-acquire-colored"
+                  style={{ '--btn-color': plan.color } as React.CSSProperties}
+                >
+                  ADQUIRIR
+                </button>
               </div>
             </div>
           ))}
@@ -243,7 +264,6 @@ export default function LandingPage() {
         .text-glow-neon { background: linear-gradient(180deg, #fff 30%, var(--neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .hero-subtext { color: #666; font-size: 1.1rem; line-height: 1.6; max-width: 600px; margin-bottom: 35px; }
 
-        /* --- BOTONES EN UNA SOLA FILA PARA MÓVIL --- */
         .hero-cta-btn-group { display: flex; gap: 8px; width: 100%; }
         .btn-hero-primary { background: var(--neon); color: black; border: none; padding: 16px 15px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; flex: 1.5; font-size: 0.75rem; white-space: nowrap; }
         .btn-hero-secondary { background: transparent; border: 1px solid var(--neon); color: var(--neon); padding: 16px 15px; border-radius: 4px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; flex: 1; font-size: 0.75rem; white-space: nowrap; }
@@ -254,19 +274,24 @@ export default function LandingPage() {
           .btn-hero-secondary { display: none; } 
         }
 
-        .hero-visuals-horizontal { display: flex; flex-direction: column; gap: 15px; margin-top: 50px; }
-        @media (min-width: 1024px) { .hero-visuals-horizontal { flex-direction: row; gap: 20px; } }
         .stat-card-horizontal { background: rgba(10,10,10,0.8); border: 1px solid #111; padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 15px; flex: 1; }
-        .stat-label { font-size: 10px; color: #444; font-weight: 900; letter-spacing: 2px; }
-        .stat-value { font-size: 1.3rem; font-weight: 900; }
 
+        /* ESTILOS RECTIFICADOS PARA EL PORTAFOLIO */
         .plans-section-luxe { padding: 80px 20px; max-width: 1600px; margin: 0 auto; }
         .plans-grid-luxe { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; padding: 40px 20px; position: relative; overflow: hidden; transition: 0.4s; text-align: center; }
         
-        .footer-elite-master { padding: 60px 20px; background: #050505; text-align: center; border-top: 1px solid #111; margin-top: 50px; }
-        .footer-links-row { display: flex; justify-content: center; gap: 30px; margin-bottom: 30px; }
+        .membership-card-luxe { background: #080808; border: 1px solid #111; border-radius: 16px; padding: 40px 20px; position: relative; overflow: hidden; transition: 0.4s; text-align: center; }
+        .membership-card-luxe:hover { border-color: var(--card-color); transform: translateY(-10px); }
+        
+        .card-energy-bar { position: absolute; top:0; left:0; width: 100%; height: 5px; background: var(--card-color); box-shadow: 0 0 15px var(--card-color); z-index: 5; }
+        .m-card-price { font-size: 2.5rem; font-weight: 900; margin: 20px 0; }
+        .m-card-price .m-sign { font-size: 1.2rem; vertical-align: top; }
+        .m-card-price .m-usd { font-size: 1rem; color: #444; margin-left: 5px; }
 
+        .btn-m-acquire-colored { width: 100%; padding: 15px; background: transparent; border: 1px solid var(--btn-color); color: var(--btn-color); font-weight: 900; cursor: pointer; margin-top: 20px; border-radius: 4px; transition: 0.3s; }
+        .btn-m-acquire-colored:hover { background: var(--btn-color); color: black; box-shadow: 0 0 20px var(--btn-color); }
+
+        .footer-elite-master { padding: 60px 20px; background: #050505; text-align: center; border-top: 1px solid #111; margin-top: 50px; }
         .fade-up-card { opacity: 0; animation: fadeUp 0.8s ease forwards; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
