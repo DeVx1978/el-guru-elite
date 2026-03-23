@@ -8,10 +8,11 @@ import {
   ChevronRight, ArrowLeft, Globe, ShieldCheck, Info, Landmark
 } from 'lucide-react';
 
-const clientSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!, 
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Inicialización blindada
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+const clientSupabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const planes = [
   { id: 'micro', nombre: 'MICRO SOCIO', precio: 100, porcentaje: '0.067% de utilidades', icon: Target, color: '#E0E0E0' },
@@ -94,13 +95,17 @@ export default function UnetePage() {
   };
 
   const finalizarRegistro = async () => {
+    if (!supabaseUrl || !supabaseAnonKey) {
+        setError("Error de configuración: Faltan llaves de acceso al servidor.");
+        return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      // 1. Limpieza de datos antes de enviar
       const correoLimpio = formData.email.trim().toLowerCase();
 
-      // 2. Inserción en tabla socios
+      // Intento de registro en tabla socios
       const { data: socio, error: errSocio } = await clientSupabase
         .from('socios')
         .insert([{
@@ -113,12 +118,12 @@ export default function UnetePage() {
         .select().single();
       
       if (errSocio) {
-          // Detectar error de duplicado real vs error de sistema
+          console.error("Detalle técnico Supabase:", errSocio);
           if (errSocio.code === '23505') throw new Error("Este correo ya está registrado.");
-          throw new Error("Error de conexión con el servidor de seguridad.");
+          throw new Error(`Error del Servidor: ${errSocio.message}`);
       }
 
-      // 3. Inserción en tabla socios_elite
+      // Inserción en tabla socios_elite
       const { error: errElite } = await clientSupabase
         .from('socios_elite')
         .insert([{
@@ -131,16 +136,19 @@ export default function UnetePage() {
           metodo_pago: formData.metodoPago
         }]);
 
-      if (errElite) throw new Error("Error al vincular los datos financieros. Contacte soporte.");
+      if (errElite) {
+          console.error("Error en socios_elite:", errElite);
+          throw new Error(`Error en datos financieros: ${errElite.message}`);
+      }
 
       setPaso(5);
     } catch (err: any) { 
-      setError(err.message); 
+      setError(err.message || "Ocurrió un fallo inesperado en la conexión."); 
       setLoading(false);
     }
   };
 
-  const paso1Valido = formData.nombre && formData.email && formData.password.length >= 8 && formData.password === formData.confirmPassword && formData.tyc && formData.politicas;
+  const paso1Valido = formData.nombre && formData.email && formData.password.length >= 6 && formData.password === formData.confirmPassword && formData.tyc && formData.politicas;
   const paso2Valido = formData.pais && formData.ciudad && formData.telefono;
 
   return (
@@ -156,7 +164,6 @@ export default function UnetePage() {
 
       <main className="unete-content">
         <div className="form-container">
-          {/* PASO 1: SEGURIDAD REFORZADA */}
           {paso === 1 && (
             <div className="fade-in">
               <span className="step-badge">PASO 01</span>
@@ -170,13 +177,12 @@ export default function UnetePage() {
                 </div>
                 <div className="field">
                   <Lock size={18}/><input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Confirmar Contraseña" value={formData.confirmPassword} onChange={handleInputChange}/>
-                  {/* El botón de ojo ahora afecta a ambos simultáneamente por diseño de usabilidad */}
                   <button onClick={() => setShowPass(!showPass)} className="btn-eye">{showPass ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
                 </div>
               </div>
               <div className="checks">
-                <label className="check-item"><input type="checkbox" name="tyc" checked={formData.tyc} onChange={handleInputChange}/><span>Acepto Términos</span></label>
-                <label className="check-item"><input type="checkbox" name="politicas" checked={formData.politicas} onChange={handleInputChange}/><span>Acepto Privacidad</span></label>
+                <label className="check-item"><input type="checkbox" name="tyc" checked={formData.tyc} onChange={handleInputChange} /><span>Acepto Términos</span></label>
+                <label className="check-item"><input type="checkbox" name="politicas" checked={formData.politicas} onChange={handleInputChange} /><span>Acepto Privacidad</span></label>
               </div>
               <button disabled={!paso1Valido} onClick={() => setPaso(2)} className="btn-primary">CONTINUAR <ChevronRight size={18}/></button>
             </div>
@@ -275,7 +281,6 @@ export default function UnetePage() {
         .step-badge { font-size: 10px; font-weight: 900; color: #00C853; letter-spacing: 3px; display: block; margin-bottom: 10px; }
         h1 { font-size: 2rem; font-weight: 900; margin-bottom: 10px; letter-spacing: -1.5px; }
         h1 span { color: #00C853; }
-        p { color: #666; font-size: 14px; margin-bottom: 30px; line-height: 1.6; }
         .input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
         .field { background: #050505; border: 1px solid #111; border-radius: 12px; display: flex; align-items: center; padding: 0 15px; gap: 12px; transition: 0.3s; }
         .field:focus-within { border-color: #00C853; }
@@ -288,12 +293,11 @@ export default function UnetePage() {
         .check-item { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #444; cursor: pointer; }
         .check-item input { width: 18px; height: 18px; accent-color: #00C853; }
         .btn-primary { width: 100%; background: #00C853; color: #000; border: none; padding: 20px; border-radius: 14px; font-weight: 900; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; }
-        .btn-primary:disabled { background: #111; color: #444; cursor: not-allowed; }
+        .btn-primary:disabled { background: #111; color: #444; cursor: not-allowed; opacity: 0.5; }
         .planes-stack { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
         .plan-card { background: #050505; border: 1px solid #111; padding: 20px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: 0.3s; }
         .plan-card.active { border-color: var(--color); }
         .payment-box { background: #050505; border: 1px solid #111; padding: 25px; border-radius: 20px; margin-bottom: 30px; }
-        .pay-summary { margin-bottom: 20px; }
         .pay-details { background: rgba(0,200,83,0.05); border: 1px solid rgba(0,200,83,0.1); padding: 15px; border-radius: 12px; display: flex; gap: 12px; margin-bottom: 20px; font-size: 12px; color: #ccc; }
         .upload-zone { border: 2px dashed #111; border-radius: 15px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; cursor: pointer; overflow: hidden; }
         .preview { width: 100%; height: 100%; object-fit: contain; }
