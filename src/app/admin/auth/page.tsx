@@ -15,32 +15,36 @@ export default function BunkerAdmin() {
     e.preventDefault();
     if (loading) return;
 
-    setLoading(true);
+    setLoading(true); 
     setError(false);
     setAccesoExitoso(false);
 
     const LLAVE_CORRECTA = "GURU2026";
 
-    // ⏱️ CRONÓMETRO DE SEGURIDAD: 3 Segundos exactos de carga
+    // ⏱️ SIMULACIÓN DE SEGURIDAD ELITE: 3 Segundos exactos de carga
     setTimeout(() => {
       if (llave === LLAVE_CORRECTA) {
         setAccesoExitoso(true);
         
         if (typeof window !== 'undefined') {
-          // Limpieza de sesiones previas para entrada limpia
+          // 🧹 LIMPIEZA DE SEGURIDAD: Borramos rastro de Maria Jose o cualquier socio
           localStorage.removeItem('socio_id');
           localStorage.removeItem('socio_nombre');
+          localStorage.removeItem('socio_rol');
+          
+          // Autorizamos el búnker de forma independiente
           localStorage.setItem('bunker_auth', LLAVE_CORRECTA);
         }
 
-        // Delay visual para apreciar el escudo en verde antes de entrar
+        // Delay visual para que el usuario vea el escudo iluminarse en verde
         setTimeout(() => {
           router.push('/admin'); 
-        }, 600);
+        }, 800);
+
       } else {
         setError(true);
         setLlave('');
-        setLoading(false);
+        setLoading(false); 
       }
     }, 3000); 
   };
@@ -48,12 +52,11 @@ export default function BunkerAdmin() {
   return (
     <div className="bunker-wrapper">
       <div className="bunker-card">
-        {/* ESCUDO: Cambia a verde SOLO si la clave es correcta tras la carga */}
         <div className="icon-box">
           <ShieldCheck 
             size={80} 
-            color={accesoExitoso ? "#00C853" : (error ? "#ff4444" : "#222")} 
-            className={`shield-svg ${accesoExitoso ? 'glow-green' : ''}`}
+            className={`shield-svg ${accesoExitoso ? 'glow-green' : (error ? 'glow-red' : '')}`}
+            color={accesoExitoso ? "#00C853" : (error ? "#ff4444" : "#222")}
           />
         </div>
 
@@ -83,7 +86,11 @@ export default function BunkerAdmin() {
           {error && <p className="error-msg">ACCESO DENEGADO: LLAVE INVÁLIDA</p>}
 
           <button type="submit" className="unlock-btn" disabled={loading}>
-            {loading ? <Loader2 className="spin" size={24} /> : <><Zap size={18} /> DESBLOQUEAR</>}
+            {loading ? (
+              <Loader2 className="animate-spin" size={28} color="#00C853" />
+            ) : (
+              <><Zap size={18} /> DESBLOQUEAR</>
+            )}
           </button>
         </form>
       </div>
@@ -107,11 +114,12 @@ export default function BunkerAdmin() {
           border-radius: 30px;
           text-align: center;
           box-shadow: 0 0 100px rgba(0,0,0,0.8);
-          transition: 0.5s ease;
+          position: relative;
         }
         .icon-box { margin-bottom: 30px; display: flex; justify-content: center; }
         .shield-svg { transition: 0.5s ease; }
         .glow-green { filter: drop-shadow(0 0 15px #00C853); transform: scale(1.1); }
+        .glow-red { filter: drop-shadow(0 0 10px #ff4444); }
         
         .title { color: #fff; font-weight: 900; letter-spacing: 3px; font-size: 1.2rem; margin-bottom: 40px; }
         
@@ -164,8 +172,9 @@ export default function BunkerAdmin() {
         .unlock-btn:hover:not(:disabled) { background: #fff; transform: translateY(-3px); }
         .unlock-btn:disabled { background: #0a0a0a; color: #222; cursor: not-allowed; border: 1px solid #111; }
 
-        .spin { animation: rotate 1s linear infinite; color: #00C853; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* 🌀 ANIMACIÓN DE CARGA */
+        :global(.animate-spin) { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         /* RESPONSIVIDAD 100% */
         @media (max-width: 480px) {
