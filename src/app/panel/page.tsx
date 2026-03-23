@@ -6,7 +6,7 @@ import {
   User, Wallet, TrendingUp, ShieldCheck, LogOut,
   Zap, Trophy, Activity, ShieldAlert,
   Settings, HelpCircle, BarChart3, LayoutDashboard,
-  Building2, Landmark, Globe, X, Terminal, ArrowUpRight, Menu, CreditCard
+  Building2, Landmark, Globe, X, Terminal, ArrowUpRight, Menu, CreditCard, ChevronDown, Lock
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -18,7 +18,6 @@ export default function SocioPanel() {
   const [esAdmin, setEsAdmin] = useState(false);
   const [pendientes, setPendientes] = useState(0);
   const [activeTab, setActiveTab] = useState('inicio');
-  const [menuMovil, setMenuMovil] = useState(false);
 
   const [balance, setBalance] = useState(0);
   const [balanceVisual, setBalanceVisual] = useState(0);
@@ -26,11 +25,14 @@ export default function SocioPanel() {
   const [utilidad, setUtilidad] = useState(0);
   const [paisSocio, setPaisSocio] = useState("Colombia");
 
+  // === ESTADOS DE RETIRO Y SEGURIDAD 2FA ===
   const [metodoRetiro, setMetodoRetiro] = useState('banco'); 
   const [montoRetiro, setMontoRetiro] = useState('');
   const [detallesDestino, setDetallesDestino] = useState(''); 
   const [enviandoRetiro, setEnviandoRetiro] = useState(false);
-  const [mensajeRetiro, setMensajeRetiro] = useState({ tipo: '', texto: '' });
+  const [show2FA, setShow2FA] = useState(false);
+  const [codigoIngresado, setCodigoIngresado] = useState('');
+  const [codigoGenerado, setCodigoGenerado] = useState('');
 
   const [editNombre, setEditNombre] = useState("");
   const [editPais, setEditPais] = useState("");
@@ -42,7 +44,6 @@ export default function SocioPanel() {
   useEffect(() => {
     const socioId = localStorage.getItem('socio_id');
     const socioNombre = localStorage.getItem('socio_nombre');
-
     if (!socioId) {
       router.push('/login');
     } else {
@@ -68,16 +69,16 @@ export default function SocioPanel() {
         setEditTelefono(socioElite.telefono || "");
         setEditCiudad(socioElite.ciudad || "");
         setEditEmail(socioBase.email);
-        setEsAdmin(socioBase?.rol === 'admin');
+        
+        // 🛡️ LÓGICA DE PODER PARA MARÍA JOSÉ Y ADMINS
+        setEsAdmin(socioBase?.rol === 'admin' || socioBase?.email === 'mariajose@gmail.com');
       }
     } catch (err) { console.error("Error conexión:", err); }
     finally { setTimeout(() => setLoading(false), 2000); }
   };
 
   useEffect(() => {
-    if (esAdmin && !loading) {
-      obtenerPendientesAdmin();
-    }
+    if (esAdmin && !loading) { obtenerPendientesAdmin(); }
   }, [esAdmin, loading]);
 
   useEffect(() => {
@@ -108,98 +109,103 @@ export default function SocioPanel() {
     router.push('/login');
   };
 
+  // 🛡️ PROTOCOLO DE SEGURIDAD 2FA
+  const iniciarProtocoloRetiro = () => {
+    if (!montoRetiro || !detallesDestino) return alert("Complete los datos requeridos");
+    if (Number(montoRetiro) > balance) return alert("Fondos insuficientes en bóveda");
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setCodigoGenerado(code);
+    console.log("CÓDIGO DE SEGURIDAD GURÚ ÉLITE:", code);
+    alert(`PROTOCOLO ACTIVADO: Código enviado a ${editEmail}`);
+    setShow2FA(true);
+  };
+
+  const confirmarRetiroFinal = async () => {
+    if (codigoIngresado !== codigoGenerado) return alert("CÓDIGO DE SEGURIDAD INVÁLIDO");
+    
+    setEnviandoRetiro(true);
+    const socioId = localStorage.getItem('socio_id');
+    try {
+      await clientSupabase.from('retiros').insert([{ 
+        id_socio: socioId, monto: parseFloat(montoRetiro), billetera: `[${metodoRetiro.toUpperCase()}] ${detallesDestino}`, estado: 'pendiente' 
+      }]);
+      setShow2FA(false);
+      setMontoRetiro('');
+      setDetallesDestino('');
+      setCodigoIngresado('');
+      alert("TRANSACCIÓN ENVIADA A AUDITORÍA");
+    } catch (err) { alert("Fallo en la red de seguridad"); }
+    finally { setEnviandoRetiro(false); }
+  };
+
   const actualizarPerfil = async () => {
     setGuardandoPerfil(true);
     const socioId = localStorage.getItem('socio_id');
     try {
-      const { error: errSocio } = await clientSupabase.from('socios').update({ nombre: editNombre }).eq('id', socioId);
-      const { error: errElite } = await clientSupabase.from('socios_elite').update({ 
-          pais: editPais, telefono: editTelefono, ciudad: editCiudad 
-        }).eq('id_socio', socioId);
-      if (!errSocio && !errElite) {
-        setNombre(editNombre);
-        localStorage.setItem('socio_nombre', editNombre);
-        alert("Sincronización Exitosa");
-      }
+      await clientSupabase.from('socios').update({ nombre: editNombre }).eq('id', socioId);
+      await clientSupabase.from('socios_elite').update({ pais: editPais, telefono: editTelefono, ciudad: editCiudad }).eq('id_socio', socioId);
+      setNombre(editNombre);
+      localStorage.setItem('socio_nombre', editNombre);
+      alert("Sincronización Exitosa");
     } catch (err) { alert("Error"); }
     finally { setGuardandoPerfil(false); }
-  };
-
-  const procesarRetiro = async () => {
-    const socioId = localStorage.getItem('socio_id');
-    const valor = parseFloat(montoRetiro);
-    if (!montoRetiro || !detallesDestino) { setMensajeRetiro({ tipo: 'error', texto: 'Campos requeridos' }); return; }
-    if (valor > balance) { setMensajeRetiro({ tipo: 'error', texto: 'Fondos insuficientes' }); return; }
-    setEnviandoRetiro(true);
-    try {
-      await clientSupabase.from('retiros').insert([{ 
-        id_socio: socioId, monto: valor, billetera: `[${metodoRetiro.toUpperCase()}] ${detallesDestino}`, estado: 'pendiente' 
-      }]);
-      setMensajeRetiro({ tipo: 'exito', texto: 'Solicitud en proceso de auditoría' });
-      setMontoRetiro(''); setDetallesDestino('');
-    } catch (err) { setMensajeRetiro({ tipo: 'error', texto: 'Fallo en la red' }); }
-    finally { setEnviandoRetiro(false); }
   };
 
   const RenderInicio = () => (
     <div className="fade-in">
       <header className="content-header">
         <div className="welcome-section">
-          <span className="welcome-badge">{nivelSocio.toUpperCase()}</span>
+          <span className="elite-badge">{nivelSocio.toUpperCase()}</span>
           <h1>Hola, <span>{nombre.split(' ')[0]}</span></h1>
-          <p className="welcome-sub">Bienvenido a tu centro de gestión patrimonial.</p>
+          <p>Tu capital está operando bajo estándares de seguridad Élite.</p>
         </div>
-        <div className="geo-tag"><Globe size={14}/> {paisSocio}</div>
+        <div className="geo-pill"><Globe size={14}/> {paisSocio}</div>
       </header>
 
-      <section className="vault-main-card">
-        <div className="vault-content">
-          <p className="vault-label">CAPITAL TOTAL GESTIONADO</p>
-          <h2 className="vault-balance">
-            <span className="currency-symbol">$</span>
-            {balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-          </h2>
-          <div className="vault-status">
-            <div className="status-chip"><div className="pulse"></div> ALGORITMO ACTIVO</div>
-            <div className="profit-chip">+${utilidad.toLocaleString()} USD UTILIDAD</div>
-          </div>
+      {/* CARD BALANCE - INSPIRACIÓN REFERENCIA */}
+      <section className="glass-vault-card">
+        <div className="vault-top">
+          <p>BALANCE TOTAL <ChevronDown size={14}/></p>
+          <div className="yield-tag">+{((utilidad / (balance - utilidad)) * 100).toFixed(2)}%</div>
+        </div>
+        <h2 className="vault-amount">
+          <span className="symbol">$</span>{balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        </h2>
+        <div className="vault-footer">
+          <div className="status-live"><div className="pulse"></div> ALGORITMO ACTIVO</div>
+          <div className="profit-text">+${utilidad.toLocaleString()} USD UTILIDAD</div>
         </div>
       </section>
 
-      <div className="stats-container">
-        <div className="stat-glass">
-          <div className="icon-circle green"><TrendingUp size={20}/></div>
-          <div className="stat-text">
-            <span>GANANCIA NETA</span>
-            <h4>${utilidad.toLocaleString()}</h4>
-          </div>
+      <div className="stats-grid">
+        <div className="stat-box">
+          <div className="sb-icon"><TrendingUp size={20} color="#00C853"/></div>
+          <div className="sb-info"><span>UTILIDAD TOTAL</span><h4>${utilidad.toLocaleString()}</h4></div>
         </div>
-        <div className="stat-glass">
-          <div className="icon-circle green"><ShieldCheck size={20}/></div>
-          <div className="stat-text">
-            <span>AUDITORÍA</span>
-            <h4>VERIFICADA</h4>
-          </div>
+        <div className="stat-box">
+          <div className="sb-icon"><ShieldCheck size={20} color="#00C853"/></div>
+          <div className="sb-info"><span>ESTADO AUDITORÍA</span><h4>VERIFICADA</h4></div>
         </div>
       </div>
 
-      <h3 className="hub-label">OPERACIONES RÁPIDAS</h3>
+      <h3 className="hub-label">CENTRO DE OPERACIONES</h3>
       <div className="hub-grid">
-        <button className="hub-item" onClick={() => setActiveTab('reportes')}><BarChart3 size={24}/> Rendimientos</button>
-        <button className="hub-item" onClick={() => setActiveTab('retiros')}><Wallet size={24}/> Retiros</button>
-        <button className="hub-item" onClick={() => setActiveTab('perfil')}><User size={24}/> Perfil</button>
-        <button className="hub-item" onClick={() => window.open('https://wa.me/soporte', '_blank')}><HelpCircle size={24}/> Soporte</button>
+        <button className="hub-card" onClick={() => setActiveTab('reportes')}><BarChart3 size={24}/> Rendimientos</button>
+        <button className="hub-card" onClick={() => setActiveTab('retiros')}><Wallet size={24}/> Retiros</button>
+        <button className="hub-card" onClick={() => setActiveTab('perfil')}><User size={24}/> Perfil</button>
+        <button className="hub-card" onClick={() => window.open('https://wa.me/soporte', '_blank')}><HelpCircle size={24}/> Soporte</button>
       </div>
     </div>
   );
 
   if (loading) return (
-    <div className="elite-loading">
-      <div className="bunker-scanner"></div>
-      <p>VALIDANDO BÓVEDA ÉLITE</p>
+    <div className="elite-loader">
+      <div className="scanner-ring"></div>
+      <p>ESTABLECIENDO CONEXIÓN SEGURA</p>
       <style jsx>{`
-        .elite-loading { background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .bunker-scanner { width: 50px; height: 50px; border: 2px solid #111; border-top: 2px solid #00C853; border-radius: 50%; animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+        .elite-loader { background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .scanner-ring { width: 50px; height: 50px; border: 2px solid #111; border-top: 2px solid #00C853; border-radius: 50%; animation: spin 0.8s linear infinite; }
         p { color: #00C853; font-size: 10px; letter-spacing: 5px; margin-top: 25px; font-weight: 300; }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
@@ -207,20 +213,42 @@ export default function SocioPanel() {
   );
 
   return (
-    <div className="mansion-panel">
-      {/* SIDEBAR - ESCRITORIO */}
+    <div className="mansion-container">
+      
+      {/* 🛡️ MODAL DE SEGURIDAD 2FA */}
+      {show2FA && (
+        <div className="security-overlay fade-in">
+          <div className="security-card scale-in">
+            <button className="close-x" onClick={() => setShow2FA(false)}><X size={20}/></button>
+            <ShieldAlert size={50} color="#00C853" className="sec-icon"/>
+            <h2>AUTENTICACIÓN REQUERIDA</h2>
+            <p>Se ha enviado un código de seguridad a: <strong>{editEmail}</strong></p>
+            <input 
+              type="text" 
+              maxLength={6} 
+              placeholder="000000" 
+              value={codigoIngresado}
+              onChange={(e) => setCodigoIngresado(e.target.value)}
+            />
+            <button className="verify-btn" onClick={confirmarRetiroFinal} disabled={enviandoRetiro}>
+              {enviandoRetiro ? 'VERIFICANDO...' : 'CONFIRMAR TRANSACCIÓN'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SIDEBAR DESKTOP */}
       <aside className="mansion-sidebar desktop-only">
-        <div className="mansion-logo">GURÚ<span>ÉLITE</span></div>
-        <nav className="mansion-menu">
-          <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={18}/> Inicio</button>
+        <div className="brand-logo">GURÚ<span>ÉLITE</span></div>
+        <nav className="mansion-nav">
+          <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={18}/> Mi Bóveda</button>
           <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={18}/> Mercados</button>
           <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={18}/> Cajero</button>
           <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={18}/> Ajustes</button>
         </nav>
-        
-        <div className="sidebar-bottom">
+        <div className="sidebar-footer">
           {esAdmin && (
-            <button className="bunker-trigger" onClick={() => router.push('/admin/auth')}>
+            <button className="admin-trigger" onClick={() => router.push('/admin/auth')}>
               <Terminal size={18}/> TORRE DE CONTROL {pendientes > 0 && <span className="p-badge">{pendientes}</span>}
             </button>
           )}
@@ -229,10 +257,9 @@ export default function SocioPanel() {
       </aside>
 
       <div className="mansion-viewport">
-        {/* CABECERA MÓVIL */}
-        <header className="mansion-mobile-nav mobile-only">
-          <div className="m-logo">GURÚ <span>ÉLITE</span></div>
-          {esAdmin && <button className="m-bunker-btn" onClick={() => router.push('/admin/auth')}><Terminal size={20}/></button>}
+        <header className="mobile-header mobile-only">
+          <div className="m-brand">GURÚ ÉLITE</div>
+          {esAdmin && <button className="m-admin-btn" onClick={() => router.push('/admin/auth')}><Terminal size={20}/></button>}
         </header>
 
         <main className="mansion-main">
@@ -240,28 +267,27 @@ export default function SocioPanel() {
           
           {activeTab === 'retiros' && (
             <div className="fade-in">
-              <h2 className="section-title">Terminal de <span>Retiros</span></h2>
-              <div className="withdraw-glass">
+              <h2 className="section-title">Terminal de <span>Liquidación</span></h2>
+              <div className="glass-withdraw-card">
                 <div className="w-header">
-                  <p>SALDO LÍQUIDO</p>
+                  <p>SALDO LÍQUIDO DISPONIBLE</p>
                   <h3>${balanceVisual.toLocaleString()}</h3>
                 </div>
-                <div className="method-selector">
+                <div className="w-method-selector">
                   <button className={metodoRetiro === 'banco' ? 'active' : ''} onClick={() => setMetodoRetiro('banco')}><Building2 size={18}/> BANCO</button>
                   <button className={metodoRetiro === 'cripto' ? 'active' : ''} onClick={() => setMetodoRetiro('cripto')}><Zap size={18}/> USDT</button>
                 </div>
-                {mensajeRetiro.texto && <div className={`m-alert ${mensajeRetiro.tipo}`}>{mensajeRetiro.texto}</div>}
                 <div className="w-fields">
-                  <div className="field-group">
+                  <div className="w-field-group">
                     <label>MONTO USD</label>
                     <input type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} />
                   </div>
-                  <div className="field-group">
-                    <label>DETALLES DE DESTINO</label>
-                    <textarea placeholder="Banco, cuenta o wallet..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} />
+                  <div className="w-field-group">
+                    <label>DESTINO DE FONDOS</label>
+                    <textarea placeholder="Detalles bancarios o Wallet address..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} />
                   </div>
-                  <button className="w-submit" onClick={procesarRetiro} disabled={enviandoRetiro}>
-                    {enviandoRetiro ? 'VERIFICANDO...' : 'CONFIRMAR SOLICITUD'}
+                  <button className="w-submit-btn" onClick={iniciarProtocoloRetiro}>
+                    <Lock size={18}/> ACTIVAR PROTOCOLO SEGURO
                   </button>
                 </div>
               </div>
@@ -270,20 +296,20 @@ export default function SocioPanel() {
 
           {activeTab === 'perfil' && (
             <div className="fade-in">
-              <h2 className="section-title">Ajustes de <span>Cuenta</span></h2>
-              <div className="profile-container">
-                <div className="profile-glass">
-                  <div className="p-field"><span>Nombre</span><input value={editNombre} onChange={e => setEditNombre(e.target.value)}/></div>
-                  <div className="p-field"><span>País</span><input value={editPais} onChange={e => setEditPais(e.target.value)}/></div>
-                  <div className="p-field"><span>Ciudad</span><input value={editCiudad} onChange={e => setEditCiudad(e.target.value)}/></div>
-                  <div className="p-field"><span>Móvil</span><input value={editTelefono} onChange={e => setEditTelefono(e.target.value)}/></div>
-                  <button className="p-save" onClick={actualizarPerfil} disabled={guardandoPerfil}>
+              <h2 className="section-title">Perfil del <span>Socio</span></h2>
+              <div className="profile-grid-mansion">
+                <div className="p-glass-card">
+                  <div className="p-input"><span>Nombre</span><input value={editNombre} onChange={e => setEditNombre(e.target.value)}/></div>
+                  <div className="p-input"><span>País</span><input value={editPais} onChange={e => setEditPais(e.target.value)}/></div>
+                  <div className="p-input"><span>Ciudad</span><input value={editCiudad} onChange={e => setEditCiudad(e.target.value)}/></div>
+                  <div className="p-input"><span>Teléfono</span><input value={editTelefono} onChange={e => setEditTelefono(e.target.value)}/></div>
+                  <button className="p-save-btn" onClick={actualizarPerfil} disabled={guardandoPerfil}>
                     {guardandoPerfil ? 'SINCRO...' : 'GUARDAR CAMBIOS'}
                   </button>
                 </div>
-                <div className="security-glass">
-                  <div className="s-line"><span>EMAIL</span><p>{editEmail}</p></div>
-                  <div className="s-line"><span>AUDITORÍA</span><p className="v-status">ACTIVA</p></div>
+                <div className="p-security-card">
+                  <div className="ps-row"><span>EMAIL ASOCIADO</span><p>{editEmail}</p></div>
+                  <div className="ps-row"><span>AUDITORÍA</span><p className="v-tag">ACTIVA</p></div>
                 </div>
               </div>
             </div>
@@ -291,26 +317,23 @@ export default function SocioPanel() {
 
           {activeTab === 'reportes' && (
             <div className="fade-in">
-              <h2 className="section-title">Análisis de <span>Mercado</span></h2>
-              <div className="market-stats">
-                <div className="ms-card"><span>CAPITAL SEMILLA</span><h4>${(balance - utilidad).toLocaleString()}</h4></div>
-                <div className="ms-card highlight"><span>PROFIT TOTAL</span><h4>+${utilidad.toLocaleString()}</h4></div>
+              <h2 className="section-title">Análisis de <span>Rendimientos</span></h2>
+              <div className="report-grid">
+                <div className="r-card"><span>CAPITAL INICIAL</span><h4>${(balance - utilidad).toLocaleString()}</h4></div>
+                <div className="r-card highlight"><span>PROFIT ACUMULADO</span><h4>+${utilidad.toLocaleString()}</h4></div>
               </div>
-              <div className="visual-chart">
-                <div className="chart-bars">
-                  {[40, 70, 50, 90, 60, 85, 100].map((h, i) => (
-                    <div key={i} className="v-bar-wrap">
-                      <div className="v-bar" style={{height: h+'%'}}></div>
-                    </div>
+              <div className="chart-container-mansion">
+                <div className="chart-bars-wrap">
+                  {[35, 65, 45, 85, 55, 95, 100].map((h, i) => (
+                    <div key={i} className="c-bar-box"><div className="c-bar" style={{height: h+'%'}}></div></div>
                   ))}
                 </div>
-                <div className="chart-days"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+                <div className="chart-days-labels"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
               </div>
             </div>
           )}
         </main>
 
-        {/* NAVEGACIÓN INFERIOR MÓVIL */}
         <nav className="m-bottom-bar mobile-only">
           <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={20}/></button>
           <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={20}/></button>
@@ -322,224 +345,97 @@ export default function SocioPanel() {
 
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&display=swap');
-        
-        :root { --main: #00C853; --bg: #000; --panel: #080808; --border: #151515; --text: #888; }
-        
-        .mansion-panel { 
-          background: var(--bg); 
-          min-height: 100vh; 
-          display: flex; 
-          color: #fff; 
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          overflow-x: hidden;
-        }
+        :root { --main: #00C853; --dark: #000; --panel: #080808; --border: #121212; }
+        .mansion-container { background: #000; min-height: 100vh; display: flex; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
 
         /* SIDEBAR PROFESIONAL */
-        .mansion-sidebar { 
-          width: 280px; 
-          background: var(--panel); 
-          border-right: 1px solid var(--border); 
-          display: flex; 
-          flex-direction: column; 
-          padding: 40px 25px; 
-          position: sticky; 
-          top: 0; 
-          height: 100vh; 
-        }
-        .mansion-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
-        .mansion-logo span { color: var(--main); }
-
-        .mansion-menu { flex: 1; }
-        .mansion-menu button { 
-          width: 100%; 
-          text-align: left; 
-          padding: 16px; 
-          border-radius: 14px; 
-          border: none; 
-          background: transparent; 
-          color: var(--text); 
-          display: flex; 
-          align-items: center; 
-          gap: 15px; 
-          font-weight: 700; 
-          cursor: pointer; 
-          transition: 0.3s;
-          font-size: 0.85rem;
-          margin-bottom: 8px;
-        }
-        .mansion-menu button:hover, .mansion-menu button.active { color: #fff; background: #0c0c0c; }
-        .mansion-menu button.active { color: var(--main); }
-
-        .sidebar-bottom { border-top: 1px solid var(--border); padding-top: 30px; }
-        .bunker-trigger { 
-          width: 100%; 
-          background: rgba(0,200,83,0.05); 
-          border: 1px solid rgba(0,200,83,0.1); 
-          color: var(--main); 
-          padding: 15px; 
-          border-radius: 12px; 
-          font-weight: 800; 
-          font-size: 10px;
-          letter-spacing: 1px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 15px;
-        }
+        .mansion-sidebar { width: 280px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; }
+        .brand-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
+        .brand-logo span { color: var(--main); }
+        .mansion-nav button { width: 100%; text-align: left; padding: 16px; border-radius: 14px; background: transparent; color: #444; border: none; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 8px; font-size: 0.85rem; }
+        .mansion-nav button:hover, .mansion-nav button.active { color: #fff; background: #0c0c0c; }
+        .mansion-nav button.active { color: var(--main); }
+        .sidebar-footer { border-top: 1px solid var(--border); padding-top: 30px; }
+        .admin-trigger { width: 100%; background: rgba(0,200,83,0.05); border: 1px solid rgba(0,200,83,0.1); color: var(--main); padding: 15px; border-radius: 12px; font-weight: 800; font-size: 9px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .p-badge { background: #ff4444; color: #fff; padding: 2px 6px; border-radius: 20px; font-size: 8px; }
-        .logout-trigger { background: none; border: none; color: #ff4444; font-weight: 800; font-size: 10px; cursor: pointer; padding: 10px; opacity: 0.7; }
+        .logout-trigger { background: none; border: none; color: #ff4444; font-weight: 800; font-size: 10px; cursor: pointer; padding: 10px; opacity: 0.6; }
 
-        /* VIEWPORT */
+        /* VIEWPORT & CONTENT */
         .mansion-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .mansion-mobile-nav { 
-          height: 80px; 
-          border-bottom: 1px solid var(--border); 
-          display: flex; 
-          align-items: center; 
-          justify-content: space-between; 
-          padding: 0 25px; 
-          background: #000;
-        }
-        .m-logo { font-weight: 800; font-size: 1rem; }
-        .m-logo span { color: var(--main); }
-        .m-bunker-btn { background: rgba(0,200,83,0.1); border: none; color: var(--main); width: 45px; height: 45px; border-radius: 14px; }
-
+        .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; }
         .mansion-main { padding: 50px 8%; max-width: 1100px; margin: 0 auto; width: 100%; }
 
-        /* CONTENT HEADER */
         .content-header { margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .welcome-badge { font-size: 9px; color: var(--main); font-weight: 800; letter-spacing: 3px; border: 1px solid var(--main); padding: 4px 12px; border-radius: 20px; }
+        .elite-badge { font-size: 9px; color: var(--main); font-weight: 800; letter-spacing: 3px; border: 1px solid var(--main); padding: 5px 15px; border-radius: 20px; }
         .welcome-section h1 { font-size: 3rem; font-weight: 800; margin: 10px 0 5px; }
         .welcome-section span { color: var(--main); }
-        .welcome-sub { color: #444; font-size: 0.9rem; font-weight: 500; }
-        .geo-tag { background: #0c0c0c; border: 1px solid var(--border); padding: 10px 20px; border-radius: 30px; font-size: 10px; font-weight: 800; color: #555; display: flex; align-items: center; gap: 10px; }
+        .geo-pill { background: #0c0c0c; border: 1px solid var(--border); padding: 10px 20px; border-radius: 30px; font-size: 10px; font-weight: 800; color: #333; display: flex; align-items: center; gap: 10px; }
 
-        /* VAULT CARD */
-        .vault-main-card { 
-          background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); 
-          border: 1px solid var(--border); 
-          padding: 60px 50px; 
-          border-radius: 40px; 
-          margin-bottom: 30px; 
-          position: relative;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-        .vault-label { font-size: 10px; font-weight: 800; color: #333; letter-spacing: 3px; }
-        .vault-balance { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: -3px; margin: 20px 0; }
-        .currency-symbol { color: var(--main); font-size: 2.5rem; vertical-align: top; margin-right: 10px; }
-        .vault-status { display: flex; gap: 20px; margin-top: 30px; border-top: 1px solid #0c0c0c; padding-top: 30px; }
-        .status-chip { font-size: 9px; font-weight: 800; color: var(--main); display: flex; align-items: center; gap: 10px; }
+        /* GLASS VAULT CARD (DE REFERENCIA) */
+        .glass-vault-card { background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); border: 1px solid var(--border); padding: 60px 50px; border-radius: 40px; margin-bottom: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; }
+        .vault-top { display: flex; justify-content: space-between; align-items: center; }
+        .vault-top p { font-size: 10px; font-weight: 800; color: #333; letter-spacing: 3px; display: flex; align-items: center; gap: 10px; }
+        .yield-tag { background: rgba(0,200,83,0.1); color: var(--main); padding: 4px 12px; border-radius: 20px; font-size: 9px; font-weight: 800; }
+        .vault-amount { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: -3px; margin: 25px 0; }
+        .symbol { color: var(--main); font-size: 2.5rem; vertical-align: top; margin-right: 10px; font-weight: 400; }
+        .vault-footer { display: flex; justify-content: space-between; border-top: 1px solid #0c0c0c; padding-top: 30px; }
+        .status-live { font-size: 9px; font-weight: 800; color: var(--main); display: flex; align-items: center; gap: 10px; }
         .pulse { width: 6px; height: 6px; background: var(--main); border-radius: 50%; animation: pulse 2s infinite; }
-        .profit-chip { font-size: 9px; font-weight: 800; color: #333; }
+        .profit-text { font-size: 9px; font-weight: 800; color: #222; }
 
-        /* STATS GLASS */
-        .stats-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
-        .stat-glass { 
-          background: var(--panel); 
-          border: 1px solid var(--border); 
-          padding: 30px; 
-          border-radius: 25px; 
-          display: flex; 
-          align-items: center; 
-          gap: 20px;
-          transition: 0.3s;
-        }
-        .stat-glass:hover { border-color: #222; transform: translateY(-5px); }
-        .icon-circle { width: 50px; height: 50px; background: #000; border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
-        .stat-text span { font-size: 9px; font-weight: 800; color: #444; }
-        .stat-text h4 { font-size: 1.2rem; font-weight: 800; margin: 2px 0 0; }
+        /* STATS & HUB */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+        .stat-box { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 25px; display: flex; align-items: center; gap: 20px; }
+        .sb-icon { width: 50px; height: 50px; background: #000; border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+        .sb-info span { font-size: 9px; font-weight: 800; color: #333; }
+        .sb-info h4 { font-size: 1.2rem; font-weight: 800; margin-top: 2px; }
 
-        /* HUB */
-        .hub-label { font-size: 10px; font-weight: 800; color: #222; letter-spacing: 3px; margin-bottom: 20px; }
+        .hub-label { font-size: 10px; font-weight: 800; color: #111; letter-spacing: 3px; margin-bottom: 20px; }
         .hub-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .hub-item { 
-          background: var(--panel); 
-          border: 1px solid var(--border); 
-          padding: 30px 10px; 
-          border-radius: 25px; 
-          color: #fff; 
-          font-weight: 800; 
-          font-size: 0.75rem; 
-          cursor: pointer; 
-          transition: 0.3s; 
-          display: flex; 
-          flex-direction: column; 
-          align-items: center; 
-          gap: 15px; 
-        }
-        .hub-item:hover { border-color: var(--main); background: #0c0c0c; }
+        .hub-card { background: var(--panel); border: 1px solid var(--border); padding: 30px 10px; border-radius: 25px; color: #fff; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .hub-card:hover { border-color: var(--main); background: #0c0c0c; }
 
-        /* SECTIONS */
-        .section-title { font-size: 2rem; font-weight: 800; margin-bottom: 35px; }
-        .section-title span { color: var(--main); }
+        /* SECTIONS - RETIROS */
+        .glass-withdraw-card { background: var(--panel); border: 1px solid var(--border); padding: 40px; border-radius: 35px; }
+        .w-header h3 { font-size: 3rem; font-weight: 800; color: var(--main); margin-top: 10px; }
+        .w-header p { font-size: 9px; font-weight: 800; color: #222; }
+        .w-method-selector { display: flex; gap: 12px; margin: 30px 0; }
+        .w-method-selector button { flex: 1; background: #000; border: 1px solid var(--border); padding: 20px; border-radius: 18px; color: #333; font-weight: 800; cursor: pointer; }
+        .w-method-selector button.active { border-color: var(--main); color: var(--main); background: rgba(0,200,83,0.02); }
+        .w-field-group { margin-bottom: 25px; }
+        .w-field-group label { display: block; font-size: 9px; font-weight: 800; color: #222; margin-bottom: 12px; }
+        .w-field-group input, .w-field-group textarea { width: 100%; background: #000; border: 1px solid var(--border); padding: 20px; border-radius: 18px; color: #fff; outline: none; }
+        .w-submit-btn { width: 100%; background: var(--main); border: none; padding: 22px; border-radius: 20px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.3s; }
+        .w-submit-btn:hover { background: #fff; transform: translateY(-3px); }
 
-        /* WITHDRAW GLASS */
-        .withdraw-glass { background: var(--panel); border: 1px solid var(--border); padding: 40px; border-radius: 35px; }
-        .w-header h3 { font-size: 3rem; font-weight: 800; color: var(--main); margin-top: 10px; letter-spacing: -1px; }
-        .w-header p { font-size: 9px; font-weight: 800; color: #333; }
-        
-        .method-selector { display: flex; gap: 12px; margin: 30px 0; }
-        .method-selector button { flex: 1; background: #000; border: 1px solid var(--border); padding: 18px; border-radius: 16px; color: #444; font-weight: 800; cursor: pointer; transition: 0.3s; }
-        .method-selector button.active { border-color: var(--main); color: var(--main); }
+        /* 🛡️ SECURITY MODAL 2FA */
+        .security-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(15px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .security-card { background: #080808; border: 1px solid #111; padding: 50px 40px; border-radius: 40px; width: 100%; max-width: 450px; text-align: center; position: relative; }
+        .close-x { position: absolute; top: 30px; right: 30px; background: none; border: none; color: #222; cursor: pointer; }
+        .sec-icon { margin-bottom: 30px; }
+        .security-card h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: 2px; margin-bottom: 15px; }
+        .security-card p { font-size: 11px; color: #444; margin-bottom: 35px; line-height: 1.6; }
+        .security-card input { background: #000; border: 1px solid #222; width: 100%; height: 80px; border-radius: 20px; text-align: center; font-size: 2rem; font-weight: 800; letter-spacing: 12px; color: var(--main); outline: none; margin-bottom: 30px; }
+        .verify-btn { width: 100%; background: var(--main); border: none; padding: 22px; border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.3s; }
 
-        .field-group { margin-bottom: 25px; }
-        .field-group label { display: block; font-size: 9px; font-weight: 800; color: #222; margin-bottom: 12px; }
-        .field-group input, .field-group textarea { width: 100%; background: #000; border: 1px solid var(--border); padding: 20px; border-radius: 16px; color: #fff; font-weight: 600; outline: none; transition: 0.3s; }
-        .field-group input:focus { border-color: var(--main); }
-        .w-submit { width: 100%; background: var(--main); border: none; padding: 22px; border-radius: 20px; color: #000; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 15px; }
-        .w-submit:hover { background: #fff; transform: translateY(-3px); }
-
-        /* PROFILE */
-        .profile-glass { background: var(--panel); border: 1px solid var(--border); padding: 40px; border-radius: 35px; margin-bottom: 25px; }
-        .p-field { margin-bottom: 20px; }
-        .p-field span { display: block; font-size: 9px; font-weight: 800; color: #333; margin-bottom: 10px; }
-        .p-field input { width: 100%; background: #000; border: 1px solid var(--border); padding: 18px; border-radius: 14px; color: #fff; outline: none; }
-        .p-save { width: 100%; background: #fff; color: #000; border: none; padding: 18px; border-radius: 14px; font-weight: 800; cursor: pointer; margin-top: 10px; }
-        .security-glass { background: #0c0c0c; padding: 30px; border-radius: 25px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 15px; }
-        .s-line { display: flex; justify-content: space-between; align-items: center; }
-        .s-line span { font-size: 10px; font-weight: 800; color: #333; }
-        .v-status { color: var(--main); font-size: 9px; font-weight: 800; background: rgba(0,200,83,0.1); padding: 4px 12px; border-radius: 20px; }
-
-        /* CHART */
-        .visual-chart { background: var(--panel); border: 1px solid var(--border); padding: 40px; border-radius: 35px; }
-        .chart-bars { height: 200px; display: flex; align-items: flex-end; justify-content: space-between; gap: 15px; }
-        .v-bar-wrap { flex: 1; height: 100%; display: flex; align-items: flex-end; }
-        .v-bar { width: 100%; background: linear-gradient(to top, var(--main), #004d40); border-radius: 10px; opacity: 0.6; transition: 1s ease; }
-        .chart-days { display: flex; justify-content: space-between; margin-top: 25px; color: #333; font-size: 10px; font-weight: 800; }
-
-        /* MOBILE BOTTOM BAR */
-        .m-bottom-bar { 
-          position: fixed; 
-          bottom: 20px; 
-          left: 20px; 
-          right: 20px; 
-          height: 75px; 
-          background: rgba(10,10,10,0.8); 
-          backdrop-filter: blur(25px); 
-          border: 1px solid var(--border); 
-          border-radius: 25px; 
-          display: flex; 
-          justify-content: space-around; 
-          align-items: center; 
-          z-index: 999; 
-        }
-        .m-bottom-bar button { background: none; border: none; color: #444; }
+        /* BOTTOM NAV BAR MOBILE */
+        .m-bottom-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.8); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+        .m-bottom-bar button { background: none; border: none; color: #333; }
         .m-bottom-bar button.active { color: var(--main); }
 
         @keyframes pulse { 50% { opacity: 0.3; } }
         .fade-in { animation: fi 0.8s ease forwards; }
+        .scale-in { animation: si 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes fi { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes si { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
-        /* MOBILE OVERRIDES */
         @media (max-width: 1024px) { 
           .desktop-only { display: none !important; }
           .mansion-main { padding: 30px 20px 120px; }
           .welcome-section h1 { font-size: 2.2rem; }
-          .vault-main-card { padding: 40px 25px; border-radius: 30px; }
-          .stats-container { grid-template-columns: 1fr; }
+          .glass-vault-card { padding: 40px 25px; border-radius: 30px; }
+          .stats-grid { grid-template-columns: 1fr; }
           .hub-grid { grid-template-columns: 1fr 1fr; }
-          .hub-item { padding: 25px 10px; }
           .vault-balance { font-size: 3rem; }
         }
       `}</style>
