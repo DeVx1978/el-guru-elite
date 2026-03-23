@@ -4,12 +4,9 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import {
   User, Wallet, TrendingUp, ShieldCheck, LogOut,
-  Zap, Award, Star, Target, Briefcase, Bell, LayoutDashboard,
-  ArrowUpRight, Activity, ShieldAlert, Trophy, ArrowRightCircle,
-  Settings, HelpCircle, BarChart3, PieChart, History, PlusCircle, ChevronRight, CheckCircle2,
-  Building2, Landmark, CreditCard, Smartphone, Globe, Camera, Save, Phone, Mail, 
-  ShieldEllipsis, UserCheck, CandlestickChart, Download, FileText, MapPin, 
-  Terminal
+  Zap, Trophy, Activity, ShieldAlert,
+  Settings, HelpCircle, BarChart3, LayoutDashboard,
+  Building2, Landmark, Globe, X, Terminal, ArrowUpRight, Menu
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -21,6 +18,7 @@ export default function SocioPanel() {
   const [esAdmin, setEsAdmin] = useState(false);
   const [pendientes, setPendientes] = useState(0);
   const [activeTab, setActiveTab] = useState('inicio');
+  const [menuMovil, setMenuMovil] = useState(false);
 
   const [balance, setBalance] = useState(0);
   const [balanceVisual, setBalanceVisual] = useState(0);
@@ -83,7 +81,7 @@ export default function SocioPanel() {
   useEffect(() => {
     if (!loading && balance > 0) {
       let start = 0;
-      const duration = 2000;
+      const duration = 1500;
       const increment = balance / (duration / 16);
       const timer = setInterval(() => {
         start += increment;
@@ -118,9 +116,8 @@ export default function SocioPanel() {
         }).eq('id_socio', socioId);
       if (!errSocio && !errElite) {
         setNombre(editNombre);
-        setPaisSocio(editPais);
         localStorage.setItem('socio_nombre', editNombre);
-        alert("Perfil Sincronizado");
+        alert("Sincronización Exitosa");
       }
     } catch (err) { alert("Error"); }
     finally { setGuardandoPerfil(false); }
@@ -129,232 +126,238 @@ export default function SocioPanel() {
   const procesarRetiro = async () => {
     const socioId = localStorage.getItem('socio_id');
     const valor = parseFloat(montoRetiro);
-    if (!montoRetiro || !detallesDestino) { setMensajeRetiro({ tipo: 'error', texto: 'Faltan datos' }); return; }
-    if (valor > balance) { setMensajeRetiro({ tipo: 'error', texto: 'Saldo insuficiente' }); return; }
+    if (!montoRetiro || !detallesDestino) { setMensajeRetiro({ tipo: 'error', texto: 'Campos requeridos' }); return; }
+    if (valor > balance) { setMensajeRetiro({ tipo: 'error', texto: 'Fondos insuficientes' }); return; }
     setEnviandoRetiro(true);
     try {
-      const { error } = await clientSupabase.from('retiros').insert([{ 
-        id_socio: socioId, monto: valor, billetera: `[${metodoRetiro.toUpperCase()} - ${paisSocio}] ${detallesDestino}`, estado: 'pendiente' 
+      await clientSupabase.from('retiros').insert([{ 
+        id_socio: socioId, monto: valor, billetera: `[${metodoRetiro.toUpperCase()}] ${detallesDestino}`, estado: 'pendiente' 
       }]);
-      if (error) throw error;
-      setMensajeRetiro({ tipo: 'exito', texto: 'Enviado' });
+      setMensajeRetiro({ tipo: 'exito', texto: 'Solicitud en proceso de auditoría' });
       setMontoRetiro(''); setDetallesDestino('');
-    } catch (err) { setMensajeRetiro({ tipo: 'error', texto: 'Error' }); }
+    } catch (err) { setMensajeRetiro({ tipo: 'error', texto: 'Fallo en la red' }); }
     finally { setEnviandoRetiro(false); }
   };
 
   const RenderInicio = () => (
     <div className="fade-in">
-      <div className="welcome-banner">
-        <h1>Bienvenido, <span>{nombre}</span></h1>
-        <p><Globe size={14} color="#00C853" /> REGIÓN ESTRATÉGICA: {paisSocio.toUpperCase()}</p>
-      </div>
-      <div className="vault-grid">
-        <div className="vault-card-main">
-          <div className="card-top"><span className="card-label">CAPITAL BAJO GESTIÓN</span><span className="profit-badge">USD INVERSIÓN TOTAL</span></div>
-          <div className="balance-display">
-            <span className="symbol">$</span>
-            <span className="value">{balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-            <div className="live-status"><div className="dot"></div> LIVE</div>
-          </div>
-          <div className="progress-container">
-            <div className="progress-labels"><span>ESTADO DEL FONDO</span><span className="exec-text">EJECUTANDO</span></div>
-            <div className="bar-bg"><div className="bar-fill" style={{ width: '100%' }}></div></div>
-            <div className="ai-pulse"><Activity size={12} className="pulse" /> CONEXIÓN DIRECTA CON LIQUIDEZ GLOBAL...</div>
-          </div>
+      <header className="panel-header">
+        <div className="user-salute">
+          <p>ESTATUS: {nivelSocio.toUpperCase()}</p>
+          <h2>Hola, <span>{nombre.split(' ')[0]}</span></h2>
         </div>
-        <div className="rank-card-v2">
-          <div className="rank-header"><Trophy size={32} color="#00C853" /><div><p>MEMBRESÍA</p><h3>{nivelSocio}</h3></div></div>
-          <div className="rank-details">
-            <div className="detail-item"><span>UTILIDAD NETA</span><span className="text-neon">+${utilidad.toLocaleString()}</span></div>
-            <div className="detail-item"><span>ESTADO CUENTA</span><span className="active-tag">AUDITADA</span></div>
-          </div>
-          <button className="upgrade-btn" onClick={() => setActiveTab('reportes')}>CERTIFICADO ÉLITE</button>
-        </div>
-      </div>
-      <div className="section-title">CENTRO DE OPERACIONES</div>
-      <div className="actions-grid-v2">
-        <div className="action-tile" onClick={() => setActiveTab('reportes')}><TrendingUp color="#00C853" /> <span>Reportes</span></div>
-        <div className="action-tile" onClick={() => setActiveTab('retiros')}><Wallet color="#00C853" /> <span>Retiros</span></div>
-        <div className="action-tile" onClick={() => setActiveTab('perfil')}><Settings color="#00C853" /> <span>Perfil</span></div>
-        <div className="action-tile" onClick={() => window.open('https://wa.me/soporte', '_blank')}><HelpCircle color="#00C853" /> <span>Soporte</span></div>
-      </div>
-    </div>
-  );
+        <div className="location-tag"><Globe size={12}/> {paisSocio}</div>
+      </header>
 
-  const RenderRetiros = () => (
-    <div className="fade-in section-container">
-      <h2 className="section-h2">Cajero <span>Multidivisa</span></h2>
-      <div className="withdraw-card glass-effect">
-        <p className="withdraw-label">Saldo Neto Disponible</p>
-        <h3 className="withdraw-amount">${balanceVisual.toLocaleString()}</h3>
-        <div className="method-selector">
-          <div className={`method-option ${metodoRetiro === 'banco' ? 'active' : ''}`} onClick={() => setMetodoRetiro('banco')}><Building2 size={18} /> Banco Local</div>
-          <div className={`method-option ${metodoRetiro === 'cripto' ? 'active' : ''}`} onClick={() => setMetodoRetiro('cripto')}><Zap size={18} /> USDT TRC20</div>
+      <section className="main-vault-card">
+        <div className="vault-info">
+          <span>CAPITAL TOTAL BAJO GESTIÓN</span>
+          <h1 className="main-balance">${balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h1>
+          <div className="vault-status-bar">
+            <div className="status-label"><div className="pulse-dot"></div> ALGORITMO ACTIVO</div>
+            <div className="profit-mini">+{utilidad.toLocaleString()} USD Ganancia</div>
+          </div>
         </div>
-        {mensajeRetiro.texto && (<div className={`status-alert ${mensajeRetiro.tipo}`}>{mensajeRetiro.texto}</div>)}
-        <div className="input-group"><label>Monto a Retirar (USD)</label><input type="number" value={montoRetiro} onChange={(e) => setMontoRetiro(e.target.value)} placeholder="0.00" /></div>
-        <div className="input-group"><label>Datos de Destino</label><textarea rows={2} value={detallesDestino} onChange={(e) => setDetallesDestino(e.target.value)} placeholder="Indique banco, cuenta o wallet..." /></div>
-        <button onClick={procesarRetiro} disabled={enviandoRetiro} className="btn-withdraw-action">{enviandoRetiro ? 'VERIFICANDO...' : 'CONFIRMAR SOLICITUD'}</button>
-      </div>
-    </div>
-  );
+      </section>
 
-  const RenderPerfil = () => (
-    <div className="fade-in section-container">
-      <div className="identity-master-layout">
-        <div className="identity-header glass-effect">
-          <div className="identity-content">
-            <div className="identity-avatar-main">{nombre.charAt(0)}</div>
-            <div className="identity-info"><h2>{nombre}</h2><span className="tag-verify"><ShieldCheck size={14} /> INVERSOR VERIFICADO</span></div>
-          </div>
+      <div className="quick-stats-grid">
+        <div className="q-card">
+          <TrendingUp size={20} color="#00C853"/>
+          <div className="q-data"><span>UTILIDAD NETA</span><h4>${utilidad.toLocaleString()}</h4></div>
         </div>
-        <div className="identity-grid">
-          <div className="identity-card glass-effect">
-            <h3>Gestión de Identidad</h3>
-            <div className="identity-form">
-              <div className="field-group"><label>Nombre Completo</label><input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} /></div>
-              <div className="field-group"><label>País</label><input type="text" value={editPais} onChange={(e) => setEditPais(e.target.value)} /></div>
-              <div className="field-group"><label>Teléfono</label><input type="text" value={editTelefono} onChange={(e) => setEditTelefono(e.target.value)} /></div>
-              <button onClick={actualizarPerfil} disabled={guardandoPerfil} className="identity-btn-save">{guardandoPerfil ? 'SINCRONIZANDO...' : 'ACTUALIZAR DATOS'}</button>
-            </div>
-          </div>
-          <div className="identity-card glass-effect">
-             <h3>Seguridad de Cuenta</h3>
-             <div className="sec-row"><h4>Email Corporativo</h4><p>{editEmail}</p></div>
-             <div className="sec-row"><h4>ID Único de Socio</h4><p className="text-neon">{localStorage.getItem('socio_id')}</p></div>
-          </div>
+        <div className="q-card">
+          <ShieldCheck size={20} color="#00C853"/>
+          <div className="q-data"><span>AUDITORÍA</span><h4>VERIFICADA</h4></div>
         </div>
       </div>
-    </div>
-  );
 
-  const RenderReportes = () => (
-    <div className="fade-in section-container">
-      <h2 className="section-h2">Análisis de <span>Crecimiento</span></h2>
-      <div className="stats-grid-mini">
-        <div className="stat-box-pro"><span>Inversión</span><h3>${(balance - utilidad).toLocaleString()}</h3></div>
-        <div className="stat-box-pro"><span>Ganancia</span><h3 className="text-neon">+${utilidad.toLocaleString()}</h3></div>
-        <div className="stat-box-pro"><span>Total</span><h3>${balance.toLocaleString()}</h3></div>
-      </div>
-      <div className="chart-container glass-effect">
-          <h4>Rendimiento en Tiempo Real</h4>
-          <div className="fake-chart-bars">{[40, 70, 50, 90, 60, 100].map((h, i) => (<div key={i} className="v-bar" style={{height: `${h}%`}}><div className="v-glow"></div></div>))}</div>
-          <div className="chart-labels"><span>MAR</span><span>ABR</span><span>MAY</span><span>JUN</span><span>JUL</span><span>AGO</span></div>
+      <div className="hub-title">CENTRO DE MANDO</div>
+      <div className="operation-hub">
+        <button className="hub-btn" onClick={() => setActiveTab('reportes')}><BarChart3 size={22}/> Reportes</button>
+        <button className="hub-btn" onClick={() => setActiveTab('retiros')}><Wallet size={22}/> Retiros</button>
+        <button className="hub-btn" onClick={() => setActiveTab('perfil')}><User size={22}/> Perfil</button>
+        <button className="hub-btn" onClick={() => window.open('https://wa.me/soporte', '_blank')}><HelpCircle size={22}/> Ayuda</button>
       </div>
     </div>
   );
 
   if (loading) return (
     <div className="loader-screen">
-      <div className="guru-loader"><div className="inner-circle"><span className="logo-g">G</span></div></div>
-      <p className="pulse loading-text">SINCRONIZANDO BÓVEDA...</p>
-      <style jsx>{`.loader-screen{background:#000;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center}.guru-loader{width:100px;height:100px;border-radius:50%;border:2px solid #111;display:flex;justify-content:center;align-items:center;position:relative}.guru-loader::after{content:'';position:absolute;width:100%;height:100%;border-radius:50%;border:2px solid #00C853;animation:ripple 2s infinite}.inner-circle{width:70px;height:70px;border-radius:50%;background:#050505;border:2px solid #00C853;display:flex;justify-content:center;align-items:center;box-shadow:0 0 20px rgba(0,200,83,0.3)}.logo-g{color:#00C853;font-weight:900;font-size:2rem}@keyframes ripple{0%{transform:scale(1);opacity:1}100%{transform:scale(1.5);opacity:0}}.loading-text{color:#00C853;letter-spacing:3px;font-size:10px;font-weight:900;margin-top:20px}.pulse{animation:p 2s infinite}@keyframes p{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+      <div className="loader-ring"></div>
+      <p>ACCEDIENDO A LA BÓVEDA...</p>
+      <style jsx>{`
+        .loader-screen { background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #00C853; font-weight: 800; font-size: 11px; letter-spacing: 3px; }
+        .loader-ring { width: 50px; height: 50px; border: 2px solid #111; border-top: 2px solid #00C853; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 
   return (
-    <div className="app-layout">
-      <aside className="sidebar-desktop">
-        <div className="sidebar-header"><div className="brand-elite">GURÚ <span>ÉLITE</span></div></div>
-        <nav className="sidebar-nav">
-          <div className={`nav-item ${activeTab === 'inicio' ? 'active' : ''}`} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={20} /> Inicio</div>
-          <div className={`nav-item ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}><BarChart3 size={20} /> Reportes</div>
-          <div className={`nav-item ${activeTab === 'retiros' ? 'active' : ''}`} onClick={() => setActiveTab('retiros')}><Wallet size={20} /> Retiros</div>
-          <div className={`nav-item ${activeTab === 'perfil' ? 'active' : ''}`} onClick={() => setActiveTab('perfil')}><User size={20} /> Perfil</div>
+    <div className="panel-master">
+      {/* SIDEBAR ESCRITORIO */}
+      <aside className="panel-sidebar desktop-only">
+        <div className="sidebar-brand">GURÚ <span>ÉLITE</span></div>
+        <nav className="sidebar-menu">
+          <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={18}/> Inicio</button>
+          <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={18}/> Rendimientos</button>
+          <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={18}/> Retiros</button>
+          <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={18}/> Perfil</button>
           {esAdmin && (
-            <div className="nav-item admin-vip-link" onClick={() => router.push('/admin')}>
-              <Terminal size={20} color="#00C853" /> <span style={{color: '#00C853', fontWeight: '900'}}>TORRE CONTROL</span>
-              {pendientes > 0 && <span className="alert-badge">{pendientes}</span>}
-            </div>
+            <button className="admin-special-btn" onClick={() => router.push('/admin')}>
+              <Terminal size={18}/> TORRE CONTROL {pendientes > 0 && <span className="alert-count">{pendientes}</span>}
+            </button>
           )}
         </nav>
-        <button onClick={handleLogout} className="logout-sidebar"><LogOut size={18} /> SALIR</button>
+        <button className="sidebar-logout" onClick={handleLogout}><LogOut size={18}/> CERRAR SESIÓN</button>
       </aside>
-      <div className="main-wrapper">
-        <header className="top-navbar">
-          <div className="mobile-brand">GURÚ <span>ÉLITE</span></div>
-          <div className="header-actions">
-            <div className="user-avatar" onClick={() => setActiveTab('perfil')}>{nombre.charAt(0)}</div>
-          </div>
+
+      <div className="viewport">
+        {/* NAV MÓVIL */}
+        <header className="mobile-header mobile-only">
+          <div className="m-brand">GURÚ <span>ÉLITE</span></div>
+          {esAdmin && <button className="m-admin-btn" onClick={() => router.push('/admin')}><Terminal size={20}/></button>}
         </header>
-        <main className="panel-content">
+
+        <main className="main-content">
           {activeTab === 'inicio' && <RenderInicio />}
-          {activeTab === 'reportes' && <RenderReportes />}
-          {activeTab === 'retiros' && <RenderRetiros />}
-          {activeTab === 'perfil' && <RenderPerfil />}
+          {activeTab === 'retiros' && (
+            <div className="fade-in">
+              <h2 className="section-title">Terminal de <span>Retiros</span></h2>
+              <div className="withdraw-box">
+                <div className="w-balance"><span>SALDO LIQUIDABLE</span><h3>${balanceVisual.toLocaleString()}</h3></div>
+                <div className="w-methods">
+                  <button className={metodoRetiro === 'banco' ? 'active' : ''} onClick={() => setMetodoRetiro('banco')}><Building2 size={18}/> Banco</button>
+                  <button className={metodoRetiro === 'cripto' ? 'active' : ''} onClick={() => setMetodoRetiro('cripto')}><Zap size={18}/> USDT</button>
+                </div>
+                {mensajeRetiro.texto && <div className={`alert ${mensajeRetiro.tipo}`}>{mensajeRetiro.texto}</div>}
+                <div className="w-form">
+                  <label>Monto USD</label>
+                  <input type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} />
+                  <label>Detalles de transferencia</label>
+                  <textarea placeholder="Banco, cuenta o wallet..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} />
+                  <button onClick={procesarRetiro} disabled={enviandoRetiro}>{enviandoRetiro ? 'VERIFICANDO...' : 'SOLICITAR RETIRO'}</button>
+                </div>
+              </div>
+            </div>
+          )}
+          {activeTab === 'perfil' && (
+            <div className="fade-in">
+              <h2 className="section-title">Configuración de <span>Socio</span></h2>
+              <div className="profile-grid">
+                <div className="profile-card">
+                  <div className="field"><span>Nombre Completo</span><input value={editNombre} onChange={e => setEditNombre(e.target.value)}/></div>
+                  <div className="field"><span>País de Operación</span><input value={editPais} onChange={e => setEditPais(e.target.value)}/></div>
+                  <div className="field"><span>Ciudad</span><input value={editCiudad} onChange={e => setEditCiudad(e.target.value)}/></div>
+                  <div className="field"><span>Teléfono</span><input value={editTelefono} onChange={e => setEditTelefono(e.target.value)}/></div>
+                  <button onClick={actualizarPerfil} disabled={guardandoPerfil}>{guardandoPerfil ? 'SINCRONIZANDO...' : 'GUARDAR CAMBIOS'}</button>
+                </div>
+                <div className="security-card">
+                  <div className="s-row"><span>Email Asociado</span><p>{editEmail}</p></div>
+                  <div className="s-row"><span>Estado de Auditoría</span><p className="v-tag">VERIFICADO</p></div>
+                </div>
+              </div>
+            </div>
+          )}
+          {activeTab === 'reportes' && (
+            <div className="fade-in">
+              <h2 className="section-title">Estado de <span>Rendimientos</span></h2>
+              <div className="report-stats">
+                <div className="r-card"><span>CAPITAL SEMILLA</span><h4>${(balance - utilidad).toLocaleString()}</h4></div>
+                <div className="r-card"><span>PROFIT GENERADO</span><h4 style={{color: '#00C853'}}>+${utilidad.toLocaleString()}</h4></div>
+              </div>
+              <div className="chart-mock">
+                <div className="mock-bars">{[30, 60, 45, 80, 55, 90, 100].map((h, i) => <div key={i} className="bar" style={{height: h+'%'}}></div>)}</div>
+                <div className="mock-labels"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+              </div>
+            </div>
+          )}
         </main>
-        <nav className="mobile-tab-bar">
-          <div className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={24} /></div>
-          <div className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={24} /></div>
-          <div className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={24} /></div>
-          <div className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={24} /></div>
+
+        {/* TAB BAR MÓVIL */}
+        <nav className="mobile-tabs mobile-only">
+          <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={22}/></button>
+          <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={22}/></button>
+          <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={22}/></button>
+          <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={22}/></button>
+          <button onClick={handleLogout}><LogOut size={22} color="#ff4444"/></button>
         </nav>
       </div>
+
       <style jsx global>{`
-        :root { --neon: #00C853; --dark: #050505; --border: #111; }
-        .app-layout { background: #000; min-height: 100vh; display: flex; color: #fff; font-family: 'Inter', sans-serif; }
-        .sidebar-desktop { width: 260px; background: #050505; border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 30px 20px; position: sticky; top: 0; height: 100vh; }
-        @media (min-width: 1024px) { .sidebar-desktop { display: flex; } }
-        .brand-elite { font-weight: 900; font-size: 1.2rem; margin-bottom: 40px; }
-        .brand-elite span { color: var(--neon); }
-        .nav-item { padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; color: #444; cursor: pointer; transition: 0.3s; font-weight: 700; position: relative; }
-        .nav-item.active, .nav-item:hover { color: var(--neon); background: rgba(0,200,83,0.05); }
-        .alert-badge { background: #ff4444; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; position: absolute; right: 10px; }
-        .logout-sidebar { margin-top: auto; background: transparent; border: none; color: #ff4444; padding: 15px; font-weight: 800; cursor: pointer; }
-        .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .top-navbar { height: 70px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; }
-        @media (min-width: 1024px) { .top-navbar { display: none; } }
-        .mobile-brand { font-weight: 900; }
-        .mobile-brand span { color: var(--neon); }
-        .user-avatar { width: 35px; height: 35px; background: var(--neon); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 900; cursor: pointer; }
-        .panel-content { padding: 30px; max-width: 1100px; margin: 0 auto; width: 100%; }
-        @media (max-width: 600px) { .panel-content { padding: 20px; padding-bottom: 100px; } }
-        .welcome-banner h1 { font-size: 2.5rem; font-weight: 900; margin: 0; }
-        .welcome-banner span { color: var(--neon); }
-        .welcome-banner p { font-size: 10px; font-weight: 900; color: #333; margin-top: 10px; letter-spacing: 2px; }
-        .vault-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 30px 0; }
-        @media (min-width: 1024px) { .vault-grid { grid-template-columns: 1.5fr 1fr; } }
-        .vault-card-main { background: var(--dark); border: 1px solid var(--border); border-radius: 30px; padding: 40px; position: relative; overflow: hidden; }
-        .card-label { font-size: 10px; font-weight: 900; color: #333; letter-spacing: 2px; }
-        .balance-display { margin: 20px 0; display: flex; align-items: baseline; gap: 10px; }
-        .symbol { font-size: 2rem; color: #222; font-weight: 900; }
-        .value { font-size: 4.5rem; font-weight: 900; letter-spacing: -2px; }
-        .live-status { background: #000; border: 1px solid #111; padding: 5px 12px; border-radius: 20px; font-size: 9px; font-weight: 900; color: var(--neon); display: flex; align-items: center; gap: 8px; }
-        .dot { width: 6px; height: 6px; background: var(--neon); border-radius: 50%; box-shadow: 0 0 10px var(--neon); }
-        .bar-bg { height: 6px; background: #000; border-radius: 10px; margin: 20px 0 10px; }
-        .bar-fill { height: 100%; background: var(--neon); border-radius: 10px; box-shadow: 0 0 15px var(--neon); }
-        .ai-pulse { font-size: 9px; color: #222; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-        .rank-card-v2 { background: var(--dark); border: 1px solid var(--border); border-radius: 30px; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; }
-        .rank-header { display: flex; align-items: center; gap: 20px; }
-        .rank-header p { font-size: 9px; font-weight: 900; color: #333; margin: 0; }
-        .rank-header h3 { font-size: 20px; font-weight: 900; margin: 0; color: var(--neon); }
-        .detail-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #080808; font-size: 11px; font-weight: 800; }
-        .detail-item span:first-child { color: #333; }
-        .text-neon { color: var(--neon); }
-        .active-tag { background: rgba(0,200,83,0.1); color: var(--neon); padding: 4px 10px; border-radius: 20px; font-size: 9px; }
-        .upgrade-btn { width: 100%; background: #fff; color: #000; border: none; padding: 15px; border-radius: 15px; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; margin-top: 20px; }
-        .section-title { font-size: 11px; font-weight: 900; color: #333; letter-spacing: 3px; margin: 40px 0 20px; }
-        .actions-grid-v2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        @media (min-width: 600px) { .actions-grid-v2 { grid-template-columns: repeat(4, 1fr); } }
-        .action-tile { background: var(--dark); border: 1px solid var(--border); padding: 25px; border-radius: 24px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .action-tile:hover { border-color: var(--neon); transform: translateY(-3px); }
-        .action-tile span { display: block; margin-top: 15px; font-size: 12px; font-weight: 900; }
-        .withdraw-card { background: var(--dark); border: 1px solid var(--border); border-radius: 30px; padding: 40px; text-align: center; }
-        .withdraw-amount { font-size: 3rem; font-weight: 900; color: var(--neon); margin: 10px 0 30px; }
-        .method-selector { display: flex; gap: 15px; margin-bottom: 30px; }
-        .method-option { flex: 1; background: #000; border: 1px solid #111; padding: 20px; border-radius: 15px; cursor: pointer; font-weight: 800; font-size: 12px; color: #333; transition: 0.3s; }
-        .method-option.active { border-color: var(--neon); color: var(--neon); background: rgba(0,200,83,0.05); }
-        .input-group { text-align: left; margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 10px; font-weight: 900; color: #333; margin-bottom: 10px; letter-spacing: 1px; }
-        .input-group input, .input-group textarea { width: 100%; background: #000; border: 1px solid #111; padding: 18px; border-radius: 15px; color: #fff; outline: none; font-weight: 700; }
-        .btn-withdraw-action { width: 100%; background: var(--neon); color: #000; border: none; padding: 20px; border-radius: 18px; font-weight: 900; cursor: pointer; }
-        .mobile-tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(5,5,5,0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
-        @media (min-width: 1024px) { .mobile-tab-bar { display: none; } }
-        .mobile-tab-bar div { color: #333; cursor: pointer; transition: 0.3s; }
-        .mobile-tab-bar div.active { color: var(--neon); }
-        .fade-in { animation: f 0.6s ease; }
-        @keyframes f { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        :root { --neon: #00C853; --bg: #000; --panel: #050505; --border: #111; --text-muted: #444; }
+        .panel-master { background: var(--bg); min-height: 100vh; display: flex; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .panel-sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 35px 20px; position: sticky; top: 0; height: 100vh; }
+        .sidebar-brand { font-weight: 900; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
+        .sidebar-brand span { color: var(--neon); }
+        .sidebar-menu { flex: 1; }
+        .sidebar-menu button { width: 100%; text-align: left; padding: 15px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 5px; }
+        .sidebar-menu button.active, .sidebar-menu button:hover { color: var(--neon); background: rgba(0,200,83,0.05); }
+        .admin-special-btn { margin-top: 20px; border: 1px solid rgba(0,200,83,0.1) !important; position: relative; }
+        .alert-count { position: absolute; right: 10px; background: #ff4444; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; }
+        .sidebar-logout { background: transparent; border: none; color: #ff4444; padding: 15px; font-weight: 800; cursor: pointer; text-align: left; }
+        .viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .mobile-header { height: 70px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: var(--panel); }
+        .m-brand { font-weight: 900; font-size: 1rem; }
+        .m-brand span { color: var(--neon); }
+        .m-admin-btn { background: rgba(0,200,83,0.1); border: none; color: var(--neon); width: 40px; height: 40px; border-radius: 10px; }
+        .main-content { padding: 40px; max-width: 900px; margin: 0 auto; width: 100%; }
+        .panel-header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .user-salute p { font-size: 10px; color: var(--text-muted); font-weight: 900; letter-spacing: 2px; }
+        .user-salute h2 { font-size: 2.2rem; font-weight: 900; margin-top: 5px; }
+        .user-salute span { color: var(--neon); }
+        .location-tag { background: #080808; border: 1px solid var(--border); padding: 6px 15px; border-radius: 20px; font-size: 10px; font-weight: 900; color: #666; display: flex; align-items: center; gap: 8px; }
+        .main-vault-card { background: var(--panel); border: 1px solid var(--border); padding: 40px; border-radius: 30px; position: relative; overflow: hidden; }
+        .vault-info span { font-size: 11px; font-weight: 900; color: var(--text-muted); letter-spacing: 2px; }
+        .main-balance { font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 900; letter-spacing: -2px; margin: 15px 0; line-height: 1; }
+        .vault-status-bar { display: flex; justify-content: space-between; margin-top: 25px; border-top: 1px solid #080808; padding-top: 20px; }
+        .status-label { font-size: 9px; font-weight: 900; color: var(--neon); display: flex; align-items: center; gap: 8px; }
+        .pulse-dot { width: 6px; height: 6px; background: var(--neon); border-radius: 50%; animation: pulse 2s infinite; }
+        .profit-mini { font-size: 10px; font-weight: 900; color: #444; }
+        .quick-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .q-card { background: var(--panel); border: 1px solid var(--border); padding: 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px; }
+        .q-data span { font-size: 9px; font-weight: 900; color: var(--text-muted); }
+        .q-data h4 { font-size: 16px; font-weight: 900; }
+        .hub-title { font-size: 10px; font-weight: 900; color: #222; letter-spacing: 3px; margin: 40px 0 20px; }
+        .operation-hub { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .hub-btn { background: var(--panel); border: 1px solid var(--border); padding: 25px 10px; border-radius: 20px; color: #fff; font-weight: 900; font-size: 11px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .hub-btn:hover { border-color: var(--neon); transform: translateY(-3px); }
+        .section-title { font-size: 1.5rem; font-weight: 900; margin-bottom: 25px; }
+        .section-title span { color: var(--neon); }
+        .withdraw-box { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 25px; }
+        .w-balance h3 { font-size: 2.5rem; font-weight: 900; color: var(--neon); margin-top: 10px; }
+        .w-methods { display: flex; gap: 10px; margin: 25px 0; }
+        .w-methods button { flex: 1; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 12px; color: #444; font-weight: 800; cursor: pointer; }
+        .w-methods button.active { border-color: var(--neon); color: var(--neon); background: rgba(0,200,83,0.05); }
+        .w-form label { display: block; font-size: 10px; font-weight: 900; color: #333; margin: 15px 0 8px; text-transform: uppercase; }
+        .w-form input, .w-form textarea { width: 100%; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 12px; color: #fff; font-weight: 700; outline: none; }
+        .w-form button { width: 100%; background: var(--neon); border: none; padding: 20px; border-radius: 15px; color: #000; font-weight: 900; margin-top: 25px; cursor: pointer; }
+        .profile-card { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 25px; margin-bottom: 20px; }
+        .field { margin-bottom: 20px; }
+        .field span { display: block; font-size: 10px; font-weight: 900; color: #333; margin-bottom: 8px; }
+        .field input { width: 100%; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 12px; color: #fff; font-weight: 700; outline: none; }
+        .profile-card button { width: 100%; background: #fff; border: none; padding: 15px; border-radius: 12px; font-weight: 900; cursor: pointer; }
+        .security-card { background: #080808; padding: 25px; border-radius: 20px; border: 1px solid var(--border); }
+        .s-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        .s-row span { font-size: 11px; font-weight: 800; color: #333; }
+        .v-tag { background: rgba(0,200,83,0.1); color: var(--neon); padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 900; }
+        .chart-mock { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 25px; }
+        .mock-bars { height: 150px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+        .bar { width: 100%; background: var(--neon); border-radius: 4px; opacity: 0.3; }
+        .mobile-tabs { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(5,5,5,0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; }
+        .mobile-tabs button { background: none; border: none; color: #333; cursor: pointer; }
+        .mobile-tabs button.active { color: var(--neon); }
+        .desktop-only { display: none; }
+        @media (min-width: 1024px) { .desktop-only { display: flex; } .mobile-only { display: none !important; } }
+        @media (max-width: 600px) { 
+          .main-content { padding: 25px; padding-bottom: 100px; } 
+          .operation-hub { grid-template-columns: repeat(2, 1fr); }
+          .hub-btn { padding: 20px 10px; }
+          .main-vault-card { padding: 30px 25px; }
+        }
+        @keyframes pulse { 50% { opacity: 0.3; } }
+        .fade-in { animation: fi 0.5s ease forwards; }
+        @keyframes fi { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
