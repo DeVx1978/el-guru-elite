@@ -205,7 +205,6 @@ export default function SocioPanel() {
 
   return (
     <div className="mansion-container">
-      {/* 🛡️ MODAL 2FA */}
       {show2FA && (
         <div className="security-overlay fade-in">
           <div className="security-card scale-in">
@@ -250,15 +249,26 @@ export default function SocioPanel() {
             <div className="fade-in">
               <h2 className="section-title">Cajero de <span>Liquidación</span></h2>
               <div className="glass-withdraw-card">
-                <div className="w-header"><span>SALDO LÍQUIDO</span><h3>${balanceVisual.toLocaleString()}</h3></div>
+                <div className="w-header">
+                  <span className="w-label-top">SALDO LÍQUIDO DISPONIBLE</span>
+                  <h3 className="w-main-balance">${balanceVisual.toLocaleString()}</h3>
+                </div>
                 <div className="w-method-selector">
                   <button className={metodoRetiro === 'banco' ? 'active' : ''} onClick={() => setMetodoRetiro('banco')}><Building2 size={16}/> BANCO</button>
                   <button className={metodoRetiro === 'cripto' ? 'active' : ''} onClick={() => setMetodoRetiro('cripto')}><Zap size={16}/> USDT</button>
                 </div>
                 <div className="w-fields">
-                  <div className="w-field-group"><label>MONTO USD</label><input type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} /></div>
-                  <div className="w-field-group"><label>DESTINO</label><textarea placeholder="Detalles de cuenta o wallet..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} /></div>
-                  <button className="w-submit-btn" onClick={iniciarProtocoloRetiro}><Lock size={16}/> ACTIVAR PROTOCOLO</button>
+                  <div className="w-field-group">
+                    <label>MONTO USD</label>
+                    <input type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} />
+                  </div>
+                  <div className="w-field-group">
+                    <label>DESTINO DE FONDOS</label>
+                    <textarea placeholder="Detalles de cuenta bancaria o wallet..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} />
+                  </div>
+                  <button className="w-submit-btn" onClick={iniciarProtocoloRetiro}>
+                    <Lock size={16}/> ACTIVAR PROTOCOLO SEGURO
+                  </button>
                 </div>
               </div>
             </div>
@@ -337,7 +347,6 @@ export default function SocioPanel() {
         .mansion-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; }
         .m-brand { font-weight: 800; font-size: 1rem; color: #fff; }
-        .m-brand span { color: var(--main); }
         .m-admin-btn { background: rgba(0,200,83,0.1); border: none; color: var(--main); width: 40px; height: 40px; border-radius: 10px; }
 
         .mansion-main { padding: 40px 6%; max-width: 1000px; margin: 0 auto; width: 100%; position: relative; }
@@ -353,8 +362,8 @@ export default function SocioPanel() {
         .glass-vault-card { background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); border: 1px solid var(--border); padding: 50px; border-radius: 40px; margin-bottom: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .vault-top { display: flex; justify-content: space-between; align-items: center; }
         .vault-top p { font-size: 9px; font-weight: 800; color: #333; letter-spacing: 3px; display: flex; align-items: center; gap: 8px; }
-        .yield-tag { background: rgba(0,200,83,0.1); color: var(--main); padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800; }
-        .vault-amount { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: -3px; margin: 20px 0; }
+        .yield-tag { background: rgba(0,200,83,0.1); color: var(--main); padding: 4px 12px; border-radius: 20px; font-size: 9px; font-weight: 800; }
+        .vault-amount { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: -3px; margin: 25px 0; }
         .symbol { color: var(--main); font-size: 2rem; vertical-align: top; margin-right: 10px; font-weight: 400; }
         .vault-footer { display: flex; justify-content: space-between; border-top: 1px solid #0c0c0c; padding-top: 30px; }
         .status-live { font-size: 9px; font-weight: 800; color: var(--main); display: flex; align-items: center; gap: 10px; }
@@ -371,31 +380,94 @@ export default function SocioPanel() {
         .hub-card { background: var(--panel); border: 1px solid var(--border); padding: 25px 10px; border-radius: 20px; color: #fff; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 12px; }
         .hub-card:hover { border-color: var(--main); background: #0c0c0c; }
 
-        /* PERFIL CORREGIDO */
+        /* --- CAJERO DE LIQUIDACIÓN REFORMADO --- */
+        .glass-withdraw-card { 
+          background: rgba(5,5,5,0.8); 
+          border: 1px solid #151515; 
+          padding: 35px; 
+          border-radius: 30px; 
+          backdrop-filter: blur(10px);
+        }
+        .w-header { margin-bottom: 30px; border-bottom: 1px solid #111; padding-bottom: 20px; }
+        .w-label-top { font-size: 9px; font-weight: 800; color: #444; letter-spacing: 2px; display: block; margin-bottom: 10px; }
+        .w-main-balance { font-size: 2.8rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -2px; }
+
+        .w-method-selector { display: flex; gap: 10px; margin-bottom: 30px; }
+        .w-method-selector button { 
+          flex: 1; 
+          background: #000; 
+          border: 1px solid #111; 
+          padding: 18px; 
+          border-radius: 15px; 
+          color: #444; 
+          font-weight: 800; 
+          cursor: pointer; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          gap: 10px; 
+          transition: 0.3s;
+          font-size: 0.8rem;
+        }
+        .w-method-selector button.active { border-color: var(--main); color: var(--main); box-shadow: 0 0 15px rgba(0,200,83,0.1); }
+
+        .w-field-group { margin-bottom: 20px; }
+        .w-field-group label { display: block; font-size: 8px; font-weight: 900; color: #333; margin-bottom: 10px; letter-spacing: 1px; }
+        .w-field-group input, .w-field-group textarea { 
+          width: 100%; 
+          background: #000; 
+          border: 1px solid #111; 
+          padding: 18px; 
+          border-radius: 15px; 
+          color: #fff; 
+          font-size: 14px; 
+          font-weight: 600; 
+          outline: none; 
+          transition: 0.3s;
+        }
+        .w-field-group textarea { min-height: 80px; resize: none; }
+        .w-field-group input:focus, .w-field-group textarea:focus { border-color: #222; }
+
+        .w-submit-btn { 
+          width: 100%; 
+          background: var(--main); 
+          color: #000; 
+          border: none; 
+          padding: 22px; 
+          border-radius: 18px; 
+          font-weight: 900; 
+          font-size: 12px; 
+          letter-spacing: 1px; 
+          cursor: pointer; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          gap: 12px; 
+          transition: 0.3s;
+          margin-top: 10px;
+        }
+        .w-submit-btn:hover { background: #fff; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+
+        /* PERFIL & OTROS */
         .profile-grid-mansion { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
         .p-glass-card { background: var(--panel); border: 1px solid var(--border); padding: 35px; border-radius: 30px; }
         .p-header-info { display: flex; align-items: center; gap: 12px; font-size: 9px; font-weight: 800; letter-spacing: 2px; color: #444; margin-bottom: 30px; border-bottom: 1px solid #111; padding-bottom: 15px; }
         .p-input-row { margin-bottom: 15px; }
         .p-input-row label { display: block; font-size: 8px; font-weight: 800; color: #222; margin-bottom: 6px; letter-spacing: 1px; }
         .p-input-row input { width: 100%; background: #000; border: 1px solid #151515; padding: 14px; border-radius: 12px; color: #fff; font-size: 13px; font-weight: 600; outline: none; transition: 0.3s; }
-        .p-input-row input:focus { border-color: var(--main); }
         .p-save-btn { width: 100%; background: #fff; color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 11px; margin-top: 15px; cursor: pointer; }
-
         .p-security-card { display: flex; flex-direction: column; gap: 20px; }
         .ps-row { background: #0c0c0c; border: 1px solid #151515; padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; }
         .ps-icon { width: 35px; height: 35px; background: #000; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #333; }
         .ps-row span { font-size: 8px; font-weight: 800; color: #333; letter-spacing: 1px; }
         .ps-row p { font-size: 12px; font-weight: 700; color: #fff; margin: 2px 0 0; }
         .v-tag { color: var(--main); font-weight: 800; font-size: 10px; }
-
-        /* RENDIMIENTOS CORREGIDO */
         .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .r-card { background: var(--panel); border: 1px solid var(--border); padding: 25px; border-radius: 25px; }
         .r-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .r-card-head span { font-size: 9px; font-weight: 800; color: #333; letter-spacing: 1px; }
         .r-card h4 { font-size: 1.4rem; font-weight: 800; margin: 0; }
         .highlight h4 { color: var(--main); }
-
         .chart-container-mansion { background: var(--panel); border: 1px solid var(--border); padding: 35px; border-radius: 30px; }
         .chart-bars-wrap { height: 180px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; border-bottom: 1px solid #111; padding-bottom: 15px; }
         .c-bar-box { flex: 1; height: 100%; display: flex; align-items: flex-end; }
@@ -406,9 +478,18 @@ export default function SocioPanel() {
         .m-bottom-bar button { background: none; border: none; color: #333; }
         .m-bottom-bar button.active { color: var(--main); }
 
+        /* 🛡️ MODAL 2FA */
+        .security-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(15px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .security-card { background: #080808; border: 1px solid #111; padding: 50px 40px; border-radius: 40px; width: 100%; max-width: 450px; text-align: center; position: relative; }
+        .close-x { position: absolute; top: 30px; right: 30px; background: none; border: none; color: #222; cursor: pointer; }
+        .security-card input { background: #000; border: 1px solid #222; width: 100%; height: 80px; border-radius: 20px; text-align: center; font-size: 2rem; font-weight: 800; letter-spacing: 12px; color: var(--main); outline: none; margin-bottom: 30px; }
+        .verify-btn { width: 100%; background: var(--main); border: none; padding: 22px; border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.3s; color: #000; }
+
         @keyframes pulse { 50% { opacity: 0.3; } }
         .fade-in { animation: fi 0.8s ease forwards; }
+        .scale-in { animation: si 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes fi { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes si { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
         @media (max-width: 1024px) { 
           .desktop-only { display: none !important; }
@@ -416,6 +497,7 @@ export default function SocioPanel() {
           .welcome-section h1 { font-size: 2.2rem; }
           .hub-grid { grid-template-columns: 1fr 1fr; }
           .profile-grid-mansion, .report-grid { grid-template-columns: 1fr; }
+          .glass-withdraw-card { padding: 25px; }
         }
       `}</style>
     </div>
