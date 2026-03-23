@@ -333,6 +333,7 @@ export default function SocioPanel() {
         :root { --main: #00C853; --bg: #000; --panel: #080808; --border: #151515; }
         .mansion-container { background: #000; min-height: 100vh; display: flex; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
 
+        /* SIDEBAR */
         .mansion-sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; }
         .brand-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
         .brand-logo span { color: var(--main); }
@@ -344,6 +345,7 @@ export default function SocioPanel() {
         .p-badge { background: #ff4444; color: #fff; padding: 2px 6px; border-radius: 20px; font-size: 8px; }
         .logout-trigger { background: none; border: none; color: #ff4444; font-weight: 800; font-size: 10px; cursor: pointer; padding: 10px; opacity: 0.6; }
 
+        /* VIEWPORT */
         .mansion-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; }
         .m-brand { font-weight: 800; font-size: 1rem; color: #fff; }
@@ -356,7 +358,6 @@ export default function SocioPanel() {
         .elite-badge { font-size: 8px; color: var(--main); font-weight: 800; letter-spacing: 3px; border: 1px solid var(--main); padding: 4px 12px; border-radius: 20px; }
         .welcome-section h1 { font-size: 2.8rem; font-weight: 800; margin: 10px 0 5px; }
         .welcome-section span { color: var(--main); }
-        .welcome-sub { color: #333; font-size: 0.85rem; font-weight: 600; }
         .geo-pill { background: #0c0c0c; border: 1px solid var(--border); padding: 10px 20px; border-radius: 30px; font-size: 10px; font-weight: 800; color: #333; display: flex; align-items: center; gap: 10px; }
 
         .glass-vault-card { background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); border: 1px solid var(--border); padding: 50px; border-radius: 40px; margin-bottom: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
@@ -378,26 +379,27 @@ export default function SocioPanel() {
 
         .hub-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         .hub-card { background: var(--panel); border: 1px solid var(--border); padding: 25px 10px; border-radius: 20px; color: #fff; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .hub-card:hover { border-color: var(--main); background: #0c0c0c; }
 
-        /* --- CAJERO DE LIQUIDACIÓN REFORMADO --- */
+        /* --- CAJERO OPTIMIZADO PC & MÓVIL --- */
         .glass-withdraw-card { 
-          background: rgba(5,5,5,0.8); 
+          background: rgba(10,10,10,0.9); 
           border: 1px solid #151515; 
-          padding: 35px; 
+          padding: 40px; 
           border-radius: 30px; 
-          backdrop-filter: blur(10px);
+          backdrop-filter: blur(20px);
+          max-width: 650px;
+          margin: 0 auto;
         }
-        .w-header { margin-bottom: 30px; border-bottom: 1px solid #111; padding-bottom: 20px; }
-        .w-label-top { font-size: 9px; font-weight: 800; color: #444; letter-spacing: 2px; display: block; margin-bottom: 10px; }
-        .w-main-balance { font-size: 2.8rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -2px; }
+        .w-header { margin-bottom: 30px; border-bottom: 1px solid #111; padding-bottom: 20px; text-align: center; }
+        .w-label-top { font-size: 10px; font-weight: 800; color: #444; letter-spacing: 2px; display: block; margin-bottom: 10px; }
+        .w-main-balance { font-size: 3rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -2px; }
 
         .w-method-selector { display: flex; gap: 10px; margin-bottom: 30px; }
         .w-method-selector button { 
           flex: 1; 
           background: #000; 
           border: 1px solid #111; 
-          padding: 18px; 
+          padding: 20px; 
           border-radius: 15px; 
           color: #444; 
           font-weight: 800; 
@@ -407,26 +409,26 @@ export default function SocioPanel() {
           justify-content: center; 
           gap: 10px; 
           transition: 0.3s;
-          font-size: 0.8rem;
+          font-size: 0.85rem;
         }
         .w-method-selector button.active { border-color: var(--main); color: var(--main); box-shadow: 0 0 15px rgba(0,200,83,0.1); }
 
         .w-field-group { margin-bottom: 20px; }
-        .w-field-group label { display: block; font-size: 8px; font-weight: 900; color: #333; margin-bottom: 10px; letter-spacing: 1px; }
+        .w-field-group label { display: block; font-size: 9px; font-weight: 900; color: #222; margin-bottom: 12px; letter-spacing: 1px; }
         .w-field-group input, .w-field-group textarea { 
           width: 100%; 
           background: #000; 
-          border: 1px solid #111; 
-          padding: 18px; 
+          border: 1px solid #151515; 
+          padding: 20px; 
           border-radius: 15px; 
           color: #fff; 
-          font-size: 14px; 
+          font-size: 15px; 
           font-weight: 600; 
           outline: none; 
           transition: 0.3s;
         }
-        .w-field-group textarea { min-height: 80px; resize: none; }
-        .w-field-group input:focus, .w-field-group textarea:focus { border-color: #222; }
+        .w-field-group textarea { min-height: 100px; resize: none; }
+        .w-field-group input:focus { border-color: #222; }
 
         .w-submit-btn { 
           width: 100%; 
@@ -436,7 +438,7 @@ export default function SocioPanel() {
           padding: 22px; 
           border-radius: 18px; 
           font-weight: 900; 
-          font-size: 12px; 
+          font-size: 13px; 
           letter-spacing: 1px; 
           cursor: pointer; 
           display: flex; 
@@ -446,33 +448,21 @@ export default function SocioPanel() {
           transition: 0.3s;
           margin-top: 10px;
         }
-        .w-submit-btn:hover { background: #fff; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .w-submit-btn:hover { background: #fff; transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         /* PERFIL & OTROS */
         .profile-grid-mansion { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
         .p-glass-card { background: var(--panel); border: 1px solid var(--border); padding: 35px; border-radius: 30px; }
-        .p-header-info { display: flex; align-items: center; gap: 12px; font-size: 9px; font-weight: 800; letter-spacing: 2px; color: #444; margin-bottom: 30px; border-bottom: 1px solid #111; padding-bottom: 15px; }
-        .p-input-row { margin-bottom: 15px; }
-        .p-input-row label { display: block; font-size: 8px; font-weight: 800; color: #222; margin-bottom: 6px; letter-spacing: 1px; }
-        .p-input-row input { width: 100%; background: #000; border: 1px solid #151515; padding: 14px; border-radius: 12px; color: #fff; font-size: 13px; font-weight: 600; outline: none; transition: 0.3s; }
-        .p-save-btn { width: 100%; background: #fff; color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; font-size: 11px; margin-top: 15px; cursor: pointer; }
+        .p-input-row label { display: block; font-size: 8px; font-weight: 800; color: #222; margin-bottom: 6px; }
+        .p-input-row input { width: 100%; background: #000; border: 1px solid #151515; padding: 14px; border-radius: 12px; color: #fff; font-size: 13px; outline: none; }
+        .p-save-btn { width: 100%; background: #fff; color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; cursor: pointer; }
         .p-security-card { display: flex; flex-direction: column; gap: 20px; }
         .ps-row { background: #0c0c0c; border: 1px solid #151515; padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; }
-        .ps-icon { width: 35px; height: 35px; background: #000; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #333; }
-        .ps-row span { font-size: 8px; font-weight: 800; color: #333; letter-spacing: 1px; }
-        .ps-row p { font-size: 12px; font-weight: 700; color: #fff; margin: 2px 0 0; }
-        .v-tag { color: var(--main); font-weight: 800; font-size: 10px; }
         .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .r-card { background: var(--panel); border: 1px solid var(--border); padding: 25px; border-radius: 25px; }
-        .r-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .r-card-head span { font-size: 9px; font-weight: 800; color: #333; letter-spacing: 1px; }
-        .r-card h4 { font-size: 1.4rem; font-weight: 800; margin: 0; }
-        .highlight h4 { color: var(--main); }
         .chart-container-mansion { background: var(--panel); border: 1px solid var(--border); padding: 35px; border-radius: 30px; }
-        .chart-bars-wrap { height: 180px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; border-bottom: 1px solid #111; padding-bottom: 15px; }
-        .c-bar-box { flex: 1; height: 100%; display: flex; align-items: flex-end; }
-        .c-bar { width: 100%; background: linear-gradient(to top, var(--main), #004d40); border-radius: 8px; opacity: 0.5; transition: 1s ease; }
-        .chart-days-labels { display: flex; justify-content: space-between; margin-top: 15px; font-size: 9px; font-weight: 800; color: #222; }
+        .chart-bars-wrap { height: 180px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+        .c-bar { width: 100%; background: linear-gradient(to top, var(--main), #004d40); border-radius: 8px; opacity: 0.5; }
 
         .m-bottom-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.8); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
         .m-bottom-bar button { background: none; border: none; color: #333; }
@@ -481,23 +471,21 @@ export default function SocioPanel() {
         /* 🛡️ MODAL 2FA */
         .security-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(15px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .security-card { background: #080808; border: 1px solid #111; padding: 50px 40px; border-radius: 40px; width: 100%; max-width: 450px; text-align: center; position: relative; }
-        .close-x { position: absolute; top: 30px; right: 30px; background: none; border: none; color: #222; cursor: pointer; }
-        .security-card input { background: #000; border: 1px solid #222; width: 100%; height: 80px; border-radius: 20px; text-align: center; font-size: 2rem; font-weight: 800; letter-spacing: 12px; color: var(--main); outline: none; margin-bottom: 30px; }
-        .verify-btn { width: 100%; background: var(--main); border: none; padding: 22px; border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.3s; color: #000; }
+        .security-card input { background: #000; border: 1px solid #222; width: 100%; height: 80px; border-radius: 20px; text-align: center; font-size: 2rem; font-weight: 800; letter-spacing: 12px; color: var(--main); outline: none; }
+        .verify-btn { width: 100%; background: var(--main); border: none; padding: 22px; border-radius: 20px; font-weight: 800; cursor: pointer; color: #000; }
 
         @keyframes pulse { 50% { opacity: 0.3; } }
         .fade-in { animation: fi 0.8s ease forwards; }
         .scale-in { animation: si 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        @keyframes fi { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fi { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes si { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
         @media (max-width: 1024px) { 
           .desktop-only { display: none !important; }
           .mansion-main { padding: 30px 20px 120px; }
-          .welcome-section h1 { font-size: 2.2rem; }
           .hub-grid { grid-template-columns: 1fr 1fr; }
           .profile-grid-mansion, .report-grid { grid-template-columns: 1fr; }
-          .glass-withdraw-card { padding: 25px; }
+          .glass-withdraw-card { padding: 30px 25px; }
         }
       `}</style>
     </div>
