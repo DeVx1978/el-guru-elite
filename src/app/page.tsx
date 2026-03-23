@@ -25,20 +25,21 @@ export default function LandingPage() {
     setIsNavigating(true); 
     setMenuMovilAbierto(false);
 
-    // 🛡️ PROTOCOLO DE SEGURIDAD: Validación de Sesión Real
+    // 🛡️ PROTOCOLO ANTI-INTRUSIÓN:
+    // Si el usuario hace clic en ACCESO VIP, forzamos que el sistema pida Login 
+    // a menos que explícitamente queramos ir al panel con sesión validada.
     const socioId = typeof window !== 'undefined' ? localStorage.getItem('socio_id') : null;
-    const socioRol = typeof window !== 'undefined' ? localStorage.getItem('socio_rol') : null;
-
+    
     let destinoFinal = ruta;
 
-    // Si intenta acceder a Login o Panel, validamos que no sea una sesión fantasma
+    // Si no hay socio_id, o si es un acceso desde la landing, mandamos a LOGIN por seguridad
     if (ruta === '/login' || ruta === '/panel') {
       if (!socioId) {
-        destinoFinal = '/login'; // Obliga a loguearse si no hay ID
-      } else if (socioRol === 'admin') {
-        destinoFinal = '/admin';
+        destinoFinal = '/login';
       } else {
-        destinoFinal = '/panel';
+        // Solo si hay sesión, validamos roles
+        const socioRol = localStorage.getItem('socio_rol');
+        destinoFinal = socioRol === 'admin' ? '/admin' : '/panel';
       }
     }
 
@@ -132,7 +133,7 @@ export default function LandingPage() {
             <span onClick={() => abrirInfoSeccion('inversionistas')} className="link-elite">Inversionistas</span>
           </div>
           <div className="nav-actions-master">
-            {/* 🎯 CAMBIO QUIRÚRGICO: ACCESO VIP */}
+            {/* BOTÓN ÚNICO: ACCESO VIP */}
             <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-nav-access desktop-only">ACCESO VIP</button>
             <button className="menu-toggle mobile-only" onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}>
               {menuMovilAbierto ? <X size={28} color="#00C853" /> : <Menu size={28} color="#00C853" />}
@@ -143,7 +144,7 @@ export default function LandingPage() {
            <span onClick={() => abrirInfoSeccion('quienes')} className="mobile-link">Quiénes Somos</span>
            <span onClick={() => abrirInfoSeccion('proyecto')} className="mobile-link">Proyecto Gurú</span>
            <span onClick={() => abrirInfoSeccion('inversionistas')} className="mobile-link">Inversionistas</span>
-           {/* 🎯 CAMBIO QUIRÚRGICO: ACCESO VIP MÓVIL */}
+           {/* BOTÓN MÓVIL UNIFICADO */}
            <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-mobile-login">ACCESO VIP</button>
         </div>
       </nav>
@@ -157,7 +158,7 @@ export default function LandingPage() {
           <p className="hero-subtext">Algoritmos de alta frecuencia y redes neuronales dedicadas a la predicción de mercados. Gestión institucional para el inversor privado.</p>
           <div className="hero-cta-btn-group">
             <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-hero-primary">ABRIR CUENTA <ArrowUpRight size={18} /></button>
-            {/* 🎯 CAMBIO QUIRÚRGICO: ACCESO VIP EN HERO MÓVIL */}
+            {/* BOTÓN HERO MÓVIL UNIFICADO */}
             <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-hero-secondary mobile-only">ACCESO VIP <Lock size={16} /></button>
           </div>
         </div>
