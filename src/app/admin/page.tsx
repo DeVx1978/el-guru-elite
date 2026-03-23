@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
   ShieldCheck, Users, Clock, TrendingUp, CheckCircle, XCircle, 
-  Eye, DollarSign, Download, Filter, Search, Menu, X, BarChart3, 
-  Settings, LogOut, Bell
+  Eye, DollarSign, Search, Menu, X, BarChart3, 
+  Settings, LogOut, Bell, Image as ImageIcon, Loader2
 } from 'lucide-react';
 
 const clientSupabase = createClient(
@@ -15,8 +15,10 @@ const clientSupabase = createClient(
 export default function AdminPanel() {
   const [socios, setSocios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accionLoading, setAccionLoading] = useState<string | null>(null); // Para botones de acción
   const [menuOpen, setMenuOpen] = useState(false);
   const [stats, setStats] = useState({ totalCapital: 0, pendientes: 0, activos: 0 });
+  const [modalImagen, setModalImagen] = useState<{ open: boolean; url: string | null; nombreSocio: string }>({ open: false, url: null, nombreSocio: '' });
 
   useEffect(() => {
     fetchData();
@@ -40,13 +42,28 @@ export default function AdminPanel() {
     setLoading(false);
   }
 
-  const actualizarEstado = async (id: string, nuevoEstado: string) => {
-    const { error } = await clientSupabase
-      .from('socios')
-      .update({ estado: nuevoEstado })
-      .eq('id', id);
-    
-    if (!error) fetchData();
+  // Lógica de Aprobación/Rechazo Real
+  const actualizarEstadoSocio = async (idSocio: string, nuevoEstado: string) => {
+    setAccionLoading(idSocio + nuevoEstado); // Activa el loader del botón específico
+    try {
+        const { error } = await clientSupabase
+          .from('socios')
+          .update({ estado: nuevoEstado })
+          .eq('id', idSocio);
+        
+        if (error) throw error;
+        // Refrescar datos localmente
+        fetchData(); 
+    } catch (err: any) {
+        console.error("Error al actualizar estado:", err.message);
+        alert("Fallo en Supabase al actualizar el estado. Intente de nuevo.");
+    } finally {
+        setAccionLoading(null); // Apaga el loader
+    }
+  };
+
+  const abrirModalComprobante = (url: string, nombre: string) => {
+    setModalImagen({ open: true, url, nombreSocio: nombre });
   };
 
   return (
@@ -127,7 +144,9 @@ export default function AdminPanel() {
                   </tr>
                 </thead>
                 <tbody>
-                  {socios.map((s) => (
+                  {loading ? (
+                    <tr><td colSpan={6} style={{textAlign:'center', color:'#444', padding:'40px'}}>Sincronizando la red...</td></tr>
+                  ) : socios.map((s) => (
                     <tr key={s.id}>
                       <td>
                         <div className="user-info">
@@ -145,11 +164,36 @@ export default function AdminPanel() {
                       </td>
                       <td>
                         <div className="action-btns">
-                          <button className="btn-view" title="Ver Comprobante"><Eye size={16}/></button>
+                          {/* Botón Ver Comprobante (Ojo) */}
+                          <button 
+                            onClick={() => abrirModalComprobante('https://via.placeholder.com/600x800.png?text=Comprobante+Socio', s.nombre)} 
+                            className="btn-view" 
+                            title="Ver Comprobante"
+                          >
+                            <Eye size={16}/>
+                          </button>
+                          
                           {s.estado === 'pendiente' && (
                             <>
-                              <button onClick={() => actualizarEstado(s.id, 'activo')} className="btn-approve" title="Aprobar"><CheckCircle size={16}/></button>
-                              <button onClick={() => actualizarEstado(s.id, 'rechazado')} className="btn-reject" title="Rechazar"><XCircle size={16}/></button>
+                              {/* Botón Aprobar (Check) */}
+                              <button 
+                                onClick={() => actualizarEstadoSocio(s.id, 'activo')} 
+                                className="btn-approve" 
+                                title="Aprobar Pago"
+                                disabled={accionLoading === s.id + 'activo'}
+                              >
+                                {accionLoading === s.id + 'activo' ? <Loader2 size={16} className="spin"/> : <CheckCircle size={16}/>}
+                              </button>
+                              
+                              {/* Botón Rechazar (X) */}
+                              <button 
+                                onClick={() => actualizarEstadoSocio(s.id, 'rechazado')} 
+                                className="btn-reject" 
+                                title="Rechazar Pago"
+                                disabled={accionLoading === s.id + 'rechazado'}
+                              >
+                                {accionLoading === s.id + 'rechazado' ? <Loader2 size={16} className="spin"/> : <XCircle size={16}/>}
+                              </button>
                             </>
                           )}
                         </div>
@@ -163,10 +207,32 @@ export default function AdminPanel() {
         </div>
       </main>
 
+      {/* MODAL VISOR DE COMPROBANTES */}
+      {modalImagen.open && (
+        <div className="modal-overlay" onClick={() => setModalImagen({...modalImagen, open: false})}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3>Comprobante de: <span>{modalImagen.nombreSocio}</span></h3>
+                    <button onClick={() => setModalImagen({...modalImagen, open: false})} className="btn-close-modal"><X size={20}/></button>
+                </div>
+                <div className="modal-body">
+                    {modalImagen.url ? (
+                        <img src={modalImagen.url} alt="Comprobante de Pago" className="img-comprobante" />
+                    ) : (
+                        <div className="no-img">
+                            <ImageIcon size={48} color="#222"/>
+                            <p>Imagen no disponible.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+      )}
+
       <style jsx global>{`
-        .admin-wrapper { display: flex; background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; }
+        .admin-wrapper { display: flex; background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
         
-        .admin-sidebar { width: 280px; background: #050505; border-right: 1px solid #111; padding: 40px 20px; display: flex; flex-direction: column; transition: 0.3s; z-index: 1000; }
+        .admin-sidebar { width: 280px; background: #050505; border-right: 1px solid #111; display: flex; flex-direction: column; padding: 40px 20px; transition: 0.3s; z-index: 1000; }
         .admin-brand { display: flex; align-items: center; gap: 15px; margin-bottom: 50px; }
         .admin-brand h2 { font-size: 16px; font-weight: 900; letter-spacing: -1px; }
         .admin-brand span { color: #00C853; }
@@ -176,7 +242,7 @@ export default function AdminPanel() {
         .admin-nav button.active, .admin-nav button:hover { color: #fff; background: #0a0a0a; }
         .admin-nav button.active { color: #00C853; }
 
-        .admin-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .admin-main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .admin-header { padding: 30px 40px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
         .admin-user p { font-size: 10px; font-weight: 900; color: #444; margin: 0; }
         .admin-user h3 { font-size: 18px; font-weight: 900; margin: 0; color: #00C853; }
@@ -215,12 +281,31 @@ export default function AdminPanel() {
         .status-tag.rechazado { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
 
         .action-btns { display: flex; gap: 10px; }
-        .action-btns button { background: #000; border: 1px solid #111; color: #444; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .action-btns button { background: #000; border: 1px solid #111; color: #444; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
+        .action-btns button:hover:not(:disabled) { transform: translateY(-1px); }
         .btn-view:hover { color: #fff; border-color: #fff; }
         .btn-approve:hover { color: #00C853; border-color: #00C853; }
         .btn-reject:hover { color: #ff4444; border-color: #ff4444; }
+        .action-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* MODAL VISOR */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #050505; border: 1px solid #111; border-radius: 24px; width: 100%; max-width: 600px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; animation: modalFadeIn 0.3s ease; }
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 16px; font-weight: 900; }
+        .modal-header span { color: #00C853; }
+        .btn-close-modal { background: #000; border: 1px solid #111; color: #444; border-radius: 8px; padding: 5px; cursor: pointer; }
+        .btn-close-modal:hover { color: #fff; border-color: #fff; }
+        .modal-body { flex: 1; padding: 25px; overflow-y: auto; display: flex; justify-content: center; align-items: center; }
+        .img-comprobante { max-width: 100%; max-height: 70vh; border-radius: 12px; object-fit: contain; }
+        .no-img { text-align: center; }
+        .no-img p { color: #222; margin-top: 15px; }
 
         .m-toggle { display: none; }
+        .spin { animation: spin 1s linear infinite; }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
         @media (max-width: 1024px) {
           .admin-sidebar { position: fixed; left: -100%; top: 0; bottom: 0; }
