@@ -97,22 +97,43 @@ export default function UnetePage() {
     setLoading(true);
     setError(null);
     try {
-      const { data: socio, error: errSocio } = await clientSupabase.from('socios').insert([{
-        nombre: formData.nombre, correo: formData.email, password: formData.password, estado: 'pendiente', rol: 'socio'
-      }]).select().single();
+      // 1. Limpieza de datos antes de enviar
+      const correoLimpio = formData.email.trim().toLowerCase();
+
+      // 2. Inserción en tabla socios
+      const { data: socio, error: errSocio } = await clientSupabase
+        .from('socios')
+        .insert([{
+          nombre: formData.nombre.trim(),
+          correo: correoLimpio,
+          password: formData.password,
+          estado: 'pendiente',
+          rol: 'socio'
+        }])
+        .select().single();
       
-      if (errSocio) throw new Error("Este correo ya se encuentra registrado en el sistema.");
+      if (errSocio) {
+          // Detectar error de duplicado real vs error de sistema
+          if (errSocio.code === '23505') throw new Error("Este correo ya está registrado.");
+          throw new Error("Error de conexión con el servidor de seguridad.");
+      }
 
-      const { error: errElite } = await clientSupabase.from('socios_elite').insert([{
-        id_socio: socio.id, nivel_socio: formData.plan.toUpperCase(),
-        inversion_minima: planes.find(p => p.id === formData.plan)?.precio,
-        pais: formData.pais, telefono: `${formData.codigoArea} ${formData.telefono}`,
-        ciudad: formData.ciudad, metodo_pago: formData.metodoPago
-      }]);
+      // 3. Inserción en tabla socios_elite
+      const { error: errElite } = await clientSupabase
+        .from('socios_elite')
+        .insert([{
+          id_socio: socio.id,
+          nivel_socio: formData.plan.toUpperCase(),
+          inversion_minima: planes.find(p => p.id === formData.plan)?.precio,
+          pais: formData.pais,
+          telefono: `${formData.codigoArea} ${formData.telefono}`,
+          ciudad: formData.ciudad,
+          metodo_pago: formData.metodoPago
+        }]);
 
-      if (errElite) throw errElite;
+      if (errElite) throw new Error("Error al vincular los datos financieros. Contacte soporte.");
 
-      setPaso(5); // Activa la pantalla de auditoría con la alerta
+      setPaso(5);
     } catch (err: any) { 
       setError(err.message); 
       setLoading(false);
@@ -135,6 +156,7 @@ export default function UnetePage() {
 
       <main className="unete-content">
         <div className="form-container">
+          {/* PASO 1: SEGURIDAD REFORZADA */}
           {paso === 1 && (
             <div className="fade-in">
               <span className="step-badge">PASO 01</span>
@@ -143,11 +165,13 @@ export default function UnetePage() {
                 <div className="field"><User size={18}/><input name="nombre" placeholder="Nombre Completo" value={formData.nombre} onChange={handleInputChange}/></div>
                 <div className="field"><Mail size={18}/><input name="email" placeholder="Email Corporativo" value={formData.email} onChange={handleInputChange}/></div>
                 <div className="field">
-                  <Lock size={18}/><input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña (Mín. 8 caracteres)" value={formData.password} onChange={handleInputChange}/>
+                  <Lock size={18}/><input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange}/>
                   <button onClick={() => setShowPass(!showPass)} className="btn-eye">{showPass ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
                 </div>
                 <div className="field">
                   <Lock size={18}/><input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Confirmar Contraseña" value={formData.confirmPassword} onChange={handleInputChange}/>
+                  {/* El botón de ojo ahora afecta a ambos simultáneamente por diseño de usabilidad */}
+                  <button onClick={() => setShowPass(!showPass)} className="btn-eye">{showPass ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
                 </div>
               </div>
               <div className="checks">
@@ -173,7 +197,7 @@ export default function UnetePage() {
                 <div className="field"><MapPin size={18}/><input name="ciudad" placeholder="Ciudad" value={formData.ciudad} onChange={handleInputChange}/></div>
                 <div className="phone-grid">
                   <div className="area-code">{formData.codigoArea}</div>
-                  <div className="field no-margin"><Phone size={18}/><input name="telefono" placeholder="Número de contacto" value={formData.telefono} onChange={handleInputChange}/></div>
+                  <div className="field no-margin"><Phone size={18}/><input name="telefono" placeholder="Número" value={formData.telefono} onChange={handleInputChange}/></div>
                 </div>
               </div>
               <button disabled={!paso2Valido} onClick={() => setPaso(3)} className="btn-primary">SELECCIONAR PLAN <ChevronRight size={18}/></button>
@@ -219,7 +243,7 @@ export default function UnetePage() {
                 {error && <div className="error-tag"><AlertTriangle size={14}/> {error}</div>}
               </div>
               <button disabled={loading || !comprobante} onClick={finalizarRegistro} className="btn-primary">
-                {loading ? 'PROCESANDO...' : 'FINALIZAR REGISTRO'}
+                {loading ? 'SINCROIZANDO...' : 'FINALIZAR REGISTRO'}
               </button>
             </div>
           )}
@@ -240,7 +264,7 @@ export default function UnetePage() {
 
       <style jsx global>{`
         .unete-wrapper { background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; }
-        .unete-nav { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; border-bottom: 1px solid #111; }
+        .unete-nav { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; border-bottom: 1px solid #111; max-width: 1200px; margin: 0 auto; width: 100%; }
         .nav-back { background: none; border: none; color: #444; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
         .nav-back:hover { color: #00C853; }
         .progress-bar { display: flex; gap: 8px; }
@@ -251,8 +275,9 @@ export default function UnetePage() {
         .step-badge { font-size: 10px; font-weight: 900; color: #00C853; letter-spacing: 3px; display: block; margin-bottom: 10px; }
         h1 { font-size: 2rem; font-weight: 900; margin-bottom: 10px; letter-spacing: -1.5px; }
         h1 span { color: #00C853; }
+        p { color: #666; font-size: 14px; margin-bottom: 30px; line-height: 1.6; }
         .input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
-        .field { background: #050505; border: 1px solid #111; border-radius: 12px; display: flex; align-items: center; padding: 0 15px; gap: 12px; }
+        .field { background: #050505; border: 1px solid #111; border-radius: 12px; display: flex; align-items: center; padding: 0 15px; gap: 12px; transition: 0.3s; }
         .field:focus-within { border-color: #00C853; }
         .field input, .field select { background: transparent; border: none; padding: 15px 0; color: #fff; width: 100%; outline: none; font-size: 14px; font-weight: 600; }
         .btn-eye { background: none; border: none; color: #333; cursor: pointer; }
@@ -268,6 +293,7 @@ export default function UnetePage() {
         .plan-card { background: #050505; border: 1px solid #111; padding: 20px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: 0.3s; }
         .plan-card.active { border-color: var(--color); }
         .payment-box { background: #050505; border: 1px solid #111; padding: 25px; border-radius: 20px; margin-bottom: 30px; }
+        .pay-summary { margin-bottom: 20px; }
         .pay-details { background: rgba(0,200,83,0.05); border: 1px solid rgba(0,200,83,0.1); padding: 15px; border-radius: 12px; display: flex; gap: 12px; margin-bottom: 20px; font-size: 12px; color: #ccc; }
         .upload-zone { border: 2px dashed #111; border-radius: 15px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; cursor: pointer; overflow: hidden; }
         .preview { width: 100%; height: 100%; object-fit: contain; }
