@@ -4,7 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import { 
   ShieldCheck, Users, Clock, TrendingUp, CheckCircle, XCircle, 
   Eye, DollarSign, Search, Menu, X, BarChart3, 
-  Settings, LogOut, Bell, Image as ImageIcon, Loader2
+  Settings, LogOut, Bell, Image as ImageIcon, Loader2, Zap, Percent,
+  ArrowUpRight, ArrowDownRight, Filter, Download
 } from 'lucide-react';
 
 const clientSupabase = createClient(
@@ -15,10 +16,25 @@ const clientSupabase = createClient(
 export default function AdminPanel() {
   const [socios, setSocios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [accionLoading, setAccionLoading] = useState<string | null>(null); // Para botones de acción
+  const [accionLoading, setAccionLoading] = useState<string | null>(null);
+  const [utilidadPorcentaje, setUtilidadPorcentaje] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [stats, setStats] = useState({ totalCapital: 0, pendientes: 0, activos: 0 });
-  const [modalImagen, setModalImagen] = useState<{ open: boolean; url: string | null; nombreSocio: string }>({ open: false, url: null, nombreSocio: '' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [stats, setStats] = useState({ 
+    totalCapital: 0, 
+    pendientes: 0, 
+    activos: 0, 
+    utilidadRepartida: 0 
+  });
+  const [modalImagen, setModalImagen] = useState<{
+    open: boolean; 
+    url: string | null; 
+    nombreSocio: string 
+  }>({ 
+    open: false, 
+    url: null, 
+    nombreSocio: '' 
+  });
 
   useEffect(() => {
     fetchData();
@@ -26,49 +42,84 @@ export default function AdminPanel() {
 
   async function fetchData() {
     setLoading(true);
-    // 1. Obtener Socios y sus datos financieros
-    const { data, error } = await clientSupabase
-      .from('socios')
-      .select('*, socios_elite(*) ')
-      .order('created_at', { ascending: false });
+    try {
+        const { data, error } = await clientSupabase
+          .from('socios')
+          .select('*, socios_elite(*) ')
+          .order('created_at', { ascending: false });
 
-    if (data) {
-      setSocios(data);
-      const pendientes = data.filter(s => s.estado === 'pendiente').length;
-      const activos = data.filter(s => s.estado === 'activo').length;
-      const capital = data.reduce((acc, s) => acc + (s.socios_elite?.[0]?.inversion_minima || 0), 0);
-      setStats({ totalCapital: capital, pendientes, activos });
+        if (data) {
+          setSocios(data);
+          const pendientes = data.filter(s => s.estado === 'pendiente').length;
+          const activos = data.filter(s => s.estado === 'activo').length;
+          const capital = data.reduce((acc, s) => acc + (s.socios_elite?.[0]?.inversion_minima || 0), 0);
+          const utilidades = data.reduce((acc, s) => acc + (s.utilidad_total || 0), 0);
+          setStats({ totalCapital: capital, pendientes, activos, utilidadRepartida: utilidades });
+        }
+    } catch (err) {
+        console.error("Error fetch:", err);
+    } finally {
+        setLoading(false);
     }
-    setLoading(false);
   }
 
-  // Lógica de Aprobación/Rechazo Real
-  const actualizarEstadoSocio = async (idSocio: string, nuevoEstado: string) => {
-    setAccionLoading(idSocio + nuevoEstado); // Activa el loader del botón específico
+  const ejecutarDispersionGlobal = async () => {
+    const porcentaje = parseFloat(utilidadPorcentaje);
+    if (isNaN(porcentaje) || porcentaje <= 0) return alert("Ingrese un porcentaje válido.");
+    
+    const confirmar = confirm(`¿ESTÁ SEGURO? Se dispersará el ${porcentaje}% de utilidades a TODOS los socios activos.`);
+    if (!confirmar) return;
+
+    setAccionLoading('global_utilidad');
     try {
-        const { error } = await clientSupabase
-          .from('socios')
-          .update({ estado: nuevoEstado })
-          .eq('id', idSocio);
+        const sociosActivos = socios.filter(s => s.estado === 'activo');
         
-        if (error) throw error;
-        // Refrescar datos localmente
-        fetchData(); 
-    } catch (err: any) {
-        console.error("Error al actualizar estado:", err.message);
-        alert("Fallo en Supabase al actualizar el estado. Intente de nuevo.");
+        for (const socio of sociosActivos) {
+            const inversion = socio.socios_elite?.[0]?.inversion_minima || 0;
+            const nuevaUtilidad = (inversion * (porcentaje / 100));
+            const utilidadAcumulada = (socio.utilidad_total || 0) + nuevaUtilidad;
+
+            await clientSupabase
+                .from('socios')
+                .update({ utilidad_total: utilidadAcumulada })
+                .eq('id', socio.id);
+        }
+
+        alert(`OPERACIÓN EXITOSA: ${sociosActivos.length} socios actualizados.`);
+        setUtilidadPorcentaje('');
+        fetchData();
+    } catch (err) {
+        alert("Error crítico en la dispersión.");
     } finally {
-        setAccionLoading(null); // Apaga el loader
+        setAccionLoading(null);
     }
   };
 
-  const abrirModalComprobante = (url: string, nombre: string) => {
-    setModalImagen({ open: true, url, nombreSocio: nombre });
+  const actualizarEstadoSocio = async (idSocio: string, nuevoEstado: string) => {
+    setAccionLoading(idSocio + nuevoEstado);
+    try {
+        const { error } = await clientSupabase
+            .from('socios')
+            .update({ estado: nuevoEstado })
+            .eq('id', idSocio);
+        
+        if (error) throw error;
+        fetchData();
+    } catch (err) {
+        alert("Error al actualizar socio.");
+    } finally {
+        setAccionLoading(null);
+    }
   };
+
+  const sociosFiltrados = socios.filter(s => 
+    s.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    s.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="admin-wrapper">
-      {/* SIDEBAR ADMIN */}
+      {/* SIDEBAR IZQUIERDO */}
       <aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="admin-brand">
           <ShieldCheck color="#00C853" size={28} />
@@ -76,12 +127,12 @@ export default function AdminPanel() {
         </div>
         <nav className="admin-nav">
           <button className="active"><Users size={20}/> Gestión de Socios</button>
-          <button><BarChart3 size={20}/> Reportes Globales</button>
           <button><DollarSign size={20}/> Carga de Utilidades</button>
+          <button><BarChart3 size={20}/> Reportes Globales</button>
           <button><Settings size={20}/> Configuración</button>
         </nav>
         <div className="admin-footer">
-          <button className="btn-logout"><LogOut size={18}/> Salir</button>
+          <button className="btn-logout" onClick={() => window.location.href='/'}><LogOut size={18}/> Salir del Sistema</button>
         </div>
       </aside>
 
@@ -92,107 +143,128 @@ export default function AdminPanel() {
             {menuOpen ? <X /> : <Menu />}
           </button>
           <div className="admin-user">
-            <p>Admin Principal</p>
+            <p>Rango: Administrador Élite</p>
             <h3>MARÍA JOSÉ</h3>
           </div>
-          <div className="header-actions">
-            <button className="btn-icon"><Bell size={20}/></button>
-            <div className="admin-pill">SISTEMA SEGURO</div>
+          <div className="header-right">
+            <div className="status-badge"><div className="pulse"></div> EN LÍNEA</div>
+            <button className="btn-icon-circle"><Bell size={20}/></button>
           </div>
         </header>
 
         <div className="admin-scroll">
-          {/* INDICADORES DE PODER */}
+          {/* TARJETAS DE INDICADORES */}
           <section className="stats-grid">
-            <div className="stat-box">
-              <span>CAPITAL BAJO GESTIÓN</span>
+            <div className="stat-card">
+              <div className="stat-head"><span>CAPITAL GESTIONADO</span><TrendingUp size={16} color="#00C853"/></div>
               <h2>${stats.totalCapital.toLocaleString()} <small>USD</small></h2>
-              <div className="trend-up">+ Rendimiento Global</div>
+              <p className="stat-footer">Capital total del fondo</p>
             </div>
-            <div className="stat-box">
-              <span>SOCIOS ÉLITE</span>
-              <h2>{stats.activos}</h2>
-              <div className="trend-neutral">Cuentas Verificadas</div>
+            <div className="stat-card">
+              <div className="stat-head"><span>UTILIDADES REPARTIDAS</span><Zap size={16} color="#00C853"/></div>
+              <h2 style={{color: '#00C853'}}>${stats.utilidadRepartida.toLocaleString()} <small>USD</small></h2>
+              <p className="stat-footer">Histórico de ganancias</p>
             </div>
-            <div className="stat-box highlight">
-              <span>SOLICITUDES PENDIENTES</span>
-              <h2>{stats.pendientes}</h2>
-              <div className="trend-alert">Requiere Atención Urgente</div>
+            <div className="stat-card alert">
+              <div className="stat-head"><span>POR APROBAR</span><Clock size={16} color="#ffbb00"/></div>
+              <h2>{stats.pendientes} <small>SOCIOS</small></h2>
+              <p className="stat-footer">Requieren verificación</p>
+            </div>
+          </section>
+
+          {/* GENERADOR DE UTILIDADES (MÓDULO DE PODER) */}
+          <section className="generator-container">
+            <div className="gen-text">
+                <div className="gen-icon"><Percent color="#00C853" size={24}/></div>
+                <div>
+                    <h3>Dispersión Global de Utilidades</h3>
+                    <p>Ingrese el porcentaje de ganancia para aplicarlo a todos los socios activos.</p>
+                </div>
+            </div>
+            <div className="gen-form">
+                <div className="input-wrapper">
+                    <input 
+                        type="number" 
+                        placeholder="0.00" 
+                        value={utilidadPorcentaje}
+                        onChange={(e) => setUtilidadPorcentaje(e.target.value)}
+                    />
+                    <span>%</span>
+                </div>
+                <button 
+                    className="btn-execute" 
+                    onClick={ejecutarDispersionGlobal}
+                    disabled={accionLoading === 'global_utilidad'}
+                >
+                    {accionLoading === 'global_utilidad' ? <Loader2 className="spin" size={20}/> : 'EJECUTAR DISPERSIÓN'}
+                </button>
             </div>
           </section>
 
           {/* TABLA DE AUDITORÍA */}
-          <section className="table-container">
-            <div className="table-header">
-              <h2>Auditoría de <span>Nuevos Miembros</span></h2>
-              <div className="table-search">
-                <Search size={16} />
-                <input type="text" placeholder="Buscar por nombre o correo..." />
+          <section className="table-wrapper">
+            <div className="table-top">
+              <h2>Auditoría de <span>Miembros</span></h2>
+              <div className="search-box">
+                <Search size={18} color="#444" />
+                <input 
+                    type="text" 
+                    placeholder="Filtrar por nombre o email..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </div>
 
-            <div className="responsive-table">
-              <table>
+            <div className="table-responsive">
+              <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Socio</th>
-                    <th>Plan</th>
-                    <th>País / Ciudad</th>
-                    <th>Inversión</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th>SOCIO</th>
+                    <th>PLAN</th>
+                    <th>INVERSIÓN</th>
+                    <th>UTILIDAD</th>
+                    <th>ESTADO</th>
+                    <th>ACCIONES</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={6} style={{textAlign:'center', color:'#444', padding:'40px'}}>Sincronizando la red...</td></tr>
-                  ) : socios.map((s) => (
+                    <tr><td colSpan={6} className="table-loader">Sincronizando con Supabase...</td></tr>
+                  ) : sociosFiltrados.map((s) => (
                     <tr key={s.id}>
                       <td>
-                        <div className="user-info">
-                          <p className="name">{s.nombre}</p>
-                          <p className="email">{s.email}</p>
+                        <div className="s-info">
+                          <p className="s-name">{s.nombre}</p>
+                          <p className="s-email">{s.email}</p>
                         </div>
                       </td>
-                      <td><span className="plan-tag">{s.socios_elite?.[0]?.nivel_socio || 'N/A'}</span></td>
-                      <td>{s.socios_elite?.[0]?.pais} <br /> <small>{s.socios_elite?.[0]?.ciudad}</small></td>
-                      <td className="amount">${s.socios_elite?.[0]?.inversion_minima || 0}</td>
+                      <td><span className="p-tag">{s.socios_elite?.[0]?.nivel_socio || 'N/A'}</span></td>
+                      <td className="s-amount">${s.socios_elite?.[0]?.inversion_minima?.toLocaleString() || 0}</td>
+                      <td className="s-amount highlight">${s.utilidad_total?.toLocaleString() || 0}</td>
+                      <td><span className={`status-pill ${s.estado}`}>{s.estado?.toUpperCase()}</span></td>
                       <td>
-                        <span className={`status-tag ${s.estado}`}>
-                          {s.estado.toUpperCase()}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="action-btns">
-                          {/* Botón Ver Comprobante (Ojo) */}
+                        <div className="action-row">
                           <button 
-                            onClick={() => abrirModalComprobante('https://via.placeholder.com/600x800.png?text=Comprobante+Socio', s.nombre)} 
-                            className="btn-view" 
-                            title="Ver Comprobante"
-                          >
-                            <Eye size={16}/>
-                          </button>
+                            className="a-btn view" 
+                            onClick={() => setModalImagen({open: true, url: null, nombreSocio: s.nombre})}
+                          ><Eye size={16}/></button>
                           
                           {s.estado === 'pendiente' && (
                             <>
-                              {/* Botón Aprobar (Check) */}
                               <button 
-                                onClick={() => actualizarEstadoSocio(s.id, 'activo')} 
-                                className="btn-approve" 
-                                title="Aprobar Pago"
+                                className="a-btn approve" 
+                                onClick={() => actualizarEstadoSocio(s.id, 'activo')}
                                 disabled={accionLoading === s.id + 'activo'}
                               >
-                                {accionLoading === s.id + 'activo' ? <Loader2 size={16} className="spin"/> : <CheckCircle size={16}/>}
+                                {accionLoading === s.id + 'activo' ? <Loader2 className="spin" size={16}/> : <CheckCircle size={16}/>}
                               </button>
-                              
-                              {/* Botón Rechazar (X) */}
                               <button 
-                                onClick={() => actualizarEstadoSocio(s.id, 'rechazado')} 
-                                className="btn-reject" 
-                                title="Rechazar Pago"
+                                className="a-btn reject" 
+                                onClick={() => actualizarEstadoSocio(s.id, 'rechazado')}
                                 disabled={accionLoading === s.id + 'rechazado'}
                               >
-                                {accionLoading === s.id + 'rechazado' ? <Loader2 size={16} className="spin"/> : <XCircle size={16}/>}
+                                {accionLoading === s.id + 'rechazado' ? <Loader2 className="spin" size={16}/> : <XCircle size={16}/>}
                               </button>
                             </>
                           )}
@@ -207,113 +279,129 @@ export default function AdminPanel() {
         </div>
       </main>
 
-      {/* MODAL VISOR DE COMPROBANTES */}
+      {/* MODAL VISOR DE EVIDENCIA */}
       {modalImagen.open && (
         <div className="modal-overlay" onClick={() => setModalImagen({...modalImagen, open: false})}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h3>Comprobante de: <span>{modalImagen.nombreSocio}</span></h3>
-                    <button onClick={() => setModalImagen({...modalImagen, open: false})} className="btn-close-modal"><X size={20}/></button>
+            <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-head">
+                    <h3>Evidencia de Pago: <span>{modalImagen.nombreSocio}</span></h3>
+                    <button className="m-close" onClick={() => setModalImagen({...modalImagen, open: false})}><X/></button>
                 </div>
                 <div className="modal-body">
                     {modalImagen.url ? (
-                        <img src={modalImagen.url} alt="Comprobante de Pago" className="img-comprobante" />
+                        <img src={modalImagen.url} className="img-full" alt="Comprobante" />
                     ) : (
-                        <div className="no-img">
-                            <ImageIcon size={48} color="#222"/>
-                            <p>Imagen no disponible.</p>
+                        <div className="no-img-box">
+                            <ImageIcon size={60} color="#111" />
+                            <p>El socio aún no ha cargado el archivo o la URL ha expirado.</p>
                         </div>
                     )}
+                </div>
+                <div className="modal-foot">
+                    <button className="btn-sec" onClick={() => setModalImagen({...modalImagen, open: false})}>CERRAR VISOR</button>
                 </div>
             </div>
         </div>
       )}
 
       <style jsx global>{`
-        .admin-wrapper { display: flex; background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
         
-        .admin-sidebar { width: 280px; background: #050505; border-right: 1px solid #111; display: flex; flex-direction: column; padding: 40px 20px; transition: 0.3s; z-index: 1000; }
+        .admin-wrapper { display: flex; background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; }
+        
+        /* SIDEBAR COMPLETO */
+        .admin-sidebar { width: 280px; background: #050505; border-right: 1px solid #111; padding: 40px 20px; display: flex; flex-direction: column; transition: 0.3s; z-index: 100; }
         .admin-brand { display: flex; align-items: center; gap: 15px; margin-bottom: 50px; }
         .admin-brand h2 { font-size: 16px; font-weight: 900; letter-spacing: -1px; }
         .admin-brand span { color: #00C853; }
-        
-        .admin-nav { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-        .admin-nav button { background: transparent; border: none; color: #444; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; text-align: left; transition: 0.3s; }
+        .admin-nav { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .admin-nav button { background: transparent; border: none; color: #444; padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; text-align: left; transition: 0.3s; }
         .admin-nav button.active, .admin-nav button:hover { color: #fff; background: #0a0a0a; }
-        .admin-nav button.active { color: #00C853; }
+        .admin-nav button.active { color: #00C853; background: rgba(0, 200, 83, 0.05); }
+        .admin-footer { padding-top: 20px; border-top: 1px solid #111; }
+        .btn-logout { width: 100%; background: transparent; border: none; color: #333; padding: 15px; display: flex; align-items: center; gap: 15px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .btn-logout:hover { color: #ff4444; }
 
+        /* MAIN */
         .admin-main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .admin-header { padding: 30px 40px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
-        .admin-user p { font-size: 10px; font-weight: 900; color: #444; margin: 0; }
-        .admin-user h3 { font-size: 18px; font-weight: 900; margin: 0; color: #00C853; }
+        .admin-header { padding: 30px 50px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        .admin-user p { font-size: 10px; font-weight: 900; color: #444; text-transform: uppercase; letter-spacing: 2px; }
+        .admin-user h3 { font-size: 20px; font-weight: 900; color: #00C853; margin: 0; }
+        .status-badge { display: flex; align-items: center; gap: 10px; background: #080808; padding: 8px 15px; border-radius: 30px; border: 1px solid #111; font-size: 10px; font-weight: 900; color: #444; }
+        .pulse { width: 8px; height: 8px; background: #00C853; border-radius: 50%; box-shadow: 0 0 10px #00C853; animation: blink 2s infinite; }
+        .btn-icon-circle { background: #080808; border: 1px solid #111; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
+
+        .admin-scroll { flex: 1; overflow-y: auto; padding: 50px; }
+
+        /* CARDS */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px; }
+        .stat-card { background: #050505; border: 1px solid #111; padding: 30px; border-radius: 24px; transition: 0.4s; }
+        .stat-card.alert { border-color: rgba(255, 187, 0, 0.2); }
+        .stat-head { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .stat-head span { font-size: 10px; font-weight: 900; color: #444; letter-spacing: 1px; }
+        .stat-card h2 { font-size: 32px; font-weight: 900; margin: 0; }
+        .stat-card h2 small { font-size: 12px; color: #222; margin-left: 5px; }
+        .stat-footer { font-size: 11px; color: #222; font-weight: 800; margin-top: 15px; text-transform: uppercase; }
+
+        /* GENERADOR */
+        .generator-container { background: linear-gradient(145deg, #080808, #000); border: 1px solid #111; padding: 40px; border-radius: 30px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #00C853; }
+        .gen-text { display: flex; gap: 25px; align-items: center; }
+        .gen-icon { background: rgba(0,200,83,0.05); width: 60px; height: 60px; border-radius: 20px; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(0,200,83,0.1); }
+        .gen-text h3 { font-size: 22px; font-weight: 900; margin: 0; }
+        .gen-text p { color: #444; font-size: 14px; margin-top: 5px; }
+        .gen-form { display: flex; gap: 20px; align-items: center; }
+        .input-wrapper { background: #000; border: 1px solid #111; border-radius: 15px; display: flex; align-items: center; padding: 0 20px; gap: 10px; width: 140px; }
+        .input-wrapper input { background: transparent; border: none; color: #fff; padding: 18px 0; width: 100%; outline: none; font-weight: 900; font-size: 20px; text-align: right; }
+        .input-wrapper span { color: #00C853; font-weight: 900; }
+        .btn-execute { background: #fff; color: #000; border: none; padding: 20px 35px; border-radius: 15px; font-weight: 900; cursor: pointer; transition: 0.3s; }
+        .btn-execute:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,255,255,0.1); }
+
+        /* TABLA */
+        .table-wrapper { background: #050505; border: 1px solid #111; border-radius: 30px; padding: 40px; }
+        .table-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .table-top h2 span { color: #00C853; }
+        .search-box { background: #000; border: 1px solid #111; border-radius: 15px; display: flex; align-items: center; padding: 0 20px; gap: 15px; width: 350px; }
+        .search-box input { background: transparent; border: none; padding: 15px 0; color: #fff; outline: none; flex: 1; font-size: 14px; }
         
-        .admin-pill { background: rgba(0,200,83,0.1); color: #00C853; padding: 8px 15px; border-radius: 20px; font-size: 10px; font-weight: 900; }
-        .admin-scroll { flex: 1; overflow-y: auto; padding: 40px; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 20px; color: #333; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #111; }
+        td { padding: 25px 20px; border-bottom: 1px solid #080808; }
+        .s-name { font-weight: 900; font-size: 15px; margin: 0; }
+        .s-email { font-size: 12px; color: #444; margin: 2px 0 0 0; }
+        .p-tag { background: #000; border: 1px solid #111; padding: 6px 12px; border-radius: 10px; font-size: 10px; font-weight: 900; color: #00C853; }
+        .s-amount { font-weight: 900; font-size: 16px; font-family: 'Courier New', monospace; }
+        .s-amount.highlight { color: #00C853; }
+        .status-pill { padding: 6px 15px; border-radius: 30px; font-size: 10px; font-weight: 900; }
+        .status-pill.pendiente { background: rgba(255, 187, 0, 0.1); color: #ffbb00; }
+        .status-pill.activo { background: rgba(0, 200, 83, 0.1); color: #00C853; }
+        .status-pill.rechazado { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
-        .stat-box { background: #050505; border: 1px solid #111; padding: 25px; border-radius: 20px; }
-        .stat-box.highlight { border-color: rgba(255, 68, 68, 0.2); }
-        .stat-box span { font-size: 10px; font-weight: 900; color: #444; letter-spacing: 1px; }
-        .stat-box h2 { font-size: 28px; font-weight: 900; margin: 10px 0; }
-        .stat-box h2 small { font-size: 12px; color: #222; }
-        .trend-up { color: #00C853; font-size: 11px; font-weight: 800; }
-        .trend-alert { color: #ff4444; font-size: 11px; font-weight: 800; }
+        .action-row { display: flex; gap: 10px; }
+        .a-btn { background: #000; border: 1px solid #111; color: #444; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .a-btn:hover:not(:disabled) { transform: translateY(-2px); color: #fff; border-color: #222; }
+        .a-btn.approve:hover { color: #00C853; border-color: rgba(0, 200, 83, 0.3); }
+        .a-btn.reject:hover { color: #ff4444; border-color: rgba(255, 68, 68, 0.3); }
 
-        .table-container { background: #050505; border: 1px solid #111; border-radius: 24px; padding: 30px; }
-        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .table-header h2 span { color: #00C853; }
-        .table-search { background: #000; border: 1px solid #111; border-radius: 12px; display: flex; align-items: center; padding: 0 15px; gap: 10px; }
-        .table-search input { background: transparent; border: none; padding: 12px 0; color: #fff; outline: none; font-size: 13px; }
+        /* MODAL */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 1000; display: flex; justify-content: center; align-items: center; padding: 40px; }
+        .modal-card { background: #050505; border: 1px solid #111; border-radius: 35px; width: 100%; max-width: 700px; display: flex; flex-direction: column; overflow: hidden; }
+        .modal-head { padding: 30px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
+        .modal-head h3 span { color: #00C853; }
+        .m-close { background: #000; border: 1px solid #111; color: #fff; border-radius: 10px; padding: 5px; cursor: pointer; }
+        .modal-body { padding: 40px; display: flex; justify-content: center; align-items: center; background: #000; min-height: 400px; }
+        .img-full { max-width: 100%; max-height: 500px; border-radius: 20px; }
+        .no-img-box { text-align: center; color: #222; }
+        .modal-foot { padding: 30px; border-top: 1px solid #111; display: flex; justify-content: center; }
+        .btn-sec { background: #111; color: #fff; border: none; padding: 15px 30px; border-radius: 12px; font-weight: 900; cursor: pointer; }
 
-        .responsive-table { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th { text-align: left; padding: 15px; border-bottom: 1px solid #111; color: #333; font-size: 11px; font-weight: 900; text-transform: uppercase; }
-        td { padding: 20px 15px; border-bottom: 1px solid #080808; font-size: 13px; }
-        
-        .user-info .name { font-weight: 800; margin: 0; }
-        .user-info .email { color: #444; font-size: 11px; margin: 0; }
-        .plan-tag { background: #000; border: 1px solid #111; padding: 5px 10px; border-radius: 8px; font-size: 10px; font-weight: 900; color: #00C853; }
-        .amount { font-weight: 900; font-family: 'Courier New', monospace; }
-        
-        .status-tag { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 900; }
-        .status-tag.pendiente { background: rgba(255, 187, 0, 0.1); color: #ffbb00; }
-        .status-tag.activo { background: rgba(0, 200, 83, 0.1); color: #00C853; }
-        .status-tag.rechazado { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
-
-        .action-btns { display: flex; gap: 10px; }
-        .action-btns button { background: #000; border: 1px solid #111; color: #444; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
-        .action-btns button:hover:not(:disabled) { transform: translateY(-1px); }
-        .btn-view:hover { color: #fff; border-color: #fff; }
-        .btn-approve:hover { color: #00C853; border-color: #00C853; }
-        .btn-reject:hover { color: #ff4444; border-color: #ff4444; }
-        .action-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        /* MODAL VISOR */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: #050505; border: 1px solid #111; border-radius: 24px; width: 100%; max-width: 600px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; animation: modalFadeIn 0.3s ease; }
-        .modal-header { padding: 20px 25px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h3 { margin: 0; font-size: 16px; font-weight: 900; }
-        .modal-header span { color: #00C853; }
-        .btn-close-modal { background: #000; border: 1px solid #111; color: #444; border-radius: 8px; padding: 5px; cursor: pointer; }
-        .btn-close-modal:hover { color: #fff; border-color: #fff; }
-        .modal-body { flex: 1; padding: 25px; overflow-y: auto; display: flex; justify-content: center; align-items: center; }
-        .img-comprobante { max-width: 100%; max-height: 70vh; border-radius: 12px; object-fit: contain; }
-        .no-img { text-align: center; }
-        .no-img p { color: #222; margin-top: 15px; }
-
-        .m-toggle { display: none; }
         .spin { animation: spin 1s linear infinite; }
-
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        @media (max-width: 1024px) {
-          .admin-sidebar { position: fixed; left: -100%; top: 0; bottom: 0; }
-          .admin-sidebar.open { left: 0; }
-          .m-toggle { display: block; background: #050505; border: 1px solid #111; color: #fff; padding: 10px; border-radius: 10px; margin-right: 20px; }
-          .stats-grid { grid-template-columns: 1fr; }
-          .admin-scroll { padding: 20px; }
-          .table-header { flex-direction: column; gap: 20px; align-items: flex-start; }
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .generator-container { flex-direction: column; gap: 30px; align-items: flex-start; }
+            .search-box { width: 100%; }
         }
       `}</style>
     </div>
