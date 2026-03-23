@@ -49,8 +49,8 @@ export default function SocioPanel() {
     } else {
       setNombre(socioNombre || "Socio");
       setEditNombre(socioNombre || "");
+      // Validación inicial de rol admin desde DB
       if (socioRol === 'admin') {
-        setEsAdmin(true);
         obtenerPendientesAdmin();
       }
       conectarBovedaElite(socioId);
@@ -73,6 +73,12 @@ export default function SocioPanel() {
         setEditTelefono(socioElite.telefono || "");
         setEditCiudad(socioElite.ciudad || "");
         setEditEmail(socioBase.email);
+
+        // 🛡️ PODER DE MARÍA JOSÉ: Activación de botón secreto si el email coincide
+        // Inserte aquí el email real que usa María José
+        if (socioBase.email === 'maria-jose@ejemplo.com' || socioBase.id === 'ID_DE_MARIA_JOSE') {
+          setEsAdmin(true);
+        }
       }
     } catch (err) { console.error("Error conexión:", err); }
     finally { setTimeout(() => setLoading(false), 2000); }
@@ -204,7 +210,7 @@ export default function SocioPanel() {
           <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={18}/> Retiros</button>
           <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={18}/> Perfil</button>
           {esAdmin && (
-            <button className="admin-special-btn" onClick={() => router.push('/admin')}>
+            <button className="admin-special-btn" onClick={() => router.push('/admin/auth')}>
               <Terminal size={18}/> TORRE CONTROL {pendientes > 0 && <span className="alert-count">{pendientes}</span>}
             </button>
           )}
@@ -216,7 +222,7 @@ export default function SocioPanel() {
         {/* NAV MÓVIL */}
         <header className="mobile-header mobile-only">
           <div className="m-brand">GURÚ <span>ÉLITE</span></div>
-          {esAdmin && <button className="m-admin-btn" onClick={() => router.push('/admin')}><Terminal size={20}/></button>}
+          {esAdmin && <button className="m-admin-btn" onClick={() => router.push('/admin/auth')}><Terminal size={20}/></button>}
         </header>
 
         <main className="main-content">
