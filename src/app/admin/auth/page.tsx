@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, KeyRound, Zap, Loader2, Eye, EyeOff, Lock, UserCheck } from 'lucide-react';
+import { ShieldCheck, KeyRound, Zap, Eye, EyeOff, Lock, UserCheck, Terminal } from 'lucide-react';
 
 export default function BunkerAdmin() {
   const [llave, setLlave] = useState('');
@@ -15,167 +15,385 @@ export default function BunkerAdmin() {
     e.preventDefault();
     if (loading) return;
 
-    setLoading(true); // 🚀 ACTIVAMOS LA CARGA DE PANTALLA COMPLETA
+    setLoading(true);
     setError(false);
     setAccesoExitoso(false);
 
     const LLAVE_CORRECTA = "GURU2026";
 
-    // ⏱️ SIMULACIÓN DE SEGURIDAD PROFUNDA: 3 Segundos exactos
+    // Simulación de verificación profunda (3 segundos exactos)
     setTimeout(() => {
       if (llave === LLAVE_CORRECTA) {
         setAccesoExitoso(true);
-        
+
         if (typeof window !== 'undefined') {
-          // 🧹 LIMPIEZA DE SEGURIDAD
+          // Limpieza de seguridad
           localStorage.removeItem('socio_id');
           localStorage.removeItem('socio_nombre');
           localStorage.removeItem('socio_rol');
           localStorage.setItem('bunker_auth', LLAVE_CORRECTA);
         }
 
+        // 1 segundo extra para apreciar el efecto de éxito
         setTimeout(() => {
-          router.push('/admin'); 
-        }, 1000); // Un segundo extra para disfrutar el éxito visual
+          router.push('/admin');
+        }, 1200);
 
       } else {
         setError(true);
         setLlave('');
-        setLoading(false); // ⏹️ DESACTIVAMOS LA CARGA SI FALLA
+        setLoading(false);
       }
-    }, 3000); 
+    }, 3000);
   };
 
   return (
     <div className="bunker-wrapper">
-      
-      {/* 🎭 CAPA DE CARGA ESPECTACULAR (FULL SCREEN) */}
+      {/* ─── OVERLAY DE CARGA ESPECTACULAR ──────────────────────────────────────── */}
       {loading && (
-        <div className="loading-overlay fade-in">
-          <div className="loading-content">
-            {accesoExitoso ? (
-              // Vista de Éxito
-              <div className="success-view scale-in">
-                <UserCheck size={100} color="#00C853" className="glow-green-icon" />
-                <h1 className="success-text">ACCESO CONCEDIDO</h1>
-                <p className="sub-text">BIENVENIDO, ADMINISTRADOR</p>
-              </div>
-            ) : (
-              // Vista de Carga
-              <div className="processing-view">
-                <div className="shield-spinner">
-                  <ShieldCheck size={120} color="#00C853" strokeWidth={1} className="spin-slow glow-green-icon" />
-                </div>
-                <div className="text-typing">
-                  <span>AUTENTICANDO CREDENCIALES DE ÉLITE...</span>
-                </div>
-                <div className="progress-bar-wrap">
-                  <div className="progress-bar-fill"></div>
-                </div>
+        <div className="loading-overlay">
+          <div className="vault-scanner">
+            {/* Anillo exterior giratorio */}
+            <div className="scan-ring outer"></div>
+            <div className="scan-ring inner"></div>
+
+            {/* Escudo central con pulso */}
+            <div className="central-shield">
+              {accesoExitoso ? (
+                <UserCheck size={100} color="#00ff9d" className="success-icon pulse-glow" />
+              ) : (
+                <ShieldCheck size={100} color="#00ff9d" className="spin-shield pulse-glow" />
+              )}
+            </div>
+
+            {/* Texto dinámico */}
+            <div className="status-text">
+              {accesoExitoso ? (
+                <>
+                  <h1 className="success-title glitch">ACCESO CONCEDIDO</h1>
+                  <p className="success-subtitle">PROTOCOLO ÉLITE AUTORIZADO</p>
+                </>
+              ) : (
+                <>
+                  <div className="typing-container">
+                    <Terminal size={20} className="terminal-icon" />
+                    <span className="typing-text">VERIFICANDO INTEGRIDAD CUÁNTICA...</span>
+                  </div>
+                  <div className="progress-container">
+                    <div className="progress-bar"></div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Partículas decorativas (solo en carga) */}
+            {!accesoExitoso && (
+              <div className="particles">
+                <div className="particle"></div>
+                <div className="particle"></div>
+                <div className="particle"></div>
+                <div className="particle"></div>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* EL CARD DEL BÚNKER (Se mantiene igual, responsivo) */}
-      <div className={`bunker-card ${loading ? 'blur-bg' : ''}`}>
+      {/* ─── CARD PRINCIPAL ─────────────────────────────────────────────────────── */}
+      <div className={`bunker-card ${loading ? 'blurred' : ''}`}>
         <div className="icon-box">
-          <Lock size={60} color="#222" strokeWidth={1.5} />
+          <Lock size={64} color="#333" strokeWidth={1.4} />
         </div>
 
-        <h2 className="title">CENTRO DE MANDO</h2>
+        <h2 className="title">BÚNKER DE SEGURIDAD</h2>
+        <p className="subtitle">ACCESO RESTRINGIDO – NIVEL ADMINISTRADOR</p>
 
         <form onSubmit={validarAcceso} className="form-container">
-          <div className={`input-group ${error ? 'border-red' : ''}`}>
-            <KeyRound size={20} color="#444" />
-            <input 
-              type={mostrarLlave ? "text" : "password"} 
-              placeholder="LLAVE MAESTRA" 
+          <div className={`input-group ${error ? 'error-border' : ''}`}>
+            <KeyRound size={22} color="#555" />
+            <input
+              type={mostrarLlave ? "text" : "password"}
+              placeholder="LLAVE MAESTRA"
               value={llave}
               onChange={(e) => setLlave(e.target.value)}
               disabled={loading}
               required
+              autoComplete="off"
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setMostrarLlave(!mostrarLlave)}
               className="eye-btn"
               disabled={loading}
             >
-              {mostrarLlave ? <EyeOff size={20} /> : <Eye size={20} />}
+              {mostrarLlave ? <EyeOff size={22} /> : <Eye size={22} />}
             </button>
           </div>
 
-          {error && <p className="error-msg fade-in">ACCESO DENEGADO: LLAVE INVÁLIDA</p>}
+          {error && (
+            <p className="error-msg">ACCESO DENEGADO – CREDENCIALES NO VÁLIDAS</p>
+          )}
 
-          <button type="submit" className="unlock-btn" disabled={loading}>
-            <Zap size={18} /> DESBLOQUEAR
+          <button
+            type="submit"
+            className="unlock-btn"
+            disabled={loading}
+          >
+            <Zap size={20} />
+            DESBLOQUEAR BÓVEDA
           </button>
         </form>
       </div>
 
       <style jsx>{`
-        .bunker-wrapper { background: #000; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; font-family: 'Inter', sans-serif; position: relative; }
-        
-        /* RESPONSIVIDAD 100% PARA EL CARD */
-        .bunker-card { background: #050505; border: 1px solid #111; width: 100%; max-width: 420px; padding: 60px 40px; border-radius: 30px; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.8); transition: transform 0.5s ease, filter 0.5s ease; position: relative; z-index: 1; }
-        .blur-bg { filter: blur(10px); transform: scale(0.95); }
-        
-        .icon-box { margin-bottom: 30px; display: flex; justify-content: center; }
-        .title { color: #fff; font-weight: 900; letter-spacing: 3px; font-size: 1.2rem; margin-bottom: 40px; }
-        .input-group { background: #000; border: 1px solid #151515; height: 65px; border-radius: 15px; display: flex; align-items: center; padding: 0 20px; gap: 15px; transition: 0.3s; margin-bottom: 20px; }
-        .border-red { border-color: #ff4444 !important; }
-        .input-group input { background: none; border: none; color: #fff; width: 100%; outline: none; font-weight: 800; font-size: 1rem; letter-spacing: 4px; }
-        .eye-btn { background: none; border: none; color: #333; cursor: pointer; transition: 0.2s; }
-        .eye-btn:hover { color: #fff; }
-        .error-msg { color: #ff4444; font-size: 10px; font-weight: 900; margin-bottom: 20px; letter-spacing: 1px; }
-        .unlock-btn { width: 100%; height: 65px; background: #00C853; border: none; border-radius: 15px; color: #000; font-weight: 900; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
-        .unlock-btn:hover:not(:disabled) { background: #fff; transform: translateY(-3px); }
-        .unlock-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        :root {
+          --neon-green: #00ff9d;
+          --dark-bg: #0a0a0a;
+          --card-bg: #111111;
+        }
 
-        /* 🎭 ESTILOS DE LA CAPA DE CARGA ESPECTACULAR */
-        .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .loading-content { text-align: center; color: #fff; width: 100%; max-width: 500px; }
-        
-        /* Vista de Procesando */
-        .processing-view { display: flex; flex-direction: column; align-items: center; gap: 30px; }
-        .shield-spinner { position: relative; margin-bottom: 20px; }
-        .glow-green-icon { filter: drop-shadow(0 0 20px rgba(0,200,83,0.6)); }
-        
-        /* Animación del escudo girando lento */
-        :global(.spin-slow) { animation: spinSlow 6s linear infinite; }
-        @keyframes spinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .bunker-wrapper {
+          background: linear-gradient(135deg, #000 0%, #0a0a0a 100%);
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          font-family: 'Inter', system-ui, sans-serif;
+          overflow: hidden;
+          position: relative;
+        }
 
-        /* Efecto de texto escribiendo */
-        .text-typing { font-size: clamp(10px, 4vw, 12px); font-weight: 900; color: #00C853; letter-spacing: 3px; font-family: 'Courier New', monospace; white-space: nowrap; overflow: hidden; border-right: 2px solid #00C853; width: 100%; animation: typing 2.5s steps(40, end), blink-caret 0.75s step-end infinite; }
-        
+        .bunker-card {
+          background: var(--card-bg);
+          border: 1px solid #222;
+          border-radius: 24px;
+          padding: 60px 40px;
+          width: 100%;
+          max-width: 460px;
+          text-align: center;
+          box-shadow: 0 0 80px rgba(0,0,0,0.9);
+          transition: all 0.6s ease;
+          position: relative;
+          z-index: 10;
+        }
+
+        .blurred {
+          filter: blur(8px) brightness(0.6);
+          transform: scale(0.96);
+        }
+
+        .icon-box { margin-bottom: 32px; opacity: 0.8; }
+        .title {
+          color: #eee;
+          font-size: 1.9rem;
+          font-weight: 900;
+          letter-spacing: 4px;
+          margin-bottom: 8px;
+        }
+        .subtitle {
+          color: #555;
+          font-size: 0.9rem;
+          letter-spacing: 2px;
+          margin-bottom: 40px;
+        }
+
+        .form-container { display: flex; flex-direction: column; gap: 24px; }
+
+        .input-group {
+          background: #0d0d0d;
+          border: 1px solid #222;
+          border-radius: 16px;
+          height: 68px;
+          display: flex;
+          align-items: center;
+          padding: 0 24px;
+          gap: 16px;
+          transition: all 0.3s;
+        }
+
+        .input-group input {
+          background: none;
+          border: none;
+          color: #ddd;
+          flex: 1;
+          font-size: 1.05rem;
+          font-weight: 600;
+          letter-spacing: 1px;
+          outline: none;
+        }
+
+        .eye-btn { background: none; border: none; color: #666; cursor: pointer; }
+        .eye-btn:hover { color: var(--neon-green); }
+
+        .error-border { border-color: #ff4444 !important; }
+        .error-msg {
+          color: #ff5555;
+          font-size: 0.85rem;
+          font-weight: 700;
+          letter-spacing: 1px;
+          margin: 0;
+        }
+
+        .unlock-btn {
+          height: 68px;
+          background: var(--neon-green);
+          color: #000;
+          border: none;
+          border-radius: 16px;
+          font-weight: 900;
+          font-size: 1.1rem;
+          letter-spacing: 2px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+
+        .unlock-btn:hover:not(:disabled) {
+          background: #00ff9d;
+          box-shadow: 0 0 30px rgba(0,255,157,0.4);
+          transform: translateY(-2px);
+        }
+
+        .unlock-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        /* ─── OVERLAY & ANIMACIONES FUTURISTAS ────────────────────────────────────── */
+        .loading-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.96);
+          backdrop-filter: blur(16px);
+          z-index: 9999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .vault-scanner {
+          position: relative;
+          width: 320px;
+          height: 320px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 40px;
+        }
+
+        .scan-ring {
+          position: absolute;
+          border: 2px solid rgba(0,255,157,0.3);
+          border-radius: 50%;
+          opacity: 0.6;
+        }
+
+        .outer { width: 280px; height: 280px; animation: rotate 12s linear infinite; }
+        .inner { width: 220px; height: 220px; animation: rotate 8s linear infinite reverse; }
+
+        .central-shield { position: relative; z-index: 2; }
+
+        .spin-shield { animation: spin 9s linear infinite; }
+        .pulse-glow { animation: pulseGlow 2.2s ease-in-out infinite; }
+        .success-icon { animation: successPulse 1.8s ease-in-out; }
+
+        .status-text { text-align: center; z-index: 3; }
+        .typing-container {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          color: var(--neon-green);
+          font-family: 'Courier New', monospace;
+          font-size: 1rem;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+        }
+
+        .typing-text {
+          overflow: hidden;
+          white-space: nowrap;
+          border-right: 3px solid var(--neon-green);
+          animation: typing 3.2s steps(38, end) forwards, blink 0.7s step-end infinite;
+        }
+
+        .progress-container {
+          width: 280px;
+          height: 3px;
+          background: #1a1a1a;
+          border-radius: 2px;
+          overflow: hidden;
+          margin-top: 16px;
+        }
+
+        .progress-bar {
+          width: 0;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+          animation: progress 3s linear forwards;
+        }
+
+        .success-title {
+          font-size: 2.4rem;
+          font-weight: 900;
+          color: #fff;
+          margin: 0 0 8px;
+          text-shadow: 0 0 30px rgba(0,255,157,0.7);
+        }
+
+        .success-subtitle {
+          font-size: 0.95rem;
+          color: #555;
+          letter-spacing: 3px;
+          margin: 0;
+        }
+
+        .particles {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+        }
+
+        .particle {
+          position: absolute;
+          width: 3px;
+          height: 3px;
+          background: var(--neon-green);
+          border-radius: 50%;
+          opacity: 0.6;
+          animation: float 4s infinite ease-in-out;
+        }
+
+        .particle:nth-child(1) { top: 20%; left: 30%; animation-delay: 0s; }
+        .particle:nth-child(2) { top: 40%; right: 25%; animation-delay: 1.2s; }
+        .particle:nth-child(3) { bottom: 30%; left: 35%; animation-delay: 2.4s; }
+        .particle:nth-child(4) { bottom: 25%; right: 20%; animation-delay: 3.6s; }
+
+        /* Animaciones */
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(720deg); } }
+        @keyframes pulseGlow { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
+        @keyframes successPulse { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); } }
         @keyframes typing { from { width: 0 } to { width: 100% } }
-        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: #00C853 } }
+        @keyframes blink { 50% { border-color: transparent } }
+        @keyframes progress { to { width: 100% } }
+        @keyframes float {
+          0%,100% { transform: translate(0,0); opacity: 0.4; }
+          50% { transform: translate(20px, -30px); opacity: 0.9; }
+        }
 
-        /* Barra de progreso sutil */
-        .progress-bar-wrap { width: 100%; max-width: 300px; height: 2px; background: #111; border-radius: 2px; overflow: hidden; }
-        .progress-bar-fill { width: 100%; height: 100%; background: #00C853; animation: progressLoad 3s linear forwards; transform-origin: left; }
-        @keyframes progressLoad { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-
-        /* Vista de Éxito */
-        .success-view { display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        .success-text { font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -1px; margin: 0; }
-        .sub-text { font-size: 10px; font-weight: 800; color: #444; letter-spacing: 3px; }
-
-        /* Animaciones de entrada */
-        .fade-in { animation: fadeIn 0.5s ease forwards; }
-        .scale-in { animation: scaleIn 0.5s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-
-        /* RESPONSIVIDAD PARA EL OVERLAY */
+        /* Responsividad */
         @media (max-width: 480px) {
-          .bunker-card { padding: 40px 20px; border: none; background: #000; }
-          .title { font-size: 1rem; }
-          .loading-content { padding: 0 10px; }
-          .text-typing { letter-spacing: 1px; }
-          .success-text { font-size: 1.5rem; }
+          .vault-scanner { width: 280px; height: 280px; }
+          .outer { width: 240px; height: 240px; }
+          .inner { width: 180px; height: 180px; }
+          .central-shield svg { width: 80px; height: 80px; }
+          .success-title { font-size: 1.9rem; }
+          .bunker-card { padding: 40px 24px; }
         }
       `}</style>
     </div>
