@@ -8,10 +8,8 @@ import {
   ChevronRight, ArrowLeft, Globe, ShieldCheck, Info, Landmark
 } from 'lucide-react';
 
-// Inicialización blindada
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
 const clientSupabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const planes = [
@@ -95,22 +93,17 @@ export default function UnetePage() {
   };
 
   const finalizarRegistro = async () => {
-    if (!supabaseUrl || !supabaseAnonKey) {
-        setError("Error de configuración: Faltan llaves de acceso al servidor.");
-        return;
-    }
-
     setLoading(true);
     setError(null);
     try {
       const correoLimpio = formData.email.trim().toLowerCase();
 
-      // Intento de registro en tabla socios
+      // CORRECCIÓN: Se cambió 'correo' por 'email' para coincidir con el esquema de la tabla
       const { data: socio, error: errSocio } = await clientSupabase
         .from('socios')
         .insert([{
           nombre: formData.nombre.trim(),
-          correo: correoLimpio,
+          email: correoLimpio, 
           password: formData.password,
           estado: 'pendiente',
           rol: 'socio'
@@ -118,12 +111,10 @@ export default function UnetePage() {
         .select().single();
       
       if (errSocio) {
-          console.error("Detalle técnico Supabase:", errSocio);
           if (errSocio.code === '23505') throw new Error("Este correo ya está registrado.");
           throw new Error(`Error del Servidor: ${errSocio.message}`);
       }
 
-      // Inserción en tabla socios_elite
       const { error: errElite } = await clientSupabase
         .from('socios_elite')
         .insert([{
@@ -136,14 +127,11 @@ export default function UnetePage() {
           metodo_pago: formData.metodoPago
         }]);
 
-      if (errElite) {
-          console.error("Error en socios_elite:", errElite);
-          throw new Error(`Error en datos financieros: ${errElite.message}`);
-      }
+      if (errElite) throw new Error(`Error en datos financieros: ${errElite.message}`);
 
       setPaso(5);
     } catch (err: any) { 
-      setError(err.message || "Ocurrió un fallo inesperado en la conexión."); 
+      setError(err.message || "Fallo en la sincronización."); 
       setLoading(false);
     }
   };
@@ -249,7 +237,7 @@ export default function UnetePage() {
                 {error && <div className="error-tag"><AlertTriangle size={14}/> {error}</div>}
               </div>
               <button disabled={loading || !comprobante} onClick={finalizarRegistro} className="btn-primary">
-                {loading ? 'SINCROIZANDO...' : 'FINALIZAR REGISTRO'}
+                {loading ? 'SINCRONIZANDO...' : 'FINALIZAR REGISTRO'}
               </button>
             </div>
           )}
