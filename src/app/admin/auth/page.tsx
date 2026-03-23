@@ -8,134 +8,170 @@ export default function BunkerAdmin() {
   const [mostrarLlave, setMostrarLlave] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [accesoExitoso, setAccesoExitoso] = useState(false); // Nuevo estado para el color verde final
+  const [accesoExitoso, setAccesoExitoso] = useState(false);
   const router = useRouter();
 
   const validarAcceso = (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
     setError(false);
-    setAccesoExitoso(false); // Resetear estado de éxito
+    setAccesoExitoso(false);
 
-    // 🛡️ LLAVE MAESTRA ACTUAL
     const LLAVE_CORRECTA = "GURU2026";
 
-    // ⏱️ SIMULACIÓN DE SEGURIDAD PROFUNDA: 3 Segundos exactos de carga
+    // ⏱️ CRONÓMETRO DE SEGURIDAD: 3 Segundos exactos de carga
     setTimeout(() => {
       if (llave === LLAVE_CORRECTA) {
-        // ✅ ACCESO CORRECTO: Activamos el color verde neón en el escudo
         setAccesoExitoso(true);
         
         if (typeof window !== 'undefined') {
-          // 🧹 LIMPIEZA DE SEGURIDAD TOTAL:
-          // Borramos rastros de sesiones previas para que no entre a la cuenta de MJ
+          // Limpieza de sesiones previas para entrada limpia
           localStorage.removeItem('socio_id');
           localStorage.removeItem('socio_nombre');
-          localStorage.removeItem('socio_rol');
-          
-          // Autorizamos el búnker de forma independiente
           localStorage.setItem('bunker_auth', LLAVE_CORRECTA);
         }
 
-        // Pequeño delay extra para que se vea el escudo verde antes de irse
+        // Delay visual para apreciar el escudo en verde antes de entrar
         setTimeout(() => {
-            router.push('/admin'); 
-        }, 500);
-
+          router.push('/admin'); 
+        }, 600);
       } else {
-        // ❌ ACCESO INCORRECTO: Activamos el color rojo
         setError(true);
         setLlave('');
         setLoading(false);
       }
-    }, 3000); // <-- Los 3 segundos que pidió
-  };
-
-  // Determinamos el color del escudo dinámicamente
-  const obtenerColorEscudo = () => {
-    if (error) return "#ff4444"; // Rojo si falla
-    if (accesoExitoso) return "#00C853"; // Verde Neón si acierta (al final)
-    return "#333"; // Gris neutro por defecto mientras escribe
+    }, 3000); 
   };
 
   return (
-    <div className="bunker-gate">
+    <div className="bunker-wrapper">
       <div className="bunker-card">
-        <div className="bunker-icon-wrap">
-          {/* El color ahora depende de la función obtenerColorEscudo */}
-          <ShieldCheck size={70} color={obtenerColorEscudo()} strokeWidth={1.5} className="shield-icon" />
+        {/* ESCUDO: Cambia a verde SOLO si la clave es correcta tras la carga */}
+        <div className="icon-box">
+          <ShieldCheck 
+            size={80} 
+            color={accesoExitoso ? "#00C853" : (error ? "#ff4444" : "#222")} 
+            className={`shield-svg ${accesoExitoso ? 'glow-green' : ''}`}
+          />
         </div>
-        
-        <h2 className="bunker-title">CENTRO DE MANDO</h2>
-        
-        <form onSubmit={validarAcceso} className="bunker-form">
-          <div className={`bunker-input ${error ? 'err' : ''} ${accesoExitoso ? 'success' : ''}`}>
-            <KeyRound size={20} color="#333" />
+
+        <h2 className="title">CENTRO DE MANDO</h2>
+
+        <form onSubmit={validarAcceso} className="form-container">
+          <div className={`input-group ${error ? 'border-red' : (accesoExitoso ? 'border-green' : '')}`}>
+            <KeyRound size={20} color="#444" />
             <input 
               type={mostrarLlave ? "text" : "password"} 
               placeholder="LLAVE MAESTRA" 
-              value={llave} 
+              value={llave}
               onChange={(e) => setLlave(e.target.value)}
+              disabled={loading}
               required
-              disabled={loading} // Deshabilitar input mientras carga
             />
             <button 
               type="button" 
-              className="btn-eye" 
               onClick={() => setMostrarLlave(!mostrarLlave)}
-              title="Mostrar/Ocultar"
+              className="eye-btn"
               disabled={loading}
             >
               {mostrarLlave ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-          
-          {error && <div className="error-text fade-in">LLAVE INCORRECTA. ACCESO DENEGADO.</div>}
 
-          <button type="submit" className="btn-unlock" disabled={loading}>
-            {/* Si está cargando, mostramos SOLO el círculo animado */}
-            {loading ? <Loader2 className="spin" size={24} /> : <><Zap size={18}/> DESBLOQUEAR</>}
+          {error && <p className="error-msg">ACCESO DENEGADO: LLAVE INVÁLIDA</p>}
+
+          <button type="submit" className="unlock-btn" disabled={loading}>
+            {loading ? <Loader2 className="spin" size={24} /> : <><Zap size={18} /> DESBLOQUEAR</>}
           </button>
         </form>
       </div>
 
       <style jsx>{`
-        .bunker-gate { background: #000; height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; padding: 20px; }
-        .bunker-card { background: #050505; border: 1px solid #111; padding: 60px 40px; border-radius: 28px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 0 80px rgba(0,0,0,0.5); position: relative; overflow: hidden;}
+        .bunker-wrapper {
+          background: #000;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          font-family: 'Inter', sans-serif;
+        }
+        .bunker-card {
+          background: #050505;
+          border: 1px solid #111;
+          width: 100%;
+          max-width: 420px;
+          padding: 60px 40px;
+          border-radius: 30px;
+          text-align: center;
+          box-shadow: 0 0 100px rgba(0,0,0,0.8);
+          transition: 0.5s ease;
+        }
+        .icon-box { margin-bottom: 30px; display: flex; justify-content: center; }
+        .shield-svg { transition: 0.5s ease; }
+        .glow-green { filter: drop-shadow(0 0 15px #00C853); transform: scale(1.1); }
         
-        {/* Efecto de brillo sutil en el card cuando hay éxito */}
-        .bunker-card::after { content:''; position: absolute; inset:0; background: radial-gradient(circle at center, rgba(0,200,83,0.1) 0%, transparent 70%); opacity: ${accesoExitoso ? 1 : 0}; transition: 0.5s; }
+        .title { color: #fff; font-weight: 900; letter-spacing: 3px; font-size: 1.2rem; margin-bottom: 40px; }
+        
+        .input-group {
+          background: #000;
+          border: 1px solid #151515;
+          height: 65px;
+          border-radius: 15px;
+          display: flex;
+          align-items: center;
+          padding: 0 20px;
+          gap: 15px;
+          transition: 0.3s;
+          margin-bottom: 20px;
+        }
+        .border-red { border-color: #ff4444 !important; }
+        .border-green { border-color: #00C853 !important; }
+        
+        .input-group input {
+          background: none;
+          border: none;
+          color: #fff;
+          width: 100%;
+          outline: none;
+          font-weight: 800;
+          font-size: 1rem;
+          letter-spacing: 4px;
+        }
+        .eye-btn { background: none; border: none; color: #333; cursor: pointer; transition: 0.2s; }
+        .eye-btn:hover { color: #fff; }
 
-        .bunker-icon-wrap { margin-bottom: 30px; display: flex; justify-content: center; position: relative; z-index: 2; }
-        
-        {/* Animación suave para el cambio de color del escudo */}
-        :global(.shield-icon) { transition: color 0.3s ease, transform 0.3s ease; }
-        ${accesoExitoso ? ':global(.shield-icon) { transform: scale(1.1); }' : ''}
+        .error-msg { color: #ff4444; font-size: 10px; font-weight: 900; margin-bottom: 20px; letter-spacing: 1px; }
 
-        .bunker-title { color: #fff; font-weight: 900; letter-spacing: 2px; font-size: 1.2rem; margin-bottom: 40px; position: relative; z-index: 2;}
-        .bunker-form { position: relative; z-index: 2; }
-        .bunker-input { background: #000; border: 1px solid #111; border-radius: 14px; display: flex; align-items: center; padding: 0 20px; height: 65px; margin-bottom: 20px; gap: 15px; transition: 0.3s; }
-        .bunker-input.err { border-color: #ff4444; background: rgba(255,68,68,0.02); }
-        
-        {/* Borde verde solo si la clave ya fue validada como correcta */}
-        .bunker-input.success { border-color: #00C853; background: rgba(0,200,83,0.02); }
+        .unlock-btn {
+          width: 100%;
+          height: 65px;
+          background: #00C853;
+          border: none;
+          border-radius: 15px;
+          color: #000;
+          font-weight: 900;
+          font-size: 13px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: 0.3s;
+        }
+        .unlock-btn:hover:not(:disabled) { background: #fff; transform: translateY(-3px); }
+        .unlock-btn:disabled { background: #0a0a0a; color: #222; cursor: not-allowed; border: 1px solid #111; }
 
-        .bunker-input input { background: none; border: none; color: #fff; width: 100%; outline: none; font-size: 1rem; font-weight: 800; letter-spacing: 2px; }
-        .bunker-input input:disabled { opacity: 0.5; }
-        .btn-eye { background: none; border: none; color: #333; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
-        .btn-eye:hover { color: #00C853; }
-        .btn-eye:disabled { cursor: not-allowed; opacity: 0.3; }
-        .error-text { color: #ff4444; font-size: 10px; font-weight: 800; margin-bottom: 20px; letter-spacing: 1px; }
-        .btn-unlock { width: 100%; background: #00C853; color: #000; border: none; height: 65px; border-radius: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
-        
-        {/* Estilo del botón mientras carga (más oscuro, sin hover) */}
-        .btn-unlock:disabled { background: #0a0a0a; color: #333; border: 1px solid #222; cursor: not-allowed; }
-        .btn-unlock:not(:disabled):hover { background: #fff; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,200,83,0.1); }
-        
-        .spin { animation: rotation 1s linear infinite; color: #00C853; }
-        @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .fade-in { animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .spin { animation: rotate 1s linear infinite; color: #00C853; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* RESPONSIVIDAD 100% */
+        @media (max-width: 480px) {
+          .bunker-card { padding: 40px 20px; border: none; background: #000; }
+          .title { font-size: 1rem; }
+        }
       `}</style>
     </div>
   );
