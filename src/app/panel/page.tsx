@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -113,6 +112,7 @@ export default function SocioPanel() {
     if (!montoRetiro || !detallesDestino) return alert("Complete los datos requeridos");
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setCodigoGenerado(code);
+    console.log("CÓDIGO SEGURIDAD:", code);
     setShow2FA(true);
   };
 
@@ -126,8 +126,8 @@ export default function SocioPanel() {
       }]);
       setShow2FA(false);
       setMontoRetiro(''); setDetallesDestino('');
-      alert("Solicitud en auditoría");
-    } catch (err) { alert("Error"); }
+      alert("Solicitud en auditoría enviada correctamente.");
+    } catch (err) { alert("Error en el envío."); }
     finally { setEnviandoRetiro(false); }
   };
 
@@ -139,8 +139,8 @@ export default function SocioPanel() {
       await clientSupabase.from('socios_elite').update({ pais: editPais, telefono: editTelefono, ciudad: editCiudad }).eq('id_socio', socioId);
       setNombre(editNombre);
       localStorage.setItem('socio_nombre', editNombre);
-      alert("Sincronización Exitosa");
-    } catch (err) { alert("Error"); }
+      alert("Perfil actualizado correctamente.");
+    } catch (err) { alert("Error al actualizar perfil."); }
     finally { setGuardandoPerfil(false); }
   };
 
@@ -150,21 +150,21 @@ export default function SocioPanel() {
         <div className="welcome-section">
           <span className="elite-badge">{nivelSocio.toUpperCase()}</span>
           <h1>Hola, <span>{nombre.split(' ')[0]}</span></h1>
-          <p className="welcome-sub">Gestión de activos en tiempo real.</p>
+          <p className="welcome-sub">Gestión de activos bajo estándares de seguridad Élite.</p>
         </div>
         <div className="geo-pill"><Globe size={12}/> {paisSocio}</div>
       </header>
 
       <section className="glass-vault-card">
         <div className="vault-top">
-          <p>BALANCE TOTAL <ChevronDown size={14}/></p>
+          <p className="vault-label-text">BALANCE TOTAL <ChevronDown size={14}/></p>
           <div className="yield-tag">+{((utilidad / (balance - utilidad)) * 100 || 0).toFixed(2)}%</div>
         </div>
         <h2 className="vault-amount">
           <span className="symbol">$</span>{balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </h2>
         <div className="vault-footer">
-          <div className="status-live"><div className="pulse"></div> ALGORITMO ACTIVO</div>
+          <div className="status-live"><div className="pulse"></div> IA ALGORITMO ACTIVO</div>
           <div className="profit-text">+${utilidad.toLocaleString()} USD UTILIDAD</div>
         </div>
       </section>
@@ -172,15 +172,15 @@ export default function SocioPanel() {
       <div className="stats-grid">
         <div className="stat-box" onClick={() => setActiveTab('reportes')}>
           <div className="sb-icon"><TrendingUp size={20} color="#00C853"/></div>
-          <div className="sb-info"><span>PROFIT TOTAL</span><h4>${utilidad.toLocaleString()}</h4></div>
+          <div className="sb-info"><span className="vault-label-text">PROFIT TOTAL ACUMULADO</span><h4>${utilidad.toLocaleString()}</h4></div>
         </div>
         <div className="stat-box">
           <div className="sb-icon"><ShieldCheck size={20} color="#00C853"/></div>
-          <div className="sb-info"><span>AUDITORÍA</span><h4>VERIFICADA</h4></div>
+          <div className="sb-info"><span className="vault-label-text">ESTADO DE AUDITORÍA</span><h4>VERIFICADA</h4></div>
         </div>
       </div>
 
-      <h3 className="hub-label">CENTRO DE CONTROL</h3>
+      <h3 className="hub-label">CENTRO DE OPERACIONES</h3>
       <div className="hub-grid">
         <button className="hub-card" onClick={() => setActiveTab('reportes')}><BarChart3 size={22}/> Rendimientos</button>
         <button className="hub-card" onClick={() => setActiveTab('retiros')}><Wallet size={22}/> Retiros</button>
@@ -193,10 +193,10 @@ export default function SocioPanel() {
   if (loading) return (
     <div className="elite-loader">
       <div className="scanner-ring"></div>
-      <p>VALIDANDO CREDENCIALES ÉLITE</p>
+      <p>ESCANEANDO CREDENCIALES ÉLITE...</p>
       <style jsx>{`
         .elite-loader { background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .scanner-ring { width: 45px; height: 45px; border: 2px solid #111; border-top: 2px solid #00C853; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .scanner-ring { width: 50px; height: 50px; border: 2px solid #111; border-top: 2px solid #00C853; border-radius: 50%; animation: spin 0.8s linear infinite; }
         p { color: #00C853; font-size: 10px; letter-spacing: 5px; margin-top: 25px; font-weight: 300; }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
@@ -205,39 +205,44 @@ export default function SocioPanel() {
 
   return (
     <div className="mansion-container">
+      {/* 🛡️ MODAL 2FA - BLINDADO */}
       {show2FA && (
         <div className="security-overlay fade-in">
           <div className="security-card scale-in">
             <button className="close-x" onClick={() => setShow2FA(false)}><X size={20}/></button>
             <ShieldAlert size={40} color="#00C853" style={{marginBottom:'20px'}}/>
-            <h2>VERIFICACIÓN REQUERIDA</h2>
-            <p>Código enviado a: {editEmail}</p>
-            <input className="input-2fa-vault" type="text" maxLength={6} placeholder="000000" value={codigoIngresado} onChange={(e) => setCodigoIngresado(e.target.value)} />
-            <button className="verify-btn-vault" onClick={confirmarRetiroFinal} disabled={enviandoRetiro}>CONFIRMAR</button>
+            <h2>VERIFICACIÓN DE SEGURIDAD</h2>
+            <p className="vault-label-text">Se ha enviado un código a su email: {editEmail}</p>
+            <input className="vault-input-fixed" type="text" maxLength={6} placeholder="000000" value={codigoIngresado} onChange={(e) => setCodigoIngresado(e.target.value)} />
+            <button className="w-submit-btn-fixed" onClick={confirmarRetiroFinal} disabled={enviandoRetiro}>
+              {enviandoRetiro ? 'PROCESANDO...' : 'CONFIRMAR IDENTIDAD'}
+            </button>
           </div>
         </div>
       )}
 
+      {/* --- SIDEBAR PC BLINDADO --- */}
       <aside className="mansion-sidebar desktop-only">
         <div className="brand-logo">GURÚ<span>ÉLITE</span></div>
         <nav className="mansion-nav">
-          <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={18}/> Inicio</button>
+          <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={18}/> Mi Bóveda</button>
           <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={18}/> Mercados</button>
           <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={18}/> Cajero</button>
           <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={18}/> Cuenta</button>
         </nav>
         <div className="sidebar-footer">
-          {esAdmin && <button className="admin-trigger" onClick={() => router.push('/admin/auth')}><Terminal size={16}/> ADMIN {pendientes > 0 && <span className="p-badge">{pendientes}</span>}</button>}
-          <button className="logout-trigger" onClick={handleLogout}><LogOut size={16}/> SALIR</button>
+          {esAdmin && <button className="admin-trigger" onClick={() => router.push('/admin/auth')}> <Terminal size={16}/> ADMIN {pendientes > 0 && <span className="p-badge">{pendientes}</span>}</button>}
+          <button className="logout-trigger" onClick={handleLogout}><LogOut size={16}/> CERRAR SESIÓN</button>
         </div>
       </aside>
 
       <div className="mansion-viewport">
+        {/* --- HEADER MÓVIL BLINDADO --- */}
         <header className="mobile-header mobile-only">
-          <div className="m-brand-wrap">GURÚ <span>ÉLITE</span></div>
-          <div className="m-actions-wrap">
-            {esAdmin && <button className="m-admin-btn" onClick={() => router.push('/admin/auth')}><Terminal size={18}/></button>}
-            <Bell size={18} color="#333"/>
+          <div className="m-brand-box">GURÚ <span>ÉLITE</span></div>
+          <div className="m-icons-box">
+             {esAdmin && <button className="m-admin-btn" onClick={() => router.push('/admin/auth')}><Terminal size={18}/></button>}
+             <button className="m-bell-btn"><Bell size={18} color="#555"/></button>
           </div>
         </header>
 
@@ -250,28 +255,20 @@ export default function SocioPanel() {
           
           {activeTab === 'retiros' && (
             <div className="fade-in">
-              <h2 className="section-title">Cajero de <span>Liquidación</span></h2>
+              <h2 className="section-title">Terminal de <span>Retiros</span></h2>
               <div className="glass-withdraw-card">
                 <div className="w-header-box">
-                  <span className="w-header-label">SALDO LÍQUIDO DISPONIBLE</span>
-                  <h3 className="w-header-balance">${balanceVisual.toLocaleString()}</h3>
+                  <span className="vault-label-text">SALDO LÍQUIDO DISPONIBLE</span>
+                  <h3 className="w-main-balance-text">${balanceVisual.toLocaleString()}</h3>
                 </div>
-                <div className="w-method-selector-box">
+                <div className="w-method-selector">
                   <button className={metodoRetiro === 'banco' ? 'active' : ''} onClick={() => setMetodoRetiro('banco')}><Building2 size={16}/> BANCO</button>
                   <button className={metodoRetiro === 'cripto' ? 'active' : ''} onClick={() => setMetodoRetiro('cripto')}><Zap size={16}/> USDT</button>
                 </div>
-                <div className="w-fields-box">
-                  <div className="w-input-group">
-                    <label className="vault-label">MONTO USD</label>
-                    <input className="vault-input" type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} />
-                  </div>
-                  <div className="w-input-group">
-                    <label className="vault-label">DESTINO DE FONDOS</label>
-                    <textarea className="vault-input" placeholder="Detalles de cuenta o wallet..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} />
-                  </div>
-                  <button className="w-submit-action" onClick={iniciarProtocoloRetiro}>
-                    <Lock size={16}/> ACTIVAR PROTOCOLO SEGURO
-                  </button>
+                <div className="w-fields-container">
+                  <div className="w-input-group"><label className="vault-label-text">MONTO A RETIRAR (USD)</label><input className="vault-input-fixed" type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} /></div>
+                  <div className="w-input-group"><label className="vault-label-text">DESTINO DE FONDOS</label><textarea className="vault-input-fixed" placeholder="Banco, cuenta o wallet address..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} /></div>
+                  <button className="w-submit-btn-fixed" onClick={iniciarProtocoloRetiro}><Lock size={16}/> ACTIVAR PROTOCOLO SEGURO</button>
                 </div>
               </div>
             </div>
@@ -279,19 +276,21 @@ export default function SocioPanel() {
 
           {activeTab === 'perfil' && (
             <div className="fade-in">
-              <h2 className="section-title">Perfil del <span>Socio</span></h2>
+              <h2 className="section-title">Ajustes de <span>Perfil</span></h2>
               <div className="profile-grid-mansion">
                 <div className="p-glass-card">
-                  <div className="p-header-info"><User size={20} color="#00C853"/> <span>DATOS PERSONALES</span></div>
-                  <div className="p-input-row"><label className="vault-label">NOMBRE</label><input className="vault-input" value={editNombre} onChange={e => setEditNombre(e.target.value)}/></div>
-                  <div className="p-input-row"><label className="vault-label">PAÍS</label><input className="vault-input" value={editPais} onChange={e => setEditPais(e.target.value)}/></div>
-                  <div className="p-input-row"><label className="vault-label">CIUDAD</label><input className="vault-input" value={editCiudad} onChange={e => setEditCiudad(e.target.value)}/></div>
-                  <div className="p-input-row"><label className="vault-label">TELÉFONO</label><input className="vault-input" value={editTelefono} onChange={e => setEditTelefono(e.target.value)}/></div>
-                  <button className="p-save-btn-vault" onClick={actualizarPerfil}>GUARDAR CAMBIOS</button>
+                  <div className="p-header-info"><User size={20} color="#00C853"/> <span>INFORMACIÓN PERSONAL</span></div>
+                  <div className="p-input-row"><label className="vault-label-text">NOMBRE COMPLETO</label><input className="vault-input-fixed" value={editNombre} onChange={e => setEditNombre(e.target.value)}/></div>
+                  <div className="p-input-row"><label className="vault-label-text">PAÍS DE RESIDENCIA</label><input className="vault-input-fixed" value={editPais} onChange={e => setEditPais(e.target.value)}/></div>
+                  <div className="p-input-row"><label className="vault-label-text">CIUDAD</label><input className="vault-input-fixed" value={editCiudad} onChange={e => setEditCiudad(e.target.value)}/></div>
+                  <div className="p-input-row"><label className="vault-label-text">TELÉFONO MÓVIL</label><input className="vault-input-fixed" value={editTelefono} onChange={e => setEditTelefono(e.target.value)}/></div>
+                  <button className="p-save-btn-fixed" onClick={actualizarPerfil} disabled={guardandoPerfil}>
+                    {guardandoPerfil ? 'SINCRONIZANDO...' : 'GUARDAR CAMBIOS'}
+                  </button>
                 </div>
-                <div className="p-security-card">
-                  <div className="ps-row-vault"><div className="ps-icon"><Mail size={16}/></div><div><span className="vault-label">EMAIL</span><p>{editEmail}</p></div></div>
-                  <div className="ps-row-vault"><div className="ps-icon"><ShieldCheck size={16}/></div><div><span className="vault-label">AUDITORÍA</span><p className="v-tag">ACTIVA</p></div></div>
+                <div className="p-security-stack">
+                  <div className="ps-card-glass"><div className="ps-icon-circle"><Mail size={16}/></div><div><span className="vault-label-text">EMAIL ASOCIADO</span><p>{editEmail}</p></div></div>
+                  <div className="ps-card-glass"><div className="ps-icon-circle"><ShieldCheck size={16}/></div><div><span className="vault-label-text">AUDITORÍA DE CUENTA</span><p className="v-tag-neon">ACTIVA</p></div></div>
                 </div>
               </div>
             </div>
@@ -299,30 +298,31 @@ export default function SocioPanel() {
 
           {activeTab === 'reportes' && (
             <div className="fade-in">
-              <h2 className="section-title">Análisis de <span>Rendimientos</span></h2>
-              <div className="report-grid-vault">
-                <div className="r-card-vault">
-                   <div className="r-card-head"><Wallet size={16} color="#A0A0A0"/> <span className="vault-label">CAPITAL SEMILLA</span></div>
+              <h2 className="section-title">Análisis de <span>Mercados</span></h2>
+              <div className="report-grid-fixed">
+                <div className="r-card-glass">
+                   <div className="r-head"><Wallet size={16} color="#A0A0A0"/> <span className="vault-label-text">CAPITAL SEMILLA</span></div>
                    <h4>${(balance - utilidad).toLocaleString()}</h4>
                 </div>
-                <div className="r-card-vault highlight">
-                   <div className="r-card-head"><Activity size={16} color="#00C853"/> <span className="vault-label">PROFIT ACUMULADO</span></div>
-                   <h4>+${utilidad.toLocaleString()}</h4>
+                <div className="r-card-glass highlight-border">
+                   <div className="r-head"><Activity size={16} color="#00C853"/> <span className="vault-label-text">PROFIT TOTAL</span></div>
+                   <h4 className="neon-text">+${utilidad.toLocaleString()}</h4>
                 </div>
               </div>
-              <div className="chart-container-mansion-vault">
-                <div className="chart-bars-wrap-vault">
+              <div className="chart-container-mansion-fixed">
+                <div className="chart-bars-wrap-fixed">
                   {[35, 65, 45, 85, 55, 95, 100].map((h, i) => (
-                    <div key={i} className="c-bar-box-vault"><div className="c-bar-vault" style={{height: h+'%'}}></div></div>
+                    <div key={i} className="c-bar-box-fixed"><div className="c-bar-inner" style={{height: h+'%'}}></div></div>
                   ))}
                 </div>
-                <div className="chart-days-labels-vault"><span className="vault-label">L</span><span className="vault-label">M</span><span className="vault-label">M</span><span className="vault-label">J</span><span className="vault-label">V</span><span className="vault-label">S</span><span className="vault-label">D</span></div>
+                <div className="chart-days-labels-fixed"><span className="vault-label-text">L</span><span className="vault-label-text">M</span><span className="vault-label-text">M</span><span className="vault-label-text">J</span><span className="vault-label-text">V</span><span className="vault-label-text">S</span><span className="vault-label-text">D</span></div>
               </div>
             </div>
           )}
         </main>
 
-        <nav className="m-bottom-bar mobile-only">
+        {/* --- NAV INFERIOR MÓVIL --- */}
+        <nav className="m-bottom-bar-fixed mobile-only">
           <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={20}/></button>
           <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={20}/></button>
           <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={20}/></button>
@@ -333,11 +333,15 @@ export default function SocioPanel() {
 
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&display=swap');
+        
         :root { --main: #00C853; --bg: #000; --panel: #0a0a0a; --border: #151515; --text-muted: #A0A0A0; }
-        .mansion-container { background: #000; min-height: 100vh; display: flex; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        
+        body { margin: 0; background: #000; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+
+        .mansion-container { display: flex; min-height: 100vh; position: relative; }
 
         /* SIDEBAR DESKTOP */
-        .mansion-sidebar { width: 280px; background: #050505; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; }
+        .mansion-sidebar { width: 280px; background: #050505; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; z-index: 1000; }
         .brand-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
         .brand-logo span { color: var(--main); }
         .mansion-nav button { width: 100%; text-align: left; padding: 16px; border-radius: 14px; background: transparent; color: var(--text-muted); border: none; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 8px; font-size: 0.85rem; }
@@ -348,43 +352,43 @@ export default function SocioPanel() {
         .p-badge { background: #ff4444; color: #fff; padding: 2px 6px; border-radius: 20px; font-size: 8px; }
         .logout-trigger { background: none; border: none; color: #ff4444; font-weight: 800; font-size: 10px; cursor: pointer; padding: 10px; opacity: 0.6; }
 
-        /* HEADER MÓVIL BLINDADO */
-        .mobile-header { 
-          height: 75px; 
-          border-bottom: 1px solid var(--border); 
-          display: flex; 
-          align-items: center; 
-          justify-content: space-between; 
-          padding: 0 25px; 
-          background: #000;
-          position: sticky;
-          top: 0;
-          z-index: 1000;
-        }
-        .m-brand-wrap { font-weight: 800; font-size: 1rem; color: #fff; display: flex; align-items: center; }
-        .m-brand-wrap span { color: var(--main); margin-left: 4px; }
-        .m-actions-wrap { display: flex; align-items: center; gap: 15px; }
+        /* VIEWPORT */
+        .mansion-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+        .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; position: sticky; top: 0; z-index: 500; width: 100%; }
+        .m-brand-box { font-weight: 800; font-size: 1.1rem; color: #fff; display: flex; align-items: center; }
+        .m-brand-box span { color: var(--main); margin-left: 5px; }
+        .m-icons-box { display: flex; align-items: center; gap: 15px; }
         .m-admin-btn { background: rgba(0,200,83,0.1); border: 1px solid rgba(0,200,83,0.2); color: var(--main); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 
-        /* CONTENT */
+        /* MAIN CONTENT */
         .mansion-main { padding: 40px 6%; max-width: 1000px; margin: 0 auto; width: 100%; position: relative; }
         .back-btn { background: none; border: none; color: var(--main); font-weight: 800; font-size: 9px; letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
-        .vault-label { color: var(--text-muted) !important; font-size: 9px !important; font-weight: 800 !important; letter-spacing: 1px !important; }
+        .vault-label-text { color: var(--text-muted) !important; font-size: 9px !important; font-weight: 800 !important; letter-spacing: 1px !important; }
 
-        /* BALANCE CARD */
-        .glass-vault-card { background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); border: 1px solid var(--border); padding: 50px; border-radius: 40px; margin-bottom: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .vault-top p { font-size: 9px; font-weight: 800; color: var(--text-muted); letter-spacing: 3px; display: flex; align-items: center; gap: 8px; }
-        .yield-tag { background: rgba(0,200,83,0.1); color: var(--main); padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800; }
+        /* CARDS GLASS */
+        .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card, .chart-container-mansion-fixed { 
+          background: rgba(10,10,10,0.9); 
+          border: 1px solid var(--border); 
+          padding: 50px; 
+          border-radius: 40px; 
+          margin-bottom: 30px; 
+          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          backdrop-filter: blur(20px);
+        }
+
         .vault-amount { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: -3px; margin: 20px 0; }
         .symbol { color: var(--main); font-size: 2rem; vertical-align: top; margin-right: 10px; font-weight: 400; }
-        .status-live { font-size: 9px; font-weight: 800; color: var(--main); display: flex; align-items: center; gap: 10px; }
+        .yield-tag { background: rgba(0,200,83,0.1); color: var(--main); padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800; }
+        .vault-footer { display: flex; justify-content: space-between; border-top: 1px solid #0c0c0c; padding-top: 30px; }
         .pulse { width: 6px; height: 6px; background: var(--main); border-radius: 50%; animation: pulse 2s infinite; }
+        .status-live { font-size: 9px; font-weight: 800; color: var(--main); display: flex; align-items: center; gap: 10px; }
+        .profit-text { font-size: 9px; font-weight: 800; color: #D1D1D1; }
 
-        /* --- BLINDAJE DE INPUTS (ELIMINA CAJAS BLANCAS) --- */
-        .vault-input {
+        /* --- BLINDAJE DE INPUTS --- */
+        .vault-input-fixed {
           width: 100% !important;
-          background-color: #000 !important;
           background: #000 !important;
+          background-color: #000 !important;
           border: 1px solid #1a1a1a !important;
           padding: 18px !important;
           border-radius: 15px !important;
@@ -393,30 +397,13 @@ export default function SocioPanel() {
           font-weight: 600 !important;
           outline: none !important;
           transition: 0.3s !important;
-          box-shadow: none !important;
           appearance: none !important;
-          -webkit-appearance: none !important;
         }
-        .vault-input:focus { border-color: var(--main) !important; }
-        textarea.vault-input { min-height: 100px !important; resize: none !important; }
+        .vault-input-fixed:focus { border-color: var(--main) !important; }
+        textarea.vault-input-fixed { min-height: 100px !important; resize: none !important; }
 
-        /* --- CAJERO DESKTOP OPTIMIZADO --- */
-        .glass-withdraw-card, .p-glass-card, .chart-container-mansion-vault { 
-          background: rgba(10,10,10,0.95); 
-          border: 1px solid var(--border); 
-          padding: 45px; 
-          border-radius: 40px; 
-          backdrop-filter: blur(25px);
-          box-shadow: 0 30px 60px rgba(0,0,0,0.6);
-        }
-
-        .w-header-box { text-align: center; margin-bottom: 35px; border-bottom: 1px solid #111; padding-bottom: 25px; }
-        .w-header-balance { font-size: 3rem; font-weight: 800; margin-top: 10px; letter-spacing: -2px; }
-        .w-method-selector-box { display: flex; gap: 12px; margin-bottom: 35px; }
-        .w-method-selector-box button { flex: 1; background: #000; border: 1px solid #1a1a1a; padding: 20px; border-radius: 15px; color: var(--text-muted); font-weight: 800; cursor: pointer; transition: 0.3s; }
-        .w-method-selector-box button.active { border-color: var(--main); color: var(--main); background: rgba(0,200,83,0.02); }
-
-        .w-submit-action, .verify-btn-vault, .p-save-btn-vault { 
+        /* BOTONES ÉLITE */
+        .w-submit-btn-fixed, .p-save-btn-fixed, .verify-btn-vault { 
           width: 100%; 
           background: var(--main); 
           color: #000; 
@@ -424,40 +411,47 @@ export default function SocioPanel() {
           padding: 22px; 
           border-radius: 20px; 
           font-weight: 900; 
-          font-size: 13px; 
+          font-size: 12px; 
           cursor: pointer; 
           transition: 0.3s;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 12px;
+          margin-top: 10px;
         }
-        .w-submit-action:hover { background: #fff; transform: translateY(-3px); }
+        .w-submit-btn-fixed:hover { background: #fff; transform: translateY(-3px); }
 
-        /* OTROS ELEMENTOS */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
-        .stat-box { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 30px; border-radius: 25px; display: flex; align-items: center; gap: 20px; }
-        .r-card-vault { background: #0a0a0a; border: 1px solid #111; padding: 25px; border-radius: 25px; }
-        .c-bar-vault { width: 100%; background: linear-gradient(to top, var(--main), #004d40); border-radius: 8px; opacity: 0.6; }
+        /* --- GRID Y LAYOUTS --- */
+        .stats-grid, .report-grid-fixed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+        .stat-box, .r-card-glass { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 30px; border-radius: 25px; display: flex; align-items: center; gap: 20px; }
+        .sb-icon, .ps-icon-circle { width: 50px; height: 50px; background: #000; border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
 
-        /* --- DESKTOP SCALE --- */
+        /* RESPONSIVIDAD MAESTRA */
+        .desktop-only { display: none !important; }
+        .mobile-only { display: flex !important; }
+
         @media (min-width: 1024px) { 
+          .desktop-only { display: flex !important; } 
+          .mobile-only { display: none !important; }
           .mansion-main { padding: 30px 20px 80px; max-width: 900px; margin: 0 auto; }
           .welcome-section h1 { font-size: 2.4rem; } 
           .vault-amount { font-size: 4.5rem; }
-          .glass-withdraw-card { max-width: 650px; }
+          .glass-vault-card { padding: 40px; }
+          .glass-withdraw-card { max-width: 650px; margin: 0 auto; }
+          .profile-grid-mansion { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
         }
 
         @media (max-width: 1023px) {
           .mansion-main { padding: 30px 20px 120px; }
-          .report-grid-vault, .profile-grid-mansion { grid-template-columns: 1fr; }
-          .glass-withdraw-card, .p-glass-card { padding: 30px 25px; border-radius: 30px; }
-          .w-header-balance { font-size: 2.5rem; }
+          .hub-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
+          .stats-grid, .report-grid-fixed, .profile-grid-mansion { display: flex; flex-direction: column; gap: 20px; }
+          .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card { padding: 30px 20px; border-radius: 30px; }
+          .vault-amount { font-size: 3.2rem; }
+          .m-bottom-bar-fixed { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.85); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+          .m-bottom-bar-fixed button { background: none; border: none; color: var(--text-muted); }
+          .m-bottom-bar-fixed button.active { color: var(--main); }
         }
-
-        .m-bottom-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.85); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
-        .m-bottom-bar button { background: none; border: none; color: var(--text-muted); }
-        .m-bottom-bar button.active { color: var(--main); }
 
         @keyframes pulse { 50% { opacity: 0.3; } }
         .fade-in { animation: fi 0.8s ease forwards; }
