@@ -25,8 +25,22 @@ export default function LandingPage() {
     setIsNavigating(true); 
     setMenuMovilAbierto(false);
 
-    const esAdmin = typeof window !== 'undefined' && localStorage.getItem('socio_rol') === 'admin';
-    const destinoFinal = (ruta === '/login' || ruta === '/panel') && esAdmin ? '/admin' : ruta;
+    // 🛡️ PROTOCOLO DE SEGURIDAD: Validación de Sesión Real
+    const socioId = typeof window !== 'undefined' ? localStorage.getItem('socio_id') : null;
+    const socioRol = typeof window !== 'undefined' ? localStorage.getItem('socio_rol') : null;
+
+    let destinoFinal = ruta;
+
+    // Si intenta acceder a Login o Panel, validamos que no sea una sesión fantasma
+    if (ruta === '/login' || ruta === '/panel') {
+      if (!socioId) {
+        destinoFinal = '/login'; // Obliga a loguearse si no hay ID
+      } else if (socioRol === 'admin') {
+        destinoFinal = '/admin';
+      } else {
+        destinoFinal = '/panel';
+      }
+    }
 
     setTimeout(() => { 
       router.push(destinoFinal); 
@@ -70,7 +84,7 @@ export default function LandingPage() {
         </div>
         <div className="welcome-container-luxe">
           <div className="loading-bar-master"><div className="loading-bar-fill"></div></div>
-          <h2 className="loading-text-elite">{isNavigating ? "SINCRONIZANDO ACCESO MJ..." : "IDENTIFICANDO INVERSOR ÉLITE..."}</h2>
+          <h2 className="loading-text-elite">{isNavigating ? "VERIFICANDO PROTOCOLO..." : "IDENTIFICANDO INVERSOR ÉLITE..."}</h2>
         </div>
         <style jsx global>{`
           .splash-master { background: radial-gradient(circle at center, #0a0c10 0%, #000 100%) !important; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999; }
@@ -118,6 +132,7 @@ export default function LandingPage() {
             <span onClick={() => abrirInfoSeccion('inversionistas')} className="link-elite">Inversionistas</span>
           </div>
           <div className="nav-actions-master">
+            {/* 🎯 CAMBIO QUIRÚRGICO: ACCESO VIP */}
             <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-nav-access desktop-only">ACCESO VIP</button>
             <button className="menu-toggle mobile-only" onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}>
               {menuMovilAbierto ? <X size={28} color="#00C853" /> : <Menu size={28} color="#00C853" />}
@@ -128,7 +143,8 @@ export default function LandingPage() {
            <span onClick={() => abrirInfoSeccion('quienes')} className="mobile-link">Quiénes Somos</span>
            <span onClick={() => abrirInfoSeccion('proyecto')} className="mobile-link">Proyecto Gurú</span>
            <span onClick={() => abrirInfoSeccion('inversionistas')} className="mobile-link">Inversionistas</span>
-           <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-mobile-login">ACCESO EXCLUSIVO</button>
+           {/* 🎯 CAMBIO QUIRÚRGICO: ACCESO VIP MÓVIL */}
+           <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-mobile-login">ACCESO VIP</button>
         </div>
       </nav>
 
@@ -141,7 +157,8 @@ export default function LandingPage() {
           <p className="hero-subtext">Algoritmos de alta frecuencia y redes neuronales dedicadas a la predicción de mercados. Gestión institucional para el inversor privado.</p>
           <div className="hero-cta-btn-group">
             <button onClick={(e) => ejecutarTransicion(e, '/unete')} className="btn-hero-primary">ABRIR CUENTA <ArrowUpRight size={18} /></button>
-            <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-hero-secondary mobile-only">LOG IN <Lock size={16} /></button>
+            {/* 🎯 CAMBIO QUIRÚRGICO: ACCESO VIP EN HERO MÓVIL */}
+            <button onClick={(e) => ejecutarTransicion(e, '/login')} className="btn-hero-secondary mobile-only">ACCESO VIP <Lock size={16} /></button>
           </div>
         </div>
 
@@ -245,7 +262,6 @@ export default function LandingPage() {
         .info-body p { font-size: 1rem; line-height: 1.8; color: #999; }
         .info-footer-line { width: 30px; height: 3px; background: var(--neon); margin-top: 30px; }
 
-        /* MEDIA QUERIES PARA ESCRITORIO */
         @media (min-width: 1024px) {
           .nav-links-desktop { display: flex; }
           .desktop-only { display: block; }
