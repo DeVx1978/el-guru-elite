@@ -44,21 +44,25 @@ export default function AdminPanel() {
   async function fetchData() {
     setLoading(true);
     try {
+        // SINCRONIZACIÓN ÉLITE: Relación forzada con id_socio para rescatar socios antiguos
         const { data, error } = await clientSupabase
           .from('socios')
-          .select('*, socios_elite(*) ')
+          .select('*, socios_elite!id_socio(*) ') 
           .order('created_at', { ascending: false });
+
+        if (error) throw error;
 
         if (data) {
           setSocios(data);
           const pendientes = data.filter(s => s.estado === 'pendiente').length;
           const activos = data.filter(s => s.estado === 'activo').length;
-          const capital = data.reduce((acc, s) => acc + (s.socios_elite?.[0]?.inversion_minima || 0), 0);
-          const utilidades = data.reduce((acc, s) => acc + (s.utilidad_total || 0), 0);
+          // Conversión Number() para evitar fallos de suma por tipos de datos
+          const capital = data.reduce((acc, s) => acc + (Number(s.socios_elite?.[0]?.inversion_minima) || 0), 0);
+          const utilidades = data.reduce((acc, s) => acc + (Number(s.utilidad_total) || 0), 0);
           setStats({ totalCapital: capital, pendientes, activos, utilidadRepartida: utilidades });
         }
     } catch (err) {
-        console.error("Error en la extracción de datos:", err);
+        console.error("Error de sincronización en Bóveda:", err);
     } finally {
         setLoading(false);
     }
@@ -66,33 +70,31 @@ export default function AdminPanel() {
 
   const ejecutarDispersionGlobal = async () => {
     const porcentaje = parseFloat(utilidadPorcentaje);
-    if (isNaN(porcentaje) || porcentaje <= 0) return alert("Por favor, ingrese un porcentaje válido.");
+    if (isNaN(porcentaje) || porcentaje <= 0) return alert("Ingrese un porcentaje válido.");
     
-    const confirmar = confirm(`ALERTA DE SEGURIDAD: ¿Desea dispersar el ${porcentaje}% de utilidades sobre el capital base a TODOS los socios activos? Esta acción es irreversible.`);
+    const confirmar = confirm(`ALERTA DE SEGURIDAD: ¿Desea dispersar el ${porcentaje}% de utilidades a TODOS los socios activos?`);
     if (!confirmar) return;
 
     setAccionLoading('global_utilidad');
     try {
         const sociosActivos = socios.filter(s => s.estado === 'activo');
-        
         for (const socio of sociosActivos) {
-            const inversion = socio.socios_elite?.[0]?.inversion_minima || 0;
+            const inversion = Number(socio.socios_elite?.[0]?.inversion_minima) || 0;
             const gananciaCalculada = (inversion * (porcentaje / 100));
-            const nuevaUtilidadTotal = (socio.utilidad_total || 0) + gananciaCalculada;
+            const nuevaUtilidadTotal = (Number(socio.utilidad_total) || 0) + gananciaCalculada;
 
             const { error } = await clientSupabase
                 .from('socios')
                 .update({ utilidad_total: nuevaUtilidadTotal })
                 .eq('id', socio.id);
             
-            if (error) console.error(`Error dispersando a ${socio.nombre}:`, error);
+            if (error) console.error(`Error en socio ${socio.id}:`, error);
         }
-
-        alert(`PROCESO FINALIZADO: Se han actualizado ${sociosActivos.length} cuentas de socios activos.`);
+        alert("Proceso de Dispersión Finalizado con Éxito.");
         setUtilidadPorcentaje('');
         fetchData();
     } catch (err) {
-        alert("Error crítico durante la dispersión de fondos.");
+        alert("Error crítico durante la operación financiera.");
     } finally {
         setAccionLoading(null);
     }
@@ -116,8 +118,8 @@ export default function AdminPanel() {
   };
 
   const sociosFiltrados = socios.filter(s => 
-    s.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.email.toLowerCase().includes(searchTerm.toLowerCase())
+    s.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    s.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -168,14 +170,14 @@ export default function AdminPanel() {
               <div className="s-icon-box"><TrendingUp color="#00C853"/></div>
               <div className="s-data">
                 <span>CAPITAL GESTIONADO</span>
-                <h2>${stats.totalCapital.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h2>
+                <h2>${stats.totalCapital.toLocaleString()}</h2>
               </div>
             </div>
             <div className="s-card">
               <div className="s-icon-box"><Zap color="#00C853"/></div>
               <div className="s-data">
                 <span>UTILIDADES PAGADAS</span>
-                <h2 className="text-neon">${stats.utilidadRepartida.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h2>
+                <h2 className="text-neon">${stats.utilidadRepartida.toLocaleString()}</h2>
               </div>
             </div>
             <div className="s-card warning">
@@ -246,12 +248,12 @@ export default function AdminPanel() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={6} className="loading-td">CONECTANDO CON LA BÓVEDA DE DATOS...</td></tr>
+                    <tr><td colSpan={6} className="loading-td"><Loader2 className="spin" size={24}/> Sincronizando Bóveda...</td></tr>
                   ) : sociosFiltrados.map((s) => (
                     <tr key={s.id}>
                       <td>
                         <div className="user-td-cell">
-                          <div className="avatar-mini">{s.nombre.charAt(0)}</div>
+                          <div className="avatar-mini">{s.nombre?.charAt(0)}</div>
                           <div>
                             <p className="u-name">{s.nombre}</p>
                             <p className="u-mail">{s.email}</p>
@@ -259,8 +261,8 @@ export default function AdminPanel() {
                         </div>
                       </td>
                       <td><span className="plan-badge">{s.socios_elite?.[0]?.nivel_socio || 'N/A'}</span></td>
-                      <td className="amount-td">${s.socios_elite?.[0]?.inversion_minima?.toLocaleString() || 0}</td>
-                      <td className="amount-td highlight">${s.utilidad_total?.toLocaleString() || 0}</td>
+                      <td className="amount-td">${Number(s.socios_elite?.[0]?.inversion_minima || 0).toLocaleString()}</td>
+                      <td className="amount-td highlight">${Number(s.utilidad_total || 0).toLocaleString()}</td>
                       <td><span className={`status-tag ${s.estado}`}>{s.estado}</span></td>
                       <td>
                         <div className="action-btns-group">
@@ -308,130 +310,75 @@ export default function AdminPanel() {
       <style jsx global>{`
         :root { --neon: #00C853; --bg: #000; --panel: #050505; --border: #111; }
         .admin-wrapper { display: flex; background: var(--bg); min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; }
-        
-        /* SIDEBAR COMPLETO */
         .admin-sidebar { width: 300px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; transition: 0.3s; z-index: 2000; }
         .sidebar-brand { padding: 40px 30px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); }
         .sidebar-brand h2 { font-size: 16px; font-weight: 900; letter-spacing: -1px; }
         .sidebar-brand span { color: var(--neon); }
         .m-close-btn { display: none; background: none; border: none; color: #fff; }
-        
         .admin-nav { padding: 30px 20px; flex: 1; }
         .nav-label { font-size: 10px; font-weight: 900; color: #222; margin: 25px 0 10px 15px; letter-spacing: 2px; }
         .admin-nav button { width: 100%; background: transparent; border: none; color: #444; padding: 16px 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 5px; }
         .admin-nav button.active { background: rgba(0, 200, 83, 0.05); color: var(--neon); }
         .admin-nav button:hover:not(.active) { color: #fff; background: #0a0a0a; }
-        
         .sidebar-footer { padding: 30px 20px; border-top: 1px solid var(--border); }
         .btn-logout { width: 100%; background: transparent; border: none; color: #444; padding: 15px; display: flex; align-items: center; gap: 15px; font-weight: 800; cursor: pointer; }
-        .btn-logout:hover { color: #ff4444; }
-
-        /* MAIN LAYOUT */
         .admin-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .admin-header { height: 90px; padding: 0 50px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
+        .admin-header { height: 90px; padding: 0 50px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; }
         .menu-trigger { display: none; background: none; border: none; color: #fff; margin-right: 20px; }
         .admin-identity p { font-size: 10px; font-weight: 900; color: #333; letter-spacing: 2px; }
         .admin-identity h3 { font-size: 20px; font-weight: 900; color: var(--neon); margin: 0; }
-        
         .header-right { display: flex; align-items: center; gap: 25px; }
         .live-pill { background: #080808; border: 1px solid var(--border); padding: 8px 18px; border-radius: 40px; font-size: 10px; font-weight: 900; color: #444; display: flex; align-items: center; gap: 10px; }
         .pulse-dot { width: 8px; height: 8px; background: var(--neon); border-radius: 50%; box-shadow: 0 0 10px var(--neon); animation: blink 2s infinite; }
         .notif-btn { background: #080808; border: 1px solid var(--border); color: #fff; width: 45px; height: 45px; border-radius: 50%; position: relative; cursor: pointer; }
         .notif-count { position: absolute; top: -5px; right: -5px; background: #ff4444; color: #fff; font-size: 10px; font-weight: 900; padding: 3px 7px; border-radius: 10px; border: 2px solid #000; }
-
         .admin-viewport { padding: 50px; flex: 1; overflow-y: auto; }
-
-        /* STATS CARDS */
         .stats-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px; }
         .s-card { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 24px; display: flex; align-items: center; gap: 25px; }
-        .s-card.warning { border-color: rgba(255, 187, 0, 0.2); }
         .s-icon-box { background: #000; width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
         .s-data span { font-size: 11px; font-weight: 900; color: #333; letter-spacing: 1px; }
         .s-data h2 { font-size: 28px; font-weight: 900; margin: 5px 0 0; }
         .s-data h2 small { font-size: 12px; color: #222; }
         .text-neon { color: var(--neon); text-shadow: 0 0 15px rgba(0, 200, 83, 0.2); }
-
-        /* POWER MODULE */
-        .power-module { background: linear-gradient(135deg, #080808, #000); border: 1px solid var(--border); border-left: 6px solid var(--neon); padding: 40px; border-radius: 30px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
+        .power-module { background: #080808; border: 1px solid var(--border); border-left: 6px solid var(--neon); padding: 40px; border-radius: 30px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; }
         .power-info { display: flex; gap: 30px; align-items: center; }
         .power-badge { background: rgba(0,200,83,0.05); width: 60px; height: 60px; border-radius: 20px; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(0,200,83,0.1); }
         .power-text h3 { font-size: 22px; font-weight: 900; margin: 0; }
         .power-text p { color: #444; font-size: 14px; margin-top: 5px; max-width: 450px; line-height: 1.5; }
-        
         .power-action { display: flex; gap: 20px; }
         .input-group-gen { background: #000; border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; padding: 0 25px; gap: 15px; width: 160px; }
         .input-group-gen input { background: transparent; border: none; color: #fff; padding: 20px 0; width: 100%; outline: none; font-weight: 900; font-size: 24px; text-align: right; }
         .input-group-gen .unit { color: var(--neon); font-weight: 900; font-size: 20px; }
         .btn-power-exec { background: #fff; color: #000; border: none; padding: 20px 40px; border-radius: 18px; font-weight: 900; font-size: 13px; cursor: pointer; transition: 0.3s; }
-        .btn-power-exec:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,255,255,0.1); }
-
-        /* TABLE SECTION */
         .audit-table-section { background: var(--panel); border: 1px solid var(--border); border-radius: 35px; padding: 45px; }
         .table-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-        .t-title h2 { font-size: 24px; font-weight: 900; margin: 0; }
-        .t-title h2 span { color: var(--neon); }
-        .t-title p { font-size: 12px; color: #333; margin-top: 5px; font-weight: 700; }
-        
         .search-wrapper { background: #000; border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; padding: 0 25px; gap: 15px; width: 400px; }
         .search-wrapper input { background: transparent; border: none; padding: 18px 0; color: #fff; outline: none; flex: 1; font-size: 14px; font-weight: 700; }
-        
-        .responsive-table-holder { overflow-x: auto; }
-        .guru-admin-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-        th { text-align: left; padding: 20px; font-size: 11px; font-weight: 900; color: #333; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+        .guru-admin-table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 20px; font-size: 11px; font-weight: 900; color: #333; text-transform: uppercase; border-bottom: 1px solid var(--border); }
         td { padding: 30px 20px; border-bottom: 1px solid #0a0a0a; }
-        
         .user-td-cell { display: flex; align-items: center; gap: 15px; }
-        .avatar-mini { width: 40px; height: 40px; background: #111; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: var(--neon); border: 1px solid var(--border); }
-        .u-name { font-weight: 900; font-size: 15px; margin: 0; }
-        .u-mail { font-size: 12px; color: #444; margin: 2px 0 0; }
-        
-        .plan-badge { background: #000; border: 1px solid var(--border); padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; color: var(--neon); text-transform: uppercase; }
-        .amount-td { font-weight: 900; font-size: 16px; font-family: 'JetBrains Mono', monospace; }
+        .avatar-mini { width: 40px; height: 40px; background: #111; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: var(--neon); }
+        .plan-badge { background: #000; border: 1px solid var(--border); padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; color: var(--neon); }
+        .amount-td { font-weight: 900; font-size: 16px; }
         .amount-td.highlight { color: var(--neon); }
-        
-        .status-tag { padding: 6px 15px; border-radius: 30px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        .status-tag { padding: 6px 15px; border-radius: 30px; font-size: 10px; font-weight: 900; }
         .status-tag.pendiente { background: rgba(255, 187, 0, 0.1); color: #ffbb00; }
         .status-tag.activo { background: rgba(0, 200, 83, 0.1); color: var(--neon); }
-        
-        .action-btns-group { display: flex; gap: 10px; }
-        .btn-circle-action { width: 40px; height: 40px; background: #000; border: 1px solid var(--border); color: #444; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
-        .btn-circle-action:hover { color: #fff; border-color: #333; transform: scale(1.1); }
-        .btn-circle-action.approve:hover { color: var(--neon); border-color: rgba(0, 200, 83, 0.3); }
-
-        /* MODAL */
-        .modal-root { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 5000; display: flex; justify-content: center; align-items: center; padding: 30px; }
-        .modal-content { background: var(--panel); border: 1px solid var(--border); border-radius: 40px; width: 100%; max-width: 600px; overflow: hidden; }
+        .modal-root { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 5000; display: flex; justify-content: center; align-items: center; }
+        .modal-content { background: var(--panel); border: 1px solid var(--border); border-radius: 40px; width: 100%; max-width: 600px; }
         .modal-header { padding: 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h3 span { color: var(--neon); }
-        .close-x { background: #000; border: 1px solid var(--border); color: #fff; border-radius: 10px; padding: 5px; cursor: pointer; }
-        .modal-image-body { padding: 60px; text-align: center; background: #000; }
-        .empty-state-img { color: #222; }
-        .empty-state-img p { font-size: 13px; font-weight: 700; margin-top: 20px; color: #333; }
-        .modal-actions { padding: 30px; border-top: 1px solid var(--border); display: flex; justify-content: center; }
+        .modal-image-body { padding: 60px; text-align: center; }
         .btn-close-modal { background: #111; color: #fff; border: none; padding: 15px 40px; border-radius: 15px; font-weight: 800; cursor: pointer; }
-
         .spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-        /* RESPONSIVE DESIGN */
-        @media (max-width: 1200px) {
-          .stats-container { grid-template-columns: 1fr; }
-          .power-module { flex-direction: column; gap: 30px; align-items: flex-start; }
-          .power-action { width: 100%; }
-          .power-action .input-group-gen { flex: 1; }
-          .power-action .btn-power-exec { flex: 1; }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes blink { 50% { opacity: 0.3; } }
         @media (max-width: 1024px) {
-          .admin-sidebar { position: fixed; left: -100%; top: 0; }
+          .admin-sidebar { position: fixed; left: -100%; }
           .sidebar-open { left: 0; }
-          .m-close-btn { display: block; }
           .menu-trigger { display: block; }
-          .admin-header { padding: 0 25px; }
           .admin-viewport { padding: 25px; }
-          .search-wrapper { width: 100%; }
-          .table-top-bar { flex-direction: column; gap: 20px; align-items: flex-start; }
-          .audit-table-section { padding: 30px; }
+          .stats-container { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>
