@@ -8,9 +8,10 @@ import {
   ChevronRight, ArrowLeft, Globe, ShieldCheck, Info, Landmark
 } from 'lucide-react';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const clientSupabase = createClient(supabaseUrl, supabaseAnonKey);
+const clientSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 const planes = [
   { id: 'micro', nombre: 'MICRO SOCIO', precio: 100, porcentaje: '0.067% de utilidades', icon: Target, color: '#E0E0E0' },
@@ -98,12 +99,12 @@ export default function UnetePage() {
     try {
       const correoLimpio = formData.email.trim().toLowerCase();
 
-      // CORRECCIÓN: Se cambió 'correo' por 'email' para coincidir con el esquema de la tabla
+      // REGISTRO EN SOCIOS (Columna email corregida)
       const { data: socio, error: errSocio } = await clientSupabase
         .from('socios')
         .insert([{
           nombre: formData.nombre.trim(),
-          email: correoLimpio, 
+          email: correoLimpio,
           password: formData.password,
           estado: 'pendiente',
           rol: 'socio'
@@ -112,9 +113,10 @@ export default function UnetePage() {
       
       if (errSocio) {
           if (errSocio.code === '23505') throw new Error("Este correo ya está registrado.");
-          throw new Error(`Error del Servidor: ${errSocio.message}`);
+          throw new Error(`Error en servidor: ${errSocio.message}`);
       }
 
+      // REGISTRO EN SOCIOS_ELITE (Omitiendo metodo_pago para evitar error de columna)
       const { error: errElite } = await clientSupabase
         .from('socios_elite')
         .insert([{
@@ -123,15 +125,14 @@ export default function UnetePage() {
           inversion_minima: planes.find(p => p.id === formData.plan)?.precio,
           pais: formData.pais,
           telefono: `${formData.codigoArea} ${formData.telefono}`,
-          ciudad: formData.ciudad,
-          metodo_pago: formData.metodoPago
+          ciudad: formData.ciudad
         }]);
 
       if (errElite) throw new Error(`Error en datos financieros: ${errElite.message}`);
 
       setPaso(5);
     } catch (err: any) { 
-      setError(err.message || "Fallo en la sincronización."); 
+      setError(err.message); 
       setLoading(false);
     }
   };
@@ -160,7 +161,7 @@ export default function UnetePage() {
                 <div className="field"><User size={18}/><input name="nombre" placeholder="Nombre Completo" value={formData.nombre} onChange={handleInputChange}/></div>
                 <div className="field"><Mail size={18}/><input name="email" placeholder="Email Corporativo" value={formData.email} onChange={handleInputChange}/></div>
                 <div className="field">
-                  <Lock size={18}/><input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange}/>
+                  <Lock size={18}/><input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña (Mín. 6)" value={formData.password} onChange={handleInputChange}/>
                   <button onClick={() => setShowPass(!showPass)} className="btn-eye">{showPass ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
                 </div>
                 <div className="field">
@@ -260,9 +261,8 @@ export default function UnetePage() {
         .unete-wrapper { background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; }
         .unete-nav { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; border-bottom: 1px solid #111; max-width: 1200px; margin: 0 auto; width: 100%; }
         .nav-back { background: none; border: none; color: #444; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
-        .nav-back:hover { color: #00C853; }
         .progress-bar { display: flex; gap: 8px; }
-        .dot { width: 30px; height: 3px; background: #111; border-radius: 10px; transition: 0.5s; }
+        .dot { width: 30px; height: 3px; background: #111; border-radius: 10px; }
         .dot.active { background: #00C853; box-shadow: 0 0 10px #00C853; }
         .unete-content { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px 20px; }
         .form-container { width: 100%; max-width: 480px; }
@@ -276,14 +276,10 @@ export default function UnetePage() {
         .btn-eye { background: none; border: none; color: #333; cursor: pointer; }
         .phone-grid { display: flex; gap: 10px; }
         .area-code { background: #111; padding: 15px; border-radius: 12px; font-weight: 900; color: #00C853; min-width: 60px; text-align: center; }
-        .no-margin { margin-bottom: 0; flex: 1; }
-        .checks { margin-bottom: 30px; display: flex; flex-direction: column; gap: 10px; }
-        .check-item { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #444; cursor: pointer; }
-        .check-item input { width: 18px; height: 18px; accent-color: #00C853; }
-        .btn-primary { width: 100%; background: #00C853; color: #000; border: none; padding: 20px; border-radius: 14px; font-weight: 900; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; }
+        .btn-primary { width: 100%; background: #00C853; color: #000; border: none; padding: 20px; border-radius: 14px; font-weight: 900; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .btn-primary:disabled { background: #111; color: #444; cursor: not-allowed; opacity: 0.5; }
         .planes-stack { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
-        .plan-card { background: #050505; border: 1px solid #111; padding: 20px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: 0.3s; }
+        .plan-card { background: #050505; border: 1px solid #111; padding: 20px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         .plan-card.active { border-color: var(--color); }
         .payment-box { background: #050505; border: 1px solid #111; padding: 25px; border-radius: 20px; margin-bottom: 30px; }
         .pay-details { background: rgba(0,200,83,0.05); border: 1px solid rgba(0,200,83,0.1); padding: 15px; border-radius: 12px; display: flex; gap: 12px; margin-bottom: 20px; font-size: 12px; color: #ccc; }
@@ -296,7 +292,6 @@ export default function UnetePage() {
         .icon-glow { filter: drop-shadow(0 0 15px rgba(0,200,83,0.3)); margin-bottom: 25px; }
         .fade-in { animation: fadeIn 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 600px) { h1 { font-size: 1.7rem; } .unete-content { align-items: flex-start; padding-top: 30px; } }
       `}</style>
     </div>
   );
