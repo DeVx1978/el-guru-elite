@@ -42,17 +42,12 @@ export default function SocioPanel() {
   useEffect(() => {
     const socioId = localStorage.getItem('socio_id');
     const socioNombre = localStorage.getItem('socio_nombre');
-    const socioRol = localStorage.getItem('socio_rol');
 
     if (!socioId) {
       router.push('/login');
     } else {
       setNombre(socioNombre || "Socio");
       setEditNombre(socioNombre || "");
-      // Validación inicial de rol admin desde DB
-      if (socioRol === 'admin') {
-        obtenerPendientesAdmin();
-      }
       conectarBovedaElite(socioId);
     }
   }, [router]);
@@ -74,15 +69,20 @@ export default function SocioPanel() {
         setEditCiudad(socioElite.ciudad || "");
         setEditEmail(socioBase.email);
 
-        // 🛡️ PODER DE MARÍA JOSÉ: Activación de botón secreto si el email coincide
-        // Inserte aquí el email real que usa María José
-        if (socioBase.email === 'maria-jose@ejemplo.com' || socioBase.id === 'ID_DE_MARIA_JOSE') {
-          setEsAdmin(true);
-        }
+        // === CORRECCIÓN PRINCIPAL ===
+        // Ahora usamos SOLO la columna "rol" de Supabase (María José id=3 ya tiene 'admin')
+        setEsAdmin(socioBase?.rol === 'admin');
       }
     } catch (err) { console.error("Error conexión:", err); }
     finally { setTimeout(() => setLoading(false), 2000); }
   };
+
+  // Nuevo useEffect seguro para cargar pendientes SOLO cuando es admin
+  useEffect(() => {
+    if (esAdmin && !loading) {
+      obtenerPendientesAdmin();
+    }
+  }, [esAdmin, loading]);
 
   useEffect(() => {
     if (!loading && balance > 0) {
