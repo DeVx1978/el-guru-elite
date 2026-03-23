@@ -1,192 +1,235 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { 
-  Users, Wallet, Bell, ShieldCheck, Trash2, Image as ImageIcon,
-  LogOut, Smartphone, Mail, Globe, Lock, Menu, X, Terminal
+  ShieldCheck, Users, Clock, TrendingUp, CheckCircle, XCircle, 
+  Eye, DollarSign, Download, Filter, Search, Menu, X, BarChart3, 
+  Settings, LogOut, Bell
 } from 'lucide-react';
 
-const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+const clientSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!, 
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-export default function AdminTotalMJ() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pendientes'); 
+export default function AdminPanel() {
   const [socios, setSocios] = useState<any[]>([]);
-  const [stats, setStats] = useState({ totalCapital: 0, pendientes: 0 });
-  const [menuAbierto, setMenuAbierto] = useState(false); // Control para el móvil
+  const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [stats, setStats] = useState({ totalCapital: 0, pendientes: 0, activos: 0 });
 
   useEffect(() => {
-    const rol = localStorage.getItem('socio_rol');
-    if (rol !== 'admin') { router.push('/panel'); }
-    else { cargarDataMaestra(); }
-  }, [router]);
+    fetchData();
+  }, []);
 
-  const cargarDataMaestra = async () => {
+  async function fetchData() {
     setLoading(true);
-    try {
-      const { data: elite } = await clientSupabase.from('socios_elite').select('*, socios(*)');
-      if (elite) {
-        setSocios(elite);
-        const total = elite.reduce((acc, curr) => acc + Number(curr.inversion_minima || 0), 0);
-        const pend = elite.filter(s => s.socios?.estado === 'pendiente').length;
-        setStats({ totalCapital: total, pendientes: pend });
-      }
-    } catch (e) { console.error("Error cargando datos:", e); }
-    finally { setLoading(false); }
-  };
+    // 1. Obtener Socios y sus datos financieros
+    const { data, error } = await clientSupabase
+      .from('socios')
+      .select('*, socios_elite(*) ')
+      .order('created_at', { ascending: false });
 
-  const gestionarEstado = async (idSocio: string, nuevoEstado: string) => {
-    const { error } = await clientSupabase.from('socios').update({ estado: nuevoEstado }).eq('id', idSocio);
-    if (!error) {
-      alert(`SOCIO ACTUALIZADO: ${nuevoEstado}`);
-      cargarDataMaestra();
+    if (data) {
+      setSocios(data);
+      const pendientes = data.filter(s => s.estado === 'pendiente').length;
+      const activos = data.filter(s => s.estado === 'activo').length;
+      const capital = data.reduce((acc, s) => acc + (s.socios_elite?.[0]?.inversion_minima || 0), 0);
+      setStats({ totalCapital: capital, pendientes, activos });
     }
-  };
+    setLoading(false);
+  }
 
-  const eliminarSocio = async (idSocio: string) => {
-    if (confirm("¿Estás segura, María José?")) {
-      await clientSupabase.from('socios').delete().eq('id', idSocio);
-      cargarDataMaestra();
-    }
+  const actualizarEstado = async (id: string, nuevoEstado: string) => {
+    const { error } = await clientSupabase
+      .from('socios')
+      .update({ estado: nuevoEstado })
+      .eq('id', id);
+    
+    if (!error) fetchData();
   };
-
-  if (loading) return <div className="admin-loading">RECONECTANDO SISTEMAS...</div>;
 
   return (
-    <div className="admin-layout">
-      {/* BOTÓN HAMBURGUESA PARA MÓVIL */}
-      <button className="mobile-menu-btn" onClick={() => setMenuAbierto(!menuAbierto)}>
-        {menuAbierto ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
-      {/* BARRA LATERAL CON ESTADOS DE APERTURA */}
-      <aside className={`admin-nav ${menuAbierto ? 'mobile-open' : ''}`}>
-        <div className="admin-logo">GURÚ <span>ADMIN</span></div>
-        <div className="mj-badge">
-          <div className="mj-avatar">MJ</div>
-          <p>María José</p>
-          <span>Super Administradora</span>
+    <div className="admin-wrapper">
+      {/* SIDEBAR ADMIN */}
+      <aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}>
+        <div className="admin-brand">
+          <ShieldCheck color="#00C853" size={28} />
+          <h2>TORRE DE <span>CONTROL</span></h2>
         </div>
-        <nav>
-          <div className={`nav-link ${activeTab === 'pendientes' ? 'active' : ''}`} 
-               onClick={() => { setActiveTab('pendientes'); setMenuAbierto(false); }}>
-            <Bell size={18} /> Pendientes {stats.pendientes > 0 && <span className="noti-count">{stats.pendientes}</span>}
-          </div>
-          <div className={`nav-link ${activeTab === 'todos' ? 'active' : ''}`} 
-               onClick={() => { setActiveTab('todos'); setMenuAbierto(false); }}>
-            <Users size={18} /> Todos los Socios
-          </div>
+        <nav className="admin-nav">
+          <button className="active"><Users size={20}/> Gestión de Socios</button>
+          <button><BarChart3 size={20}/> Reportes Globales</button>
+          <button><DollarSign size={20}/> Carga de Utilidades</button>
+          <button><Settings size={20}/> Configuración</button>
         </nav>
-        <button className="exit-btn" onClick={() => router.push('/panel')}><LogOut size={16}/> VOLVER AL PANEL</button>
+        <div className="admin-footer">
+          <button className="btn-logout"><LogOut size={18}/> Salir</button>
+        </div>
       </aside>
 
-      {/* CAPA OSCURA CUANDO EL MENÚ ESTÁ ABIERTO EN MÓVIL */}
-      {menuAbierto && <div className="overlay" onClick={() => setMenuAbierto(false)}></div>}
-
-      <main className="admin-content">
-        <header className="admin-header-stats">
-          <div className="stat-box"><span>CAPITAL BAJO GESTIÓN</span><h2>${stats.totalCapital.toLocaleString()}</h2></div>
-          <div className="stat-box"><span>SOCIOS ACTIVOS</span><h2>{socios.filter(s => s.socios?.estado === 'activo').length}</h2></div>
+      {/* CONTENIDO PRINCIPAL */}
+      <main className="admin-main">
+        <header className="admin-header">
+          <button className="m-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+            {menuOpen ? <X /> : <Menu />}
+          </button>
+          <div className="admin-user">
+            <p>Admin Principal</p>
+            <h3>MARÍA JOSÉ</h3>
+          </div>
+          <div className="header-actions">
+            <button className="btn-icon"><Bell size={20}/></button>
+            <div className="admin-pill">SISTEMA SEGURO</div>
+          </div>
         </header>
 
-        <section className="admin-table-container">
-          <h3>{activeTab === 'pendientes' ? 'Cuentas Esperando Activación' : 'Base de Datos Maestra'}</h3>
-          
-          <div className="responsive-scroll">
-            <table className="mj-table">
-              {activeTab === 'pendientes' ? (
-                <>
-                  <thead><tr><th>Socio / Email</th><th>Membresía</th><th>Pago</th><th>Acciones</th></tr></thead>
-                  <tbody>
-                    {socios.filter(s => s.socios?.estado === 'pendiente').map(s => (
-                      <tr key={s.id}>
-                        <td><strong>{s.socios?.nombre}</strong><br/>{s.socios?.correo}</td>
-                        <td>{s.nivel_socio}</td>
-                        <td><a href={s.socios?.comprobante_url} target="_blank" className="view-pay">Ver Pago</a></td>
-                        <td className="action-btns">
-                          <button onClick={() => gestionarEstado(s.id_socio, 'activo')} className="btn-activate">ACTIVAR</button>
-                          <button onClick={() => eliminarSocio(s.id_socio)} className="btn-reject"><Trash2 size={14}/></button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </>
-              ) : (
-                <>
-                  <thead><tr><th>Socio</th><th>Ubicación / Tel</th><th>Seguridad</th><th>Estado</th><th>Gestión</th></tr></thead>
-                  <tbody>
-                    {socios.map(s => (
-                      <tr key={s.id}>
-                        <td><strong>{s.socios?.nombre}</strong><br/>{s.nivel_socio}</td>
-                        <td>{s.pais}<br/>{s.telefono}</td>
-                        <td>{s.socios?.correo}<br/><span className="pass-text">{s.socios?.password}</span></td>
-                        <td><span className={`status-pill ${s.socios?.estado}`}>{s.socios?.estado}</span></td>
-                        <td className="action-btns">
-                          <button onClick={() => gestionarEstado(s.id_socio, 'suspendido')} className="btn-susp">PAUSAR</button>
-                          <button onClick={() => eliminarSocio(s.id_socio)} className="btn-reject"><Trash2 size={14}/></button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </>
-              )}
-            </table>
-          </div>
-        </section>
+        <div className="admin-scroll">
+          {/* INDICADORES DE PODER */}
+          <section className="stats-grid">
+            <div className="stat-box">
+              <span>CAPITAL BAJO GESTIÓN</span>
+              <h2>${stats.totalCapital.toLocaleString()} <small>USD</small></h2>
+              <div className="trend-up">+ Rendimiento Global</div>
+            </div>
+            <div className="stat-box">
+              <span>SOCIOS ÉLITE</span>
+              <h2>{stats.activos}</h2>
+              <div className="trend-neutral">Cuentas Verificadas</div>
+            </div>
+            <div className="stat-box highlight">
+              <span>SOLICITUDES PENDIENTES</span>
+              <h2>{stats.pendientes}</h2>
+              <div className="trend-alert">Requiere Atención Urgente</div>
+            </div>
+          </section>
+
+          {/* TABLA DE AUDITORÍA */}
+          <section className="table-container">
+            <div className="table-header">
+              <h2>Auditoría de <span>Nuevos Miembros</span></h2>
+              <div className="table-search">
+                <Search size={16} />
+                <input type="text" placeholder="Buscar por nombre o correo..." />
+              </div>
+            </div>
+
+            <div className="responsive-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Socio</th>
+                    <th>Plan</th>
+                    <th>País / Ciudad</th>
+                    <th>Inversión</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {socios.map((s) => (
+                    <tr key={s.id}>
+                      <td>
+                        <div className="user-info">
+                          <p className="name">{s.nombre}</p>
+                          <p className="email">{s.email}</p>
+                        </div>
+                      </td>
+                      <td><span className="plan-tag">{s.socios_elite?.[0]?.nivel_socio || 'N/A'}</span></td>
+                      <td>{s.socios_elite?.[0]?.pais} <br /> <small>{s.socios_elite?.[0]?.ciudad}</small></td>
+                      <td className="amount">${s.socios_elite?.[0]?.inversion_minima || 0}</td>
+                      <td>
+                        <span className={`status-tag ${s.estado}`}>
+                          {s.estado.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="action-btns">
+                          <button className="btn-view" title="Ver Comprobante"><Eye size={16}/></button>
+                          {s.estado === 'pendiente' && (
+                            <>
+                              <button onClick={() => actualizarEstado(s.id, 'activo')} className="btn-approve" title="Aprobar"><CheckCircle size={16}/></button>
+                              <button onClick={() => actualizarEstado(s.id, 'rechazado')} className="btn-reject" title="Rechazar"><XCircle size={16}/></button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </main>
 
-      <style jsx>{`
-        .admin-layout { display: flex; background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; position: relative; }
+      <style jsx global>{`
+        .admin-wrapper { display: flex; background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; }
         
-        /* SIDEBAR DESKTOP */
-        .admin-nav { width: 280px; background: #050505; border-right: 1px solid #111; padding: 40px 20px; display: flex; flex-direction: column; transition: transform 0.3s ease; }
+        .admin-sidebar { width: 280px; background: #050505; border-right: 1px solid #111; padding: 40px 20px; display: flex; flex-direction: column; transition: 0.3s; z-index: 1000; }
+        .admin-brand { display: flex; align-items: center; gap: 15px; margin-bottom: 50px; }
+        .admin-brand h2 { font-size: 16px; font-weight: 900; letter-spacing: -1px; }
+        .admin-brand span { color: #00C853; }
         
-        /* BOTÓN MÓVIL */
-        .mobile-menu-btn { display: none; position: fixed; top: 15px; left: 15px; z-index: 1000; background: #00C853; color: #000; border: none; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .admin-nav { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .admin-nav button { background: transparent; border: none; color: #444; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; text-align: left; transition: 0.3s; }
+        .admin-nav button.active, .admin-nav button:hover { color: #fff; background: #0a0a0a; }
+        .admin-nav button.active { color: #00C853; }
 
-        .admin-logo { font-size: 1.5rem; font-weight: 900; margin-bottom: 40px; }
-        .admin-logo span { color: #00C853; }
-        .mj-badge { text-align: center; margin-bottom: 40px; border-bottom: 1px solid #111; padding-bottom: 20px; }
-        .mj-avatar { width: 60px; height: 60px; background: #00C853; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: 900; color: #000; }
+        .admin-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .admin-header { padding: 30px 40px; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center; }
+        .admin-user p { font-size: 10px; font-weight: 900; color: #444; margin: 0; }
+        .admin-user h3 { font-size: 18px; font-weight: 900; margin: 0; color: #00C853; }
         
-        .nav-link { padding: 15px; margin: 5px 0; cursor: pointer; display: flex; align-items: center; gap: 15px; border-radius: 12px; color: #444; font-weight: 700; position: relative; }
-        .nav-link.active { background: rgba(0,200,83,0.1); color: #00C853; }
-        .noti-count { position: absolute; right: 15px; background: #ff4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; }
+        .admin-pill { background: rgba(0,200,83,0.1); color: #00C853; padding: 8px 15px; border-radius: 20px; font-size: 10px; font-weight: 900; }
+        .admin-scroll { flex: 1; overflow-y: auto; padding: 40px; }
 
-        .admin-content { flex: 1; padding: 40px; width: 100%; overflow-x: hidden; }
-        .admin-header-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
         .stat-box { background: #050505; border: 1px solid #111; padding: 25px; border-radius: 20px; }
-        .stat-box h2 { color: #00C853; margin-top: 10px; font-size: 1.5rem; }
+        .stat-box.highlight { border-color: rgba(255, 68, 68, 0.2); }
+        .stat-box span { font-size: 10px; font-weight: 900; color: #444; letter-spacing: 1px; }
+        .stat-box h2 { font-size: 28px; font-weight: 900; margin: 10px 0; }
+        .stat-box h2 small { font-size: 12px; color: #222; }
+        .trend-up { color: #00C853; font-size: 11px; font-weight: 800; }
+        .trend-alert { color: #ff4444; font-size: 11px; font-weight: 800; }
 
-        /* TABLA RESPONSIVA */
-        .admin-table-container { background: #050505; border: 1px solid #111; border-radius: 25px; padding: 25px; }
-        .responsive-scroll { width: 100%; overflow-x: auto; margin-top: 20px; -webkit-overflow-scrolling: touch; }
-        .mj-table { width: 100%; min-width: 700px; border-collapse: collapse; }
-        .mj-table th { text-align: left; color: #333; padding: 15px; border-bottom: 1px solid #111; font-size: 11px; text-transform: uppercase; }
-        .mj-table td { padding: 15px; border-bottom: 1px solid #080808; font-size: 13px; }
+        .table-container { background: #050505; border: 1px solid #111; border-radius: 24px; padding: 30px; }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .table-header h2 span { color: #00C853; }
+        .table-search { background: #000; border: 1px solid #111; border-radius: 12px; display: flex; align-items: center; padding: 0 15px; gap: 10px; }
+        .table-search input { background: transparent; border: none; padding: 12px 0; color: #fff; outline: none; font-size: 13px; }
 
-        .btn-activate { background: #00C853; color: #000; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 900; cursor: pointer; }
-        .btn-reject { background: rgba(255,68,68,0.1); color: #ff4444; border: 1px solid #ff444433; padding: 8px; border-radius: 8px; cursor: pointer; }
-        .btn-susp { background: #1a1a1a; color: #fff; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
-        .view-pay { color: #00C853; font-weight: 800; font-size: 11px; text-decoration: underline; }
-        .status-pill { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; }
-        .status-pill.activo { background: rgba(0,200,83,0.1); color: #00C853; }
-        .pass-text { color: #333; font-family: monospace; }
+        .responsive-table { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { text-align: left; padding: 15px; border-bottom: 1px solid #111; color: #333; font-size: 11px; font-weight: 900; text-transform: uppercase; }
+        td { padding: 20px 15px; border-bottom: 1px solid #080808; font-size: 13px; }
+        
+        .user-info .name { font-weight: 800; margin: 0; }
+        .user-info .email { color: #444; font-size: 11px; margin: 0; }
+        .plan-tag { background: #000; border: 1px solid #111; padding: 5px 10px; border-radius: 8px; font-size: 10px; font-weight: 900; color: #00C853; }
+        .amount { font-weight: 900; font-family: 'Courier New', monospace; }
+        
+        .status-tag { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 900; }
+        .status-tag.pendiente { background: rgba(255, 187, 0, 0.1); color: #ffbb00; }
+        .status-tag.activo { background: rgba(0, 200, 83, 0.1); color: #00C853; }
+        .status-tag.rechazado { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
 
-        /* MEDIA QUERIES PARA MÓVIL */
+        .action-btns { display: flex; gap: 10px; }
+        .action-btns button { background: #000; border: 1px solid #111; color: #444; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .btn-view:hover { color: #fff; border-color: #fff; }
+        .btn-approve:hover { color: #00C853; border-color: #00C853; }
+        .btn-reject:hover { color: #ff4444; border-color: #ff4444; }
+
+        .m-toggle { display: none; }
+
         @media (max-width: 1024px) {
-          .mobile-menu-btn { display: block; }
-          .admin-nav { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); z-index: 1100; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
-          .admin-nav.mobile-open { transform: translateX(0); }
-          .admin-content { padding: 80px 20px 40px; }
-          .stat-box h2 { font-size: 1.2rem; }
-          .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1050; }
+          .admin-sidebar { position: fixed; left: -100%; top: 0; bottom: 0; }
+          .admin-sidebar.open { left: 0; }
+          .m-toggle { display: block; background: #050505; border: 1px solid #111; color: #fff; padding: 10px; border-radius: 10px; margin-right: 20px; }
+          .stats-grid { grid-template-columns: 1fr; }
+          .admin-scroll { padding: 20px; }
+          .table-header { flex-direction: column; gap: 20px; align-items: flex-start; }
         }
-
-        .admin-loading { height: 100vh; background: #000; color: #00C853; display: flex; justify-content: center; align-items: center; font-weight: 900; }
-        .exit-btn { margin-top: auto; background: #111; border: none; color: #fff; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: 800; }
       `}</style>
     </div>
   );
