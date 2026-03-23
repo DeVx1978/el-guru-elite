@@ -44,25 +44,35 @@ export default function AdminPanel() {
   async function fetchData() {
     setLoading(true);
     try {
-        // SINCRONIZACIÓN ÉLITE: Relación forzada con id_socio para rescatar socios antiguos
-        const { data, error } = await clientSupabase
-          .from('socios')
-          .select('*, socios_elite!id_socio(*) ') 
-          .order('created_at', { ascending: false });
+        // --- CIRUGÍA DE CONEXIÓN ÉLITE (Método Anti-Fallos) ---
+        // Bajamos ambas tablas por separado para evitar el error de relación (Join)
+        const { data: tablaSocios, error: errS } = await clientSupabase.from('socios').select('*');
+        const { data: tablaElite, error: errE } = await clientSupabase.from('socios_elite').select('*');
 
-        if (error) throw error;
+        if (errS || errE) throw new Error("Error crítico de Bóveda");
 
-        if (data) {
-          setSocios(data);
-          const pendientes = data.filter(s => s.estado === 'pendiente').length;
-          const activos = data.filter(s => s.estado === 'activo').length;
+        // Unimos los datos manualmente: Henry (ID 5) se vincula con sus finanzas (ID_SOCIO 5)
+        const sociosCompletos = tablaSocios?.map(s => {
+          const financiero = tablaElite?.find(e => String(e.id_socio) === String(s.id));
+          return { 
+            ...s, 
+            financiero: financiero || null,
+            // Simulamos la estructura original para no romper el renderizado
+            socios_elite: financiero ? [financiero] : [] 
+          };
+        }) || [];
+
+        if (sociosCompletos) {
+          setSocios(sociosCompletos);
+          const pendientes = sociosCompletos.filter(s => s.estado === 'pendiente').length;
+          const activos = sociosCompletos.filter(s => s.estado === 'activo').length;
           // Conversión Number() para evitar fallos de suma por tipos de datos
-          const capital = data.reduce((acc, s) => acc + (Number(s.socios_elite?.[0]?.inversion_minima) || 0), 0);
-          const utilidades = data.reduce((acc, s) => acc + (Number(s.utilidad_total) || 0), 0);
+          const capital = sociosCompletos.reduce((acc, s) => acc + (Number(s.financiero?.inversion_minima) || 0), 0);
+          const utilidades = sociosCompletos.reduce((acc, s) => acc + (Number(s.utilidad_total) || 0), 0);
           setStats({ totalCapital: capital, pendientes, activos, utilidadRepartida: utilidades });
         }
     } catch (err) {
-        console.error("Error de sincronización en Bóveda:", err);
+        console.error("Falla en Bóveda:", err);
     } finally {
         setLoading(false);
     }
@@ -70,16 +80,17 @@ export default function AdminPanel() {
 
   const ejecutarDispersionGlobal = async () => {
     const porcentaje = parseFloat(utilidadPorcentaje);
-    if (isNaN(porcentaje) || porcentaje <= 0) return alert("Ingrese un porcentaje válido.");
+    if (isNaN(porcentaje) || porcentaje <= 0) return alert("Por favor, ingrese un porcentaje válido.");
     
-    const confirmar = confirm(`ALERTA DE SEGURIDAD: ¿Desea dispersar el ${porcentaje}% de utilidades a TODOS los socios activos?`);
+    const confirmar = confirm(`ALERTA DE SEGURIDAD: ¿Desea dispersar el ${porcentaje}% de utilidades a TODOS los socios activos? Esta acción es irreversible.`);
     if (!confirmar) return;
 
     setAccionLoading('global_utilidad');
     try {
         const sociosActivos = socios.filter(s => s.estado === 'activo');
+        
         for (const socio of sociosActivos) {
-            const inversion = Number(socio.socios_elite?.[0]?.inversion_minima) || 0;
+            const inversion = Number(socio.financiero?.inversion_minima) || 0;
             const gananciaCalculada = (inversion * (porcentaje / 100));
             const nuevaUtilidadTotal = (Number(socio.utilidad_total) || 0) + gananciaCalculada;
 
@@ -88,13 +99,14 @@ export default function AdminPanel() {
                 .update({ utilidad_total: nuevaUtilidadTotal })
                 .eq('id', socio.id);
             
-            if (error) console.error(`Error en socio ${socio.id}:`, error);
+            if (error) console.error(`Error dispersando a socio ${socio.id}:`, error);
         }
-        alert("Proceso de Dispersión Finalizado con Éxito.");
+
+        alert(`PROCESO FINALIZADO: Se han actualizado ${sociosActivos.length} cuentas de socios activos.`);
         setUtilidadPorcentaje('');
         fetchData();
     } catch (err) {
-        alert("Error crítico durante la operación financiera.");
+        alert("Error crítico durante la dispersión de fondos.");
     } finally {
         setAccionLoading(null);
     }
@@ -170,14 +182,14 @@ export default function AdminPanel() {
               <div className="s-icon-box"><TrendingUp color="#00C853"/></div>
               <div className="s-data">
                 <span>CAPITAL GESTIONADO</span>
-                <h2>${stats.totalCapital.toLocaleString()}</h2>
+                <h2>${stats.totalCapital.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h2>
               </div>
             </div>
             <div className="s-card">
               <div className="s-icon-box"><Zap color="#00C853"/></div>
               <div className="s-data">
                 <span>UTILIDADES PAGADAS</span>
-                <h2 className="text-neon">${stats.utilidadRepartida.toLocaleString()}</h2>
+                <h2 className="text-neon">${stats.utilidadRepartida.toLocaleString('en-US', { minimumFractionDigits: 2 })}</h2>
               </div>
             </div>
             <div className="s-card warning">
@@ -248,7 +260,7 @@ export default function AdminPanel() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={6} className="loading-td"><Loader2 className="spin" size={24}/> Sincronizando Bóveda...</td></tr>
+                    <tr><td colSpan={6} className="loading-td"><Loader2 className="spin" size={24}/> Sincronizando con la Bóveda...</td></tr>
                   ) : sociosFiltrados.map((s) => (
                     <tr key={s.id}>
                       <td>
@@ -260,8 +272,8 @@ export default function AdminPanel() {
                           </div>
                         </div>
                       </td>
-                      <td><span className="plan-badge">{s.socios_elite?.[0]?.nivel_socio || 'N/A'}</span></td>
-                      <td className="amount-td">${Number(s.socios_elite?.[0]?.inversion_minima || 0).toLocaleString()}</td>
+                      <td><span className="plan-badge">{s.financiero?.nivel_socio || 'N/A'}</span></td>
+                      <td className="amount-td font-bold">${Number(s.financiero?.inversion_minima || 0).toLocaleString()}</td>
                       <td className="amount-td highlight">${Number(s.utilidad_total || 0).toLocaleString()}</td>
                       <td><span className={`status-tag ${s.estado}`}>{s.estado}</span></td>
                       <td>
@@ -350,6 +362,7 @@ export default function AdminPanel() {
         .input-group-gen input { background: transparent; border: none; color: #fff; padding: 20px 0; width: 100%; outline: none; font-weight: 900; font-size: 24px; text-align: right; }
         .input-group-gen .unit { color: var(--neon); font-weight: 900; font-size: 20px; }
         .btn-power-exec { background: #fff; color: #000; border: none; padding: 20px 40px; border-radius: 18px; font-weight: 900; font-size: 13px; cursor: pointer; transition: 0.3s; }
+        .btn-power-exec:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,255,255,0.1); }
         .audit-table-section { background: var(--panel); border: 1px solid var(--border); border-radius: 35px; padding: 45px; }
         .table-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
         .search-wrapper { background: #000; border: 1px solid var(--border); border-radius: 18px; display: flex; align-items: center; padding: 0 25px; gap: 15px; width: 400px; }
@@ -360,7 +373,7 @@ export default function AdminPanel() {
         .user-td-cell { display: flex; align-items: center; gap: 15px; }
         .avatar-mini { width: 40px; height: 40px; background: #111; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: var(--neon); }
         .plan-badge { background: #000; border: 1px solid var(--border); padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; color: var(--neon); }
-        .amount-td { font-weight: 900; font-size: 16px; }
+        .amount-td { font-weight: 900; font-size: 16px; font-family: 'JetBrains Mono', monospace; }
         .amount-td.highlight { color: var(--neon); }
         .status-tag { padding: 6px 15px; border-radius: 30px; font-size: 10px; font-weight: 900; }
         .status-tag.pendiente { background: rgba(255, 187, 0, 0.1); color: #ffbb00; }
@@ -378,7 +391,6 @@ export default function AdminPanel() {
           .sidebar-open { left: 0; }
           .menu-trigger { display: block; }
           .admin-viewport { padding: 25px; }
-          .stats-container { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>
