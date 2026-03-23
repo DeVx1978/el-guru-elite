@@ -17,6 +17,7 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [accionLoading, setAccionLoading] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false); // Estado para menú móvil
   const [stats, setStats] = useState({ totalCapital: 0, pendientes: 0, activos: 0 });
   const [modalImagen, setModalImagen] = useState({ open: false, url: '', nombre: '' });
 
@@ -64,21 +65,24 @@ export default function AdminPanel() {
 
   return (
     <div className="admin-wrapper">
-      <aside className="admin-sidebar">
+      {/* SIDEBAR ADAPTABLE */}
+      <aside className={`admin-sidebar ${menuOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-brand">
           <ShieldCheck color="#10B981" size={28} />
           <h2>GURÚ <span>CAPITAL</span></h2>
+          <button className="m-close-btn" onClick={() => setMenuOpen(false)}><X size={20}/></button>
         </div>
         <nav className="admin-nav">
-          <button className="active"><Users size={18}/> Portafolio de Socios</button>
-          <button><Landmark size={18}/> Tesorería Central</button>
-          <button><BarChart3 size={18}/> Informes</button>
+          <button className="active" onClick={() => setMenuOpen(false)}><Users size={18}/> Portafolio de Socios</button>
+          <button onClick={() => setMenuOpen(false)}><Landmark size={18}/> Tesorería Central</button>
+          <button onClick={() => setMenuOpen(false)}><BarChart3 size={18}/> Informes</button>
         </nav>
         <button className="btn-exit" onClick={() => window.location.href='/'}><LogOut size={16}/> Cerrar Sesión</button>
       </aside>
 
       <main className="admin-main">
         <header className="admin-header">
+          <button className="menu-trigger" onClick={() => setMenuOpen(true)}><Menu size={20}/></button>
           <div className="admin-info">
             <p>TERMINAL DE GESTIÓN</p>
             <h3>MARÍA JOSÉ</h3>
@@ -92,11 +96,11 @@ export default function AdminPanel() {
           <section className="stats-grid">
             <div className="stat-card">
               <TrendingUp color="#10B981" size={20}/>
-              <div><span>AUM (CAPITAL BAJO GESTIÓN)</span><h3>${stats.totalCapital.toLocaleString()}</h3></div>
+              <div><span>CAPITAL BAJO GESTIÓN</span><h3>${stats.totalCapital.toLocaleString()}</h3></div>
             </div>
-            <div className="stat-card">
+            <div className="stat-card warning">
               <ShieldAlert color="#FBBF24" size={20}/>
-              <div><span>SOLICITUDES PENDIENTES</span><h3>{stats.pendientes}</h3></div>
+              <div><span>PENDIENTES</span><h3>{stats.pendientes}</h3></div>
             </div>
           </section>
 
@@ -105,7 +109,9 @@ export default function AdminPanel() {
               <h2>Registros de <span>Inversión</span></h2>
               <div className="search-box"><Search size={16}/><input placeholder="Buscar socio..." onChange={e => setSearchTerm(e.target.value)}/></div>
             </div>
-            <div className="table-scroll">
+            
+            {/* VISTA DE ESCRITORIO (Tabla) */}
+            <div className="table-scroll desktop-only">
               <table className="elite-table">
                 <thead>
                   <tr><th>FECHA</th><th>SOCIO</th><th>PLAN</th><th>INVERSIÓN</th><th>ESTADO</th><th>ACCIONES</th></tr>
@@ -128,14 +134,40 @@ export default function AdminPanel() {
                 </tbody>
               </table>
             </div>
+
+            {/* VISTA MÓVIL (Cards) */}
+            <div className="mobile-only mobile-cards">
+              {socios.filter(s => s.nombre?.toLowerCase().includes(searchTerm.toLowerCase())).map((s) => (
+                <div key={s.id} className="m-card">
+                  <div className="m-card-top">
+                    <div>
+                      <strong>{s.nombre}</strong>
+                      <span className="email">{s.email}</span>
+                      <span className="plan-tag">{s.plan?.toUpperCase()}</span>
+                    </div>
+                    <span className={`status ${s.estado}`}>{s.estado}</span>
+                  </div>
+                  <div className="m-card-mid">
+                    <span className="priceamount-td">${s.monto.toLocaleString()}</span>
+                    <span className="date">{s.fecha}</span>
+                  </div>
+                  <div className="m-card-actions">
+                    <button onClick={() => setModalImagen({open: true, url: s.comprobante_url, nombre: s.nombre})}><Eye size={14}/> Ver Pago</button>
+                    {s.estado === 'pendiente' && <button className="check" onClick={() => actualizarEstado(s.id, 'activo')}><CheckCircle size={14}/> Aprobar</button>}
+                    <button className="trash" onClick={() => eliminarSocio(s.id, s.nombre)}><Trash2 size={14}/></button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </section>
         </div>
       </main>
 
+      {/* VISOR DE COMPROBANTES */}
       {modalImagen.open && (
         <div className="modal-overlay" onClick={() => setModalImagen({open: false, url: '', nombre: ''})}>
           <div className="modal-card" onClick={e => e.stopPropagation()}>
-            <div className="modal-top"><h3>Verificación de Depósito: {modalImagen.nombre}</h3><button onClick={() => setModalImagen({open: false, url: '', nombre: ''})}><X size={18}/></button></div>
+            <div className="modal-top"><h3>Comprobante: {modalImagen.nombre}</h3><button onClick={() => setModalImagen({open: false, url: '', nombre: ''})}><X size={18}/></button></div>
             <div className="modal-img">
               {modalImagen.url ? <img src={modalImagen.url} alt="Comprobante" /> : <div className="no-pago"><ImageIcon size={48}/> <p>Documento no disponible</p></div>}
             </div>
@@ -146,31 +178,33 @@ export default function AdminPanel() {
       <style jsx global>{`
         :root { --emerald: #10B981; --bg: #000; --panel: #080808; --border: #141414; --text-primary: #E5E7EB; --text-secondary: #6B7280; --text-muted: #374151; }
         .admin-wrapper { display: flex; background: var(--bg); min-height: 100vh; color: var(--text-primary); font-family: 'Geist Sans', 'Inter', sans-serif; font-size: 14px; }
-        .admin-sidebar { width: 250px; background: var(--panel); border-right: 1px solid var(--border); padding: 40px 15px; display: flex; flex-direction: column; }
-        .sidebar-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 50px; padding-left: 10px; }
+        .admin-sidebar { width: 250px; background: var(--panel); border-right: 1px solid var(--border); padding: 40px 15px; display: flex; flex-direction: column; transition: 0.3s; }
+        .sidebar-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 50px; padding-left: 10px; position: relative; }
         .sidebar-brand h2 { font-size: 13px; font-weight: 800; letter-spacing: 2px; color: var(--text-primary); }
         .sidebar-brand span { color: var(--emerald); }
+        .m-close-btn { display: none; background: none; border: none; color: var(--text-muted); cursor: pointer; position: absolute; right: 10px; top: 10px; }
         .admin-nav { flex: 1; }
         .admin-nav button { width: 100%; padding: 12px 15px; background: none; border: none; color: var(--text-secondary); display: flex; align-items: center; gap: 12px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; border-radius: 8px; text-align: left; }
         .admin-nav button:hover { color: var(--text-primary); background: #0a0a0a; }
         .admin-nav button.active { color: var(--emerald); background: rgba(16, 185, 129, 0.04); }
-        .btn-exit { background: none; border: none; color: var(--text-muted); padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 12px; border-radius: 8px; }
+        .btn-exit { background: none; border: none; color: var(--text-muted); padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 12px; border-radius: 8px; margin-top: auto;}
         .btn-exit:hover { color: #EF4444; background: rgba(239, 68, 68, 0.04); }
-        .admin-main { flex: 1; display: flex; flex-direction: column; }
-        .admin-header { height: 80px; padding: 0 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--panel); }
+        .admin-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .admin-header { height: 80px; padding: 0 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--panel); position: sticky; top: 0; z-index: 100; }
+        .menu-trigger { display: none; background: none; border: none; color: var(--text-primary); cursor: pointer; margin-right: 20px; }
         .admin-info p { font-size: 10px; color: var(--text-muted); letter-spacing: 1.5px; font-weight: 700; }
         .admin-info h3 { color: var(--text-primary); font-size: 18px; font-weight: 800; }
         .status-pill { background: #000; padding: 6px 12px; border-radius: 6px; font-size: 10px; color: var(--text-secondary); font-weight: 700; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); }
         .dot { width: 6px; height: 6px; background: var(--emerald); border-radius: 50%; animation: pulse 2s infinite; }
         .admin-content { padding: 40px; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: var(--panel); border: 1px solid var(--border); padding: 25px; border-radius: 12px; display: flex; align-items: center; gap: 20px; }
         .stat-card span { font-size: 10px; color: var(--text-secondary); font-weight: 700; letter-spacing: 1px; }
         .stat-card h3 { font-size: 28px; font-weight: 800; color: var(--text-primary); }
         .stat-card.warning { border-left: 2px solid #FBBF24; }
         .table-container { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 30px; }
-        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .search-box { background: #000; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; width: 300px; }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
+        .search-box { background: #000; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; width: 300px; flex-grow: 1; max-width: 400px;}
         .search-box input { background: none; border: none; color: var(--text-primary); outline: none; font-size: 13px; width: 100%; }
         .search-box input::placeholder { color: var(--text-muted); }
         .elite-table { width: 100%; border-collapse: collapse; }
@@ -179,7 +213,7 @@ export default function AdminPanel() {
         .date-cell { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px; font-weight: 600; }
         .u-cell strong { display: block; font-size: 14px; color: var(--text-primary); }
         .u-cell span { font-size: 12px; color: var(--text-secondary); }
-        .plan-tag { background: #000; border: 1px solid var(--border); color: var(--emerald); padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; }
+        .plan-tag { background: #000; border: 1px solid var(--border); color: var(--emerald); padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; margin-top: 5px; display: inline-block;}
         .price { font-weight: 700; color: var(--text-primary); font-family: 'SF Mono', 'JetBrains Mono', monospace; }
         .status { font-weight: 700; font-size: 11px; text-transform: uppercase; }
         .status.activo { color: var(--emerald); }
@@ -197,6 +231,37 @@ export default function AdminPanel() {
         .modal-top button:hover { color: var(--text-primary); }
         .modal-img img { width: 100%; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+        /* ESTILOS MÓVILES (Responsivos) */
+        .mobile-only { display: none; }
+        @media (max-width: 1024px) {
+          .admin-sidebar { position: fixed; left: -250px; top: 0; bottom: 0; z-index: 1000; }
+          .admin-sidebar.sidebar-open { left: 0; }
+          .m-close-btn { display: block; }
+          .menu-trigger { display: block; }
+          .admin-header { padding: 0 20px; }
+          .admin-content { padding: 20px; }
+          .table-container { padding: 15px; }
+          .stats-grid { grid-template-columns: 1fr; gap: 15px; }
+          .stat-card h3 { font-size: 24px; }
+        }
+
+        @media (max-width: 768px) {
+          .desktop-only { display: none; }
+          .mobile-only { display: block; }
+          .mobile-cards { display: grid; gap: 15px; margin-top: 20px; }
+          .m-card { background: #000; border: 1px solid var(--border); border-radius: 10px; padding: 15px; }
+          .m-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;}
+          .m-card-top strong { font-size: 14px; color: var(--text-primary); display: block;}
+          .m-card-top .email { font-size: 11px; color: var(--text-secondary); display: block;}
+          .m-card-mid { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;}
+          .m-card-mid .priceamount-td { font-size: 18px; font-weight: 800; color: var(--text-primary); font-family: 'SF Mono', monospace;}
+          .m-card-mid .date { font-size: 11px; color: var(--text-muted); font-weight: 600;}
+          .m-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px;}
+          .m-card-actions button { background: #080808; border: 1px solid var(--border); color: var(--text-secondary); padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;}
+          .m-card-actions button.check { color: var(--emerald); border-color: rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.04); }
+          .m-card-actions button.trash { grid-column: span 2; color: #EF4444; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.04); }
+        }
       `}</style>
     </div>
   );
