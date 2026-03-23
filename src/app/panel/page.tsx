@@ -6,7 +6,7 @@ import {
   User, Wallet, TrendingUp, ShieldCheck, LogOut,
   Zap, Trophy, Activity, ShieldAlert,
   Settings, HelpCircle, BarChart3, LayoutDashboard,
-  Building2, Landmark, Globe, X, Terminal, ArrowUpRight, Menu, CreditCard, ChevronDown, Lock, ArrowLeft, Mail, Phone, MapPin
+  Building2, Landmark, Globe, X, Terminal, ArrowUpRight, Menu, CreditCard, ChevronDown, Lock, ArrowLeft, Mail, Phone, MapPin, Bell
 } from 'lucide-react';
 
 const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -112,7 +112,6 @@ export default function SocioPanel() {
     if (!montoRetiro || !detallesDestino) return alert("Complete los datos requeridos");
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setCodigoGenerado(code);
-    console.log("CÓDIGO SEGURIDAD:", code);
     setShow2FA(true);
   };
 
@@ -227,15 +226,19 @@ export default function SocioPanel() {
           <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={18}/> Cuenta</button>
         </nav>
         <div className="sidebar-footer">
-          {esAdmin && <button className="admin-trigger" onClick={() => router.push('/admin/auth')}> <Terminal size={16}/> ADMIN {pendientes > 0 && <span className="p-badge">{pendientes}</span>}</button>}
+          {esAdmin && <button className="admin-trigger" onClick={() => router.push('/admin/auth')}><Terminal size={16}/> ADMIN {pendientes > 0 && <span className="p-badge">{pendientes}</span>}</button>}
           <button className="logout-trigger" onClick={handleLogout}><LogOut size={16}/> SALIR</button>
         </div>
       </aside>
 
       <div className="mansion-viewport">
+        {/* HEADER MÓVIL CORREGIDO (FOTO 3) */}
         <header className="mobile-header mobile-only">
           <div className="m-brand">GURÚ <span>ÉLITE</span></div>
-          {esAdmin && <button className="m-admin-btn" onClick={() => router.push('/admin/auth')}><Terminal size={18}/></button>}
+          <div className="m-actions">
+            {esAdmin && <button className="m-admin-btn" onClick={() => router.push('/admin/auth')}><Terminal size={18}/></button>}
+            <button className="m-bell"><Bell size={18}/></button>
+          </div>
         </header>
 
         <main className="mansion-main">
@@ -258,17 +261,9 @@ export default function SocioPanel() {
                   <button className={metodoRetiro === 'cripto' ? 'active' : ''} onClick={() => setMetodoRetiro('cripto')}><Zap size={16}/> USDT</button>
                 </div>
                 <div className="w-fields">
-                  <div className="w-field-group">
-                    <label>MONTO USD</label>
-                    <input type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} />
-                  </div>
-                  <div className="w-field-group">
-                    <label>DESTINO DE FONDOS</label>
-                    <textarea placeholder="Detalles de cuenta bancaria o wallet..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} />
-                  </div>
-                  <button className="w-submit-btn" onClick={iniciarProtocoloRetiro}>
-                    <Lock size={16}/> ACTIVAR PROTOCOLO SEGURO
-                  </button>
+                  <div className="w-field-group"><label>MONTO USD</label><input type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} /></div>
+                  <div className="w-field-group"><label>DESTINO</label><textarea placeholder="Detalles de cuenta bancaria o wallet..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} /></div>
+                  <button className="w-submit-btn" onClick={iniciarProtocoloRetiro}><Lock size={16}/> ACTIVAR PROTOCOLO SEGURO</button>
                 </div>
               </div>
             </div>
@@ -330,11 +325,12 @@ export default function SocioPanel() {
 
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&display=swap');
-        :root { --main: #00C853; --bg: #000; --panel: #080808; --border: #151515; --text-muted: #A0A0A0; }
+        :root { --main: #00C853; --bg: #000; --panel: #0a0a0a; --border: #151515; --text-muted: #A0A0A0; }
+        
         .mansion-container { background: #000; min-height: 100vh; display: flex; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
 
-        /* SIDEBAR */
-        .mansion-sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; }
+        /* SIDEBAR DESKTOP */
+        .mansion-sidebar { width: 280px; background: #050505; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; }
         .brand-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
         .brand-logo span { color: var(--main); }
         .mansion-nav button { width: 100%; text-align: left; padding: 16px; border-radius: 14px; background: transparent; color: var(--text-muted); border: none; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 8px; font-size: 0.85rem; }
@@ -345,9 +341,30 @@ export default function SocioPanel() {
         .p-badge { background: #ff4444; color: #fff; padding: 2px 6px; border-radius: 20px; font-size: 8px; }
         .logout-trigger { background: none; border: none; color: #ff4444; font-weight: 800; font-size: 10px; cursor: pointer; padding: 10px; opacity: 0.6; }
 
-        /* VIEWPORT & CONTENT */
+        /* VIEWPORT */
         .mansion-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; }
+        
+        /* HEADER MÓVIL RESTAURADO (FOTO 3) */
+        .mobile-header { 
+          height: 75px; 
+          border-bottom: 1px solid var(--border); 
+          display: flex; 
+          align-items: center; 
+          justify-content: space-between; 
+          padding: 0 25px; 
+          background: rgba(0,0,0,0.95);
+          backdrop-filter: blur(10px);
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+        }
+        .m-brand { font-weight: 800; font-size: 1rem; color: #fff; line-height: 1; }
+        .m-brand span { color: var(--main); }
+        .m-actions { display: flex; align-items: center; gap: 15px; }
+        .m-admin-btn { background: rgba(0,200,83,0.1); border: 1px solid rgba(0,200,83,0.2); color: var(--main); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .m-bell { background: none; border: none; color: #333; }
+
+        /* MAIN CONTENT */
         .mansion-main { padding: 40px 6%; max-width: 1000px; margin: 0 auto; width: 100%; position: relative; }
         .back-btn { background: none; border: none; color: var(--main); font-weight: 800; font-size: 9px; letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
         
@@ -358,7 +375,17 @@ export default function SocioPanel() {
         .welcome-sub { color: #D1D1D1; font-size: 0.85rem; font-weight: 600; }
         .geo-pill { background: #0c0c0c; border: 1px solid var(--border); padding: 10px 20px; border-radius: 30px; font-size: 10px; font-weight: 800; color: var(--text-muted); display: flex; align-items: center; gap: 10px; }
 
-        .glass-vault-card { background: linear-gradient(135deg, #0a0a0a 0%, #000 100%); border: 1px solid var(--border); padding: 50px; border-radius: 40px; margin-bottom: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        /* GLASS CARDS RESTAURADAS */
+        .glass-vault-card, .p-glass-card, .r-card, .glass-withdraw-card { 
+          background: rgba(10,10,10,0.9); 
+          border: 1px solid var(--border); 
+          padding: 50px; 
+          border-radius: 40px; 
+          margin-bottom: 30px; 
+          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          backdrop-filter: blur(20px);
+        }
+        
         .vault-top { display: flex; justify-content: space-between; align-items: center; }
         .vault-top p { font-size: 9px; font-weight: 800; color: var(--text-muted); letter-spacing: 3px; display: flex; align-items: center; gap: 8px; }
         .yield-tag { background: rgba(0,200,83,0.1); color: var(--main); padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800; }
@@ -370,34 +397,42 @@ export default function SocioPanel() {
         .profit-text { font-size: 9px; font-weight: 800; color: #D1D1D1; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
-        .stat-box { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 25px; display: flex; align-items: center; gap: 20px; cursor: pointer; }
-        .sb-icon { width: 50px; height: 50px; background: #000; border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+        .stat-box { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 30px; border-radius: 25px; display: flex; align-items: center; gap: 20px; cursor: pointer; }
         .sb-info span { font-size: 9px; font-weight: 800; color: var(--text-muted); }
         .sb-info h4 { font-size: 1.2rem; font-weight: 800; margin-top: 2px; }
 
         .hub-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .hub-card { background: var(--panel); border: 1px solid var(--border); padding: 25px 10px; border-radius: 20px; color: #fff; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .hub-card { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 25px 10px; border-radius: 20px; color: #fff; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .hub-card:hover { border-color: var(--main); background: #0c0c0c; }
 
-        /* PERFIL & RENDIMIENTOS */
-        .p-input-row label { display: block; font-size: 8px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; }
-        .p-glass-card { background: var(--panel); border: 1px solid var(--border); padding: 35px; border-radius: 30px; }
-        .p-save-btn { width: 100%; background: #fff; color: #000; border: none; padding: 16px; border-radius: 12px; font-weight: 800; cursor: pointer; }
-        .ps-row span { font-size: 8px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; }
+        /* PERFIL & RENDIMIENTOS RESTAURADOS */
+        .profile-grid-mansion { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
+        .p-input-row label { display: block; font-size: 8px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 1px; }
+        .p-input-row input { width: 100%; background: #000; border: 1px solid #1a1a1a; padding: 16px; border-radius: 12px; color: #fff; outline: none; }
+        .p-save-btn { width: 100%; background: #fff; color: #000; border: none; padding: 18px; border-radius: 14px; font-weight: 800; cursor: pointer; margin-top: 20px; }
+        .p-security-card { display: flex; flex-direction: column; gap: 20px; }
+        .ps-row { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 25px; border-radius: 25px; display: flex; align-items: center; gap: 20px; }
+        
+        .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .r-card { padding: 30px; border-radius: 30px; }
         .r-card-head span { font-size: 9px; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; }
-        .chart-days-labels { display: flex; justify-content: space-between; margin-top: 15px; font-size: 9px; font-weight: 800; color: var(--text-muted); }
+        .chart-container-mansion { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 40px; border-radius: 40px; }
+        .chart-bars-wrap { height: 180px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+        .c-bar { width: 100%; background: linear-gradient(to top, var(--main), #004d40); border-radius: 8px; opacity: 0.6; }
 
-        /* --- DESKTOP SCALE OPTIMIZATION --- */
+        /* CAJERO LIQUIDACIÓN RESTAURADO */
+        .glass-withdraw-card { max-width: 650px; margin: 0 auto; padding: 40px; }
+        .w-method-selector { display: flex; gap: 12px; margin-bottom: 30px; }
+        .w-method-selector button { flex: 1; background: #000; border: 1px solid #1a1a1a; padding: 20px; border-radius: 15px; color: var(--text-muted); font-weight: 800; cursor: pointer; }
+        .w-method-selector button.active { border-color: var(--main); color: var(--main); }
+        .w-submit-btn { width: 100%; background: var(--main); color: #000; border: none; padding: 22px; border-radius: 20px; font-weight: 900; cursor: pointer; }
+
+        /* OPTIMIZACIÓN DESKTOP */
         @media (min-width: 1024px) { 
-          .desktop-only { display: none !important; }
           .mansion-main { padding: 30px 20px 80px; max-width: 900px; margin: 0 auto; }
-          .welcome-section h1 { font-size: 2.4rem; } /* -15% Scale */
-          .vault-amount { font-size: 4.5rem; } /* -15% Scale */
-          .glass-vault-card { padding: 40px; margin-bottom: 25px; }
-          .stats-grid { gap: 15px; }
-          .hub-grid { gap: 12px; }
-          .p-header-info { margin-bottom: 20px; }
-          .p-glass-card { padding: 25px; }
-          .glass-withdraw-card { max-width: 580px; padding: 30px; }
+          .welcome-section h1 { font-size: 2.4rem; } 
+          .vault-amount { font-size: 4.5rem; }
+          .glass-vault-card { padding: 40px; }
         }
 
         /* --- MOBILE --- */
@@ -405,20 +440,18 @@ export default function SocioPanel() {
           .desktop-only { display: none !important; }
           .mansion-main { padding: 30px 20px 120px; }
           .welcome-section h1 { font-size: 2.2rem; }
-          .glass-vault-card { padding: 40px 25px; border-radius: 30px; }
           .hub-grid { grid-template-columns: 1fr 1fr; }
           .profile-grid-mansion, .report-grid { grid-template-columns: 1fr; }
+          .glass-vault-card, .p-glass-card, .r-card, .glass-withdraw-card { padding: 30px 25px; border-radius: 30px; }
         }
 
-        .m-bottom-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.8); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+        .m-bottom-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.85); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
         .m-bottom-bar button { background: none; border: none; color: var(--text-muted); }
         .m-bottom-bar button.active { color: var(--main); }
 
         @keyframes pulse { 50% { opacity: 0.3; } }
         .fade-in { animation: fi 0.8s ease forwards; }
-        .scale-in { animation: si 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes fi { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes si { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
       `}</style>
     </div>
   );
