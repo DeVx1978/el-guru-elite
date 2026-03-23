@@ -22,21 +22,18 @@ export default function SocioPanel() {
   const [pendientes, setPendientes] = useState(0);
   const [activeTab, setActiveTab] = useState('inicio');
 
-  // 💰 ESTADOS FINANCIEROS REALES
   const [balance, setBalance] = useState(0);
   const [balanceVisual, setBalanceVisual] = useState(0);
   const [nivelSocio, setNivelSocio] = useState("Socio Élite");
   const [utilidad, setUtilidad] = useState(0);
   const [paisSocio, setPaisSocio] = useState("Colombia");
 
-  // 💸 ESTADOS DE RETIRO AVANZADO
   const [metodoRetiro, setMetodoRetiro] = useState('banco'); 
   const [montoRetiro, setMontoRetiro] = useState('');
   const [detallesDestino, setDetallesDestino] = useState(''); 
   const [enviandoRetiro, setEnviandoRetiro] = useState(false);
   const [mensajeRetiro, setMensajeRetiro] = useState({ tipo: '', texto: '' });
 
-  // 👤 ESTADOS DE IDENTIDAD ÉLITE (EDITABLES)
   const [editNombre, setEditNombre] = useState("");
   const [editPais, setEditPais] = useState("");
   const [editTelefono, setEditTelefono] = useState("");
@@ -70,7 +67,6 @@ export default function SocioPanel() {
       if (socioBase && socioElite) {
         const capital = Number(socioElite.inversion_minima) || 0;
         const ganancia = Number(socioBase.utilidad_total) || 0;
-        
         setBalance(capital + ganancia);
         setNivelSocio(socioElite.nivel_socio || "Socio Élite");
         setUtilidad(ganancia);
@@ -80,7 +76,7 @@ export default function SocioPanel() {
         setEditCiudad(socioElite.ciudad || "");
         setEditEmail(socioBase.email);
       }
-    } catch (err) { console.error("Error de conexión:", err); }
+    } catch (err) { console.error("Error conexión:", err); }
     finally { setTimeout(() => setLoading(false), 2000); }
   };
 
@@ -120,31 +116,30 @@ export default function SocioPanel() {
       const { error: errElite } = await clientSupabase.from('socios_elite').update({ 
           pais: editPais, telefono: editTelefono, ciudad: editCiudad 
         }).eq('id_socio', socioId);
-
       if (!errSocio && !errElite) {
         setNombre(editNombre);
         setPaisSocio(editPais);
         localStorage.setItem('socio_nombre', editNombre);
-        alert("Sincronización de Identidad Exitosa");
+        alert("Perfil Sincronizado");
       }
-    } catch (err) { alert("Error en la sincronización"); }
+    } catch (err) { alert("Error"); }
     finally { setGuardandoPerfil(false); }
   };
 
   const procesarRetiro = async () => {
     const socioId = localStorage.getItem('socio_id');
     const valor = parseFloat(montoRetiro);
-    if (!montoRetiro || !detallesDestino) { setMensajeRetiro({ tipo: 'error', texto: 'Complete todos los datos.' }); return; }
-    if (valor > balance) { setMensajeRetiro({ tipo: 'error', texto: 'Saldo insuficiente.' }); return; }
+    if (!montoRetiro || !detallesDestino) { setMensajeRetiro({ tipo: 'error', texto: 'Faltan datos' }); return; }
+    if (valor > balance) { setMensajeRetiro({ tipo: 'error', texto: 'Saldo insuficiente' }); return; }
     setEnviandoRetiro(true);
     try {
       const { error } = await clientSupabase.from('retiros').insert([{ 
         id_socio: socioId, monto: valor, billetera: `[${metodoRetiro.toUpperCase()} - ${paisSocio}] ${detallesDestino}`, estado: 'pendiente' 
       }]);
       if (error) throw error;
-      setMensajeRetiro({ tipo: 'exito', texto: 'Solicitud enviada.' });
+      setMensajeRetiro({ tipo: 'exito', texto: 'Enviado' });
       setMontoRetiro(''); setDetallesDestino('');
-    } catch (err) { setMensajeRetiro({ tipo: 'error', texto: 'Error de red.' }); }
+    } catch (err) { setMensajeRetiro({ tipo: 'error', texto: 'Error' }); }
     finally { setEnviandoRetiro(false); }
   };
 
@@ -154,33 +149,22 @@ export default function SocioPanel() {
         <h1>Bienvenido, <span>{nombre}</span></h1>
         <p><Globe size={14} color="#00C853" /> REGIÓN ESTRATÉGICA: {paisSocio.toUpperCase()}</p>
       </div>
-
       <div className="vault-grid">
         <div className="vault-card-main">
-          <div className="card-top">
-            <span className="card-label">CAPITAL BAJO GESTIÓN</span>
-            <span className="profit-badge">USD INVERSIÓN TOTAL</span>
-          </div>
+          <div className="card-top"><span className="card-label">CAPITAL BAJO GESTIÓN</span><span className="profit-badge">USD INVERSIÓN TOTAL</span></div>
           <div className="balance-display">
             <span className="symbol">$</span>
             <span className="value">{balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
             <div className="live-status"><div className="dot"></div> LIVE</div>
           </div>
           <div className="progress-container">
-            <div className="progress-labels">
-              <span>ESTADO DEL FONDO</span>
-              <span className="exec-text">EJECUTANDO</span>
-            </div>
+            <div className="progress-labels"><span>ESTADO DEL FONDO</span><span className="exec-text">EJECUTANDO</span></div>
             <div className="bar-bg"><div className="bar-fill" style={{ width: '100%' }}></div></div>
             <div className="ai-pulse"><Activity size={12} className="pulse" /> CONEXIÓN DIRECTA CON LIQUIDEZ GLOBAL...</div>
           </div>
         </div>
-
         <div className="rank-card-v2">
-          <div className="rank-header">
-            <Trophy size={32} color="#00C853" />
-            <div><p>MEMBRESÍA</p><h3>{nivelSocio}</h3></div>
-          </div>
+          <div className="rank-header"><Trophy size={32} color="#00C853" /><div><p>MEMBRESÍA</p><h3>{nivelSocio}</h3></div></div>
           <div className="rank-details">
             <div className="detail-item"><span>UTILIDAD NETA</span><span className="text-neon">+${utilidad.toLocaleString()}</span></div>
             <div className="detail-item"><span>ESTADO CUENTA</span><span className="active-tag">AUDITADA</span></div>
@@ -188,7 +172,6 @@ export default function SocioPanel() {
           <button className="upgrade-btn" onClick={() => setActiveTab('reportes')}>CERTIFICADO ÉLITE</button>
         </div>
       </div>
-
       <div className="section-title">CENTRO DE OPERACIONES</div>
       <div className="actions-grid-v2">
         <div className="action-tile" onClick={() => setActiveTab('reportes')}><TrendingUp color="#00C853" /> <span>Reportes</span></div>
@@ -288,7 +271,6 @@ export default function SocioPanel() {
         </nav>
         <button onClick={handleLogout} className="logout-sidebar"><LogOut size={18} /> SALIR</button>
       </aside>
-
       <div className="main-wrapper">
         <header className="top-navbar">
           <div className="mobile-brand">GURÚ <span>ÉLITE</span></div>
@@ -296,14 +278,12 @@ export default function SocioPanel() {
             <div className="user-avatar" onClick={() => setActiveTab('perfil')}>{nombre.charAt(0)}</div>
           </div>
         </header>
-
         <main className="panel-content">
           {activeTab === 'inicio' && <RenderInicio />}
           {activeTab === 'reportes' && <RenderReportes />}
           {activeTab === 'retiros' && <RenderRetiros />}
           {activeTab === 'perfil' && <RenderPerfil />}
         </main>
-
         <nav className="mobile-tab-bar">
           <div className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={24} /></div>
           <div className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={24} /></div>
@@ -311,7 +291,6 @@ export default function SocioPanel() {
           <div className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={24} /></div>
         </nav>
       </div>
-
       <style jsx global>{`
         :root { --neon: #00C853; --dark: #050505; --border: #111; }
         .app-layout { background: #000; min-height: 100vh; display: flex; color: #fff; font-family: 'Inter', sans-serif; }
