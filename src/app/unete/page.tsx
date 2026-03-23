@@ -98,6 +98,7 @@ export default function UnetePage() {
     setError(null);
     try {
       const correoLimpio = formData.email.trim().toLowerCase();
+      
       const { data: socio, error: errSocio } = await clientSupabase
         .from('socios')
         .insert([{
@@ -105,11 +106,13 @@ export default function UnetePage() {
           email: correoLimpio,
           password: formData.password,
           estado: 'pendiente',
-          rol: 'socio'
+          rol: 'socio',
+          utilidad_total: 0
         }])
         .select().single();
       
-      if (errSocio) throw new Error(errSocio.message);
+      if (errSocio) throw new Error(`ERROR SOCIOS: ${errSocio.message}`);
+      if (!socio) throw new Error("ID NO GENERADO");
 
       const { error: errElite } = await clientSupabase
         .from('socios_elite')
@@ -122,7 +125,10 @@ export default function UnetePage() {
           ciudad: formData.ciudad
         }]);
 
-      if (errElite) console.warn("Error en tabla secundaria, registro continúa.");
+      if (errElite) {
+        await clientSupabase.from('socios').delete().eq('id', socio.id);
+        throw new Error(`ERROR FINANCIERO: ${errElite.message}`);
+      }
 
       setPaso(5);
     } catch (err: any) { 
@@ -133,11 +139,6 @@ export default function UnetePage() {
 
   const paso1Valido = formData.nombre && formData.email && formData.password.length >= 6 && formData.password === formData.confirmPassword && formData.tyc && formData.politicas;
   const paso2Valido = formData.pais && formData.ciudad && formData.telefono;
-
-  // FUNCIÓN DE REDIRECCIÓN DEFINITIVA
-  const irAlInicio = () => {
-    window.location.href = '/'; 
-  };
 
   return (
     <div className="unete-wrapper">
@@ -164,8 +165,7 @@ export default function UnetePage() {
                   <button onClick={() => setShowPass(!showPass)} className="btn-eye">{showPass ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
                 </div>
                 <div className="field">
-                  <Lock size={18}/><input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Confirmar" value={formData.confirmPassword} onChange={handleInputChange}/>
-                  <button onClick={() => setShowPass(!showPass)} className="btn-eye">{showPass ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
+                  <Lock size={18}/><input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Confirmar Contraseña" value={formData.confirmPassword} onChange={handleInputChange}/>
                 </div>
               </div>
               <div className="checks">
@@ -232,7 +232,7 @@ export default function UnetePage() {
                 <div className="pay-details"><Info size={16}/><p>{metodosDisponibles.find(m => m.id === formData.metodoPago)?.info}</p></div>
                 <div className="upload-zone" onClick={() => fileInputRef.current?.click()}>
                   <input type="file" ref={fileInputRef} hidden onChange={handleFileChange} accept="image/*"/>
-                  {comprobanteUrl ? <img src={comprobanteUrl} className="preview"/> : <><UploadCloud size={32}/><p>Adjuntar Comprobante</p></>}
+                  {comprobanteUrl ? <img src={comprobanteUrl} className="preview" alt="Comprobante"/> : <><UploadCloud size={32}/><p>Adjuntar Comprobante</p></>}
                 </div>
                 {error && <div className="error-tag"><AlertTriangle size={14}/> {error}</div>}
               </div>
@@ -248,16 +248,9 @@ export default function UnetePage() {
               <h1>SOLICITUD EN <span>AUDITORÍA</span></h1>
               <div className="alert-message">
                 <Info size={24} color="#00C853" />
-                <p>Su información de pago entrará en proceso de verificación y en las próximas horas su cuenta será activada o rechazada.</p>
+                <p>Su información de pago ha sido recibida. En las próximas horas su cuenta será activada.</p>
               </div>
-              <button 
-                type="button" 
-                onClick={irAlInicio} 
-                className="btn-primary btn-final" 
-                style={{ background: '#00C853', color: '#000', cursor: 'pointer', zIndex: 100 }}
-              >
-                ENTENDIDO
-              </button>
+              <button onClick={() => window.location.href = '/'} className="btn-primary btn-final" style={{ background: '#00C853', color: '#000' }}>ENTENDIDO</button>
             </div>
           )}
         </div>
@@ -265,8 +258,8 @@ export default function UnetePage() {
 
       <style jsx global>{`
         .unete-wrapper { background: #000; min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; }
-        .unete-nav { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; border-bottom: 1px solid #111; max-width: 1200px; margin: 0 auto; width: 100%; }
-        .nav-back { background: none; border: none; color: #444; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .unete-nav { display: flex; justify-content: space-between; align-items: center; padding: 25px 20px; border-bottom: 1px solid #111; width: 100%; max-width: 1200px; margin: 0 auto; }
+        .nav-back { background: none; border: none; color: #444; font-weight: 800; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .progress-bar { display: flex; gap: 8px; }
         .dot { width: 30px; height: 3px; background: #111; border-radius: 10px; transition: 0.5s; }
         .dot.active { background: #00C853; box-shadow: 0 0 10px #00C853; }
@@ -281,29 +274,37 @@ export default function UnetePage() {
         .field input, .field select { background: transparent; border: none; padding: 15px 0; color: #fff; width: 100%; outline: none; font-size: 14px; font-weight: 600; }
         .btn-eye { background: none; border: none; color: #333; cursor: pointer; }
         .phone-grid { display: flex; gap: 10px; }
-        .area-code { background: #111; padding: 15px; border-radius: 12px; font-weight: 900; color: #00C853; min-width: 60px; text-align: center; }
+        .area-code { background: #111; padding: 15px; border-radius: 12px; font-weight: 900; color: #00C853; }
         .checks { margin-bottom: 30px; display: flex; flex-direction: column; gap: 10px; }
         .check-item { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #444; cursor: pointer; }
-        .check-item input { width: 18px; height: 18px; accent-color: #00C853; }
         .btn-primary { width: 100%; background: #00C853; color: #000; border: none; padding: 22px; border-radius: 14px; font-weight: 900; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; font-size: 14px; }
-        .btn-primary:hover { box-shadow: 0 0 20px rgba(0, 200, 83, 0.4); transform: translateY(-1px); }
-        .btn-primary:disabled { background: #111; color: #444; cursor: not-allowed; opacity: 0.5; }
         .planes-stack { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
-        .plan-card { background: #050505; border: 1px solid #111; padding: 20px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: 0.3s; }
+        .plan-card { background: #050505; border: 1px solid #111; padding: 20px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 15px; }
         .plan-card.active { border-color: var(--color); background: rgba(0,200,83,0.05); }
         .payment-box { background: #050505; border: 1px solid #111; padding: 25px; border-radius: 20px; margin-bottom: 30px; }
         .pay-details { background: rgba(0,200,83,0.05); border: 1px solid rgba(0,200,83,0.1); padding: 15px; border-radius: 12px; display: flex; gap: 12px; margin-bottom: 20px; font-size: 12px; color: #ccc; }
-        .upload-zone { border: 2px dashed #111; border-radius: 15px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; cursor: pointer; overflow: hidden; }
+        .upload-zone { border: 2px dashed #111; border-radius: 15px; height: 150px; display: flex; align-items: center; justify-content: center; color: #444; cursor: pointer; }
         .preview { width: 100%; height: 100%; object-fit: contain; }
-        .error-tag { background: rgba(255,0,0,0.1); color: #ff4444; padding: 12px; border-radius: 8px; font-size: 11px; font-weight: 800; margin-top: 15px; display: flex; gap: 8px; }
-        .success-screen { text-align: center; padding-top: 20px; }
-        .success-screen h1 { font-size: 2.5rem; margin-top: 25px; font-weight: 900; }
-        .alert-message { background: #050505; border: 1px solid #111; padding: 30px; border-radius: 20px; text-align: left; margin: 40px 0; border-left: 5px solid #00C853; display: flex; gap: 20px; align-items: center; }
-        .alert-message p { margin: 0; color: #888; font-size: 15px; line-height: 1.6; }
-        .icon-glow { filter: drop-shadow(0 0 25px rgba(0,200,83,0.5)); margin-bottom: 10px; }
-        .btn-final { margin-top: 20px; }
-        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
+        .success-screen { text-align: center; }
+        .alert-message { background: #050505; border: 1px solid #111; padding: 30px; border-radius: 20px; text-align: left; margin: 40px 0; border-left: 5px solid #00C853; display: flex; gap: 20px; }
+        .fade-in { animation: fadeIn 0.6s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 1024px) {
+          .unete-nav { padding: 15px; }
+          .admin-viewport { padding: 15px; }
+        }
+        @media (max-width: 600px) {
+          h1 { font-size: 1.5rem; }
+          .btn-primary { padding: 18px; font-size: 12px; }
+          .form-container { padding: 0 5px; }
+          .planes-stack { gap: 8px; }
+          .plan-card { padding: 12px; gap: 10px; }
+          .plan-icon { width: 35px; height: 35px; }
+          .plan-price { font-size: 14px; }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes blink { 50% { opacity: 0.3; } }
       `}</style>
     </div>
   );
