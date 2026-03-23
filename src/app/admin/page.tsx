@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { 
   ShieldCheck, Users, TrendingUp, CheckCircle, Eye, Search, 
   Menu, X, BarChart3, Bell, Image as ImageIcon, Loader2, 
-  ShieldAlert, Landmark, LogOut, Phone, Globe
+  ShieldAlert, Landmark, LogOut, Trash2, Phone, Globe, DollarSign
 } from 'lucide-react';
 
 const clientSupabase = createClient(
@@ -15,17 +15,13 @@ const clientSupabase = createClient(
 export default function AdminPanel() {
   const [socios, setSocios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accionLoading, setAccionLoading] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({ totalCapital: 0, pendientes: 0, activos: 0 });
   const [modalImagen, setModalImagen] = useState({ open: false, url: '', nombre: '' });
 
-  // Valores de inversión según el plan registrado en la captura 642
   const preciosPlan: {[key: string]: number} = {
-    'elite': 1500,
-    'premium': 1000,
-    'activo': 500,
-    'inicial': 250,
-    'micro': 100
+    'elite': 1500, 'premium': 1000, 'activo': 500, 'inicial': 250, 'micro': 100
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -33,18 +29,10 @@ export default function AdminPanel() {
   async function fetchData() {
     setLoading(true);
     try {
-        const { data, error } = await clientSupabase
-          .from('socios')
-          .select('*')
-          .order('created_at', { ascending: false });
-
+        const { data } = await clientSupabase.from('socios').select('*').order('created_at', { ascending: false });
         if (data) {
-          const procesados = data.map(s => ({
-            ...s,
-            monto: preciosPlan[s.plan?.toLowerCase()] || 0
-          }));
+          const procesados = data.map(s => ({ ...s, monto: preciosPlan[s.plan?.toLowerCase()] || 0 }));
           setSocios(procesados);
-          
           const activos = procesados.filter(s => s.estado === 'activo');
           setStats({
             totalCapital: activos.reduce((acc, s) => acc + s.monto, 0),
@@ -55,98 +43,81 @@ export default function AdminPanel() {
     } catch (err) { console.error(err); } finally { setLoading(false); }
   }
 
-  const actualizarEstado = async (id: any, nuevoEstado: string) => {
-    await clientSupabase.from('socios').update({ estado: nuevoEstado }).eq('id', id);
+  const eliminarSocio = async (id: any, nombre: string) => {
+    if (!confirm(`¿ESTÁ SEGURO? Esta acción eliminará a ${nombre} permanentemente de la Bóveda.`)) return;
+    setAccionLoading(id + 'delete');
+    await clientSupabase.from('socios').delete().eq('id', id);
     fetchData();
+    setAccionLoading(null);
   };
 
-  const filtrados = socios.filter(s => 
-    s.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const actualizarEstado = async (id: any, nuevoEstado: string) => {
+    setAccionLoading(id + nuevoEstado);
+    await clientSupabase.from('socios').update({ estado: nuevoEstado }).eq('id', id);
+    fetchData();
+    setAccionLoading(null);
+  };
 
   return (
     <div className="admin-wrapper">
+      {/* SIDEBAR DE LUJO */}
       <aside className="admin-sidebar">
         <div className="sidebar-brand">
           <ShieldCheck color="#00C853" size={32} />
-          <h2>TORRE DE <span>CONTROL</span></h2>
+          <h2>GURÚ <span>ÉLITE</span></h2>
         </div>
         <nav className="admin-nav">
-          <button className="active"><Users size={20}/> Gestión de Socios</button>
+          <button className="active"><Users size={20}/> Gestión Maestra</button>
           <button><Landmark size={20}/> Bóveda Central</button>
-          <button><BarChart3 size={20}/> Reportes</button>
+          <button><BarChart3 size={20}/> Auditoría</button>
         </nav>
-        <div className="sidebar-footer">
-            <button className="logout-btn" onClick={() => window.location.href='/'}><LogOut size={18}/> Salir</button>
-        </div>
+        <button className="btn-exit" onClick={() => window.location.href='/'}><LogOut size={18}/> Salir</button>
       </aside>
 
       <main className="admin-main">
         <header className="admin-header">
-          <div className="admin-identity">
-            <p>ADMINISTRADOR ÉLITE</p>
+          <div className="admin-info">
+            <p>SISTEMA DE CONTROL</p>
             <h3>MARÍA JOSÉ</h3>
           </div>
-          <div className="header-right">
-            <div className="live-pill"><div className="pulse-dot"></div> SISTEMA EN LÍNEA</div>
+          <div className="header-status">
+            <div className="status-pill"><div className="dot"></div> SISTEMA ACTIVO</div>
           </div>
         </header>
 
-        <div className="admin-viewport">
-          <section className="stats-container">
-            <div className="s-card">
-              <div className="s-icon-box"><TrendingUp color="#00C853"/></div>
-              <div className="s-data"><span>CAPITAL GESTIONADO</span><h2>${stats.totalCapital.toLocaleString()}</h2></div>
+        <div className="admin-content">
+          <section className="stats-grid">
+            <div className="stat-card">
+              <TrendingUp color="#00C853" size={24}/>
+              <div><span>CAPITAL GESTIONADO</span><h3>${stats.totalCapital.toLocaleString()}</h3></div>
             </div>
-            <div className="s-card warning">
-              <div className="s-icon-box"><ShieldAlert color="#ffbb00"/></div>
-              <div className="s-data"><span>SOCIOS PENDIENTES</span><h2>{stats.pendientes}</h2></div>
+            <div className="stat-card warning">
+              <ShieldAlert color="#ffbb00" size={24}/>
+              <div><span>PENDIENTES</span><h3>{stats.pendientes}</h3></div>
             </div>
           </section>
 
-          <section className="audit-table-section">
-            <div className="table-top-bar">
-              <h2>Auditoría de <span>Miembros</span></h2>
-              <div className="search-wrapper"><Search size={18}/><input placeholder="Buscar socio..." onChange={e => setSearchTerm(e.target.value)}/></div>
+          <section className="table-container">
+            <div className="table-header">
+              <h2>Listado de <span>Socios</span></h2>
+              <div className="search-box"><Search size={18}/><input placeholder="Filtrar por nombre..." onChange={e => setSearchTerm(e.target.value)}/></div>
             </div>
-            <div className="responsive-table-holder">
-              <table className="guru-admin-table">
+            <div className="table-scroll">
+              <table className="elite-table">
                 <thead>
-                  <tr>
-                    <th>SOCIO / CONTACTO</th>
-                    <th>UBICACIÓN</th>
-                    <th>PLAN</th>
-                    <th>INVERSIÓN</th>
-                    <th>ESTADO</th>
-                    <th>ACCIONES</th>
-                  </tr>
+                  <tr><th>SOCIO</th><th>PLAN</th><th>INVERSIÓN</th><th>ESTADO</th><th>ACCIONES</th></tr>
                 </thead>
                 <tbody>
-                  {loading ? <tr><td colSpan={6}>Cargando Bóveda...</td></tr> : filtrados.map((s) => (
+                  {socios.filter(s => s.nombre?.toLowerCase().includes(searchTerm.toLowerCase())).map((s) => (
                     <tr key={s.id}>
-                      <td>
-                        <div className="u-info">
-                          <span className="u-name">{s.nombre}</span>
-                          <span className="u-mail">{s.email}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="u-loc">
-                          <Globe size={12} color="#444"/> {s.pais || 'N/A'}<br/>
-                          <Phone size={12} color="#444"/> {s.telefono || 'N/A'}
-                        </div>
-                      </td>
-                      <td><span className="plan-badge">{s.plan?.toUpperCase()}</span></td>
-                      <td className="amount-td">${s.monto.toLocaleString()}</td>
-                      <td><span className={`status-tag ${s.estado}`}>{s.estado}</span></td>
-                      <td>
-                        <div className="action-btns">
-                          <button title="Ver Comprobante" onClick={() => setModalImagen({open: true, url: s.comprobante_url, nombre: s.nombre})}><Eye size={16}/></button>
-                          {s.estado === 'pendiente' && (
-                            <button className="approve" title="Activar Socio" onClick={() => actualizarEstado(s.id, 'activo')}><CheckCircle size={16}/></button>
-                          )}
-                        </div>
+                      <td><div className="u-cell"><strong>{s.nombre}</strong><span>{s.email}</span></div></td>
+                      <td><span className="plan-tag">{s.plan?.toUpperCase()}</span></td>
+                      <td className="price">${s.monto.toLocaleString()}</td>
+                      <td><span className={`status ${s.estado}`}>{s.estado}</span></td>
+                      <td className="actions">
+                        <button onClick={() => setModalImagen({open: true, url: s.comprobante_url, nombre: s.nombre})}><Eye size={16}/></button>
+                        {s.estado === 'pendiente' && <button className="check" onClick={() => actualizarEstado(s.id, 'activo')}><CheckCircle size={16}/></button>}
+                        <button className="trash" onClick={() => eliminarSocio(s.id, s.nombre)}><Trash2 size={16}/></button>
                       </td>
                     </tr>
                   ))}
@@ -157,72 +128,62 @@ export default function AdminPanel() {
         </div>
       </main>
 
-      {/* MODAL DE COMPROBANTE */}
+      {/* VISOR DE COMPROBANTES IMPECABLE */}
       {modalImagen.open && (
-        <div className="modal-root" onClick={() => setModalImagen({open: false, url: '', nombre: ''})}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Comprobante: {modalImagen.nombre}</h3>
-              <button onClick={() => setModalImagen({open: false, url: '', nombre: ''})}><X/></button>
-            </div>
-            <div className="modal-body">
-              {modalImagen.url ? (
-                <img src={modalImagen.url} alt="Comprobante" />
-              ) : (
-                <div className="no-img"><ImageIcon size={48}/><p>No se cargó archivo</p></div>
-              )}
+        <div className="modal-overlay" onClick={() => setModalImagen({open: false, url: '', nombre: ''})}>
+          <div className="modal-card" onClick={e => e.stopPropagation()}>
+            <div className="modal-top"><h3>Comprobante de {modalImagen.nombre}</h3><button onClick={() => setModalImagen({open: false, url: '', nombre: ''})}><X/></button></div>
+            <div className="modal-img">
+              {modalImagen.url ? <img src={modalImagen.url} alt="Pago" /> : <div className="no-pago"><ImageIcon size={48}/> <p>Sin imagen cargada</p></div>}
             </div>
           </div>
         </div>
       )}
 
       <style jsx global>{`
-        :root { --neon: #00C853; --bg: #000; --panel: #050505; --border: #111; }
-        .admin-wrapper { display: flex; background: var(--bg); min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; }
-        .admin-sidebar { width: 280px; background: var(--panel); border-right: 1px solid var(--border); padding: 40px 20px; display: flex; flex-direction: column; }
-        .sidebar-brand { display: flex; align-items: center; gap: 15px; margin-bottom: 50px; }
-        .sidebar-brand h2 { font-size: 14px; font-weight: 900; letter-spacing: 1px; }
+        :root { --neon: #00C853; --dark: #000; --panel: #050505; --border: #111; }
+        .admin-wrapper { display: flex; background: var(--dark); min-height: 100vh; color: #fff; font-family: 'Inter', sans-serif; }
+        .admin-sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); padding: 40px 20px; display: flex; flex-direction: column; }
+        .sidebar-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 50px; }
+        .sidebar-brand h2 { font-size: 14px; font-weight: 900; letter-spacing: 2px; }
         .sidebar-brand span { color: var(--neon); }
         .admin-nav { flex: 1; }
-        .admin-nav button { width: 100%; padding: 15px; background: none; border: none; color: #444; display: flex; align-items: center; gap: 15px; cursor: pointer; font-weight: 700; transition: 0.3s; border-radius: 12px; }
-        .admin-nav button.active { color: var(--neon); background: rgba(0,200,83,0.05); }
-        .logout-btn { background: none; border: none; color: #444; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .admin-nav button { width: 100%; padding: 15px; background: none; border: none; color: #444; display: flex; align-items: center; gap: 15px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .admin-nav button.active { color: var(--neon); background: rgba(0,200,83,0.05); border-radius: 12px; }
+        .btn-exit { background: none; border: none; color: #444; padding: 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; }
         .admin-main { flex: 1; display: flex; flex-direction: column; }
         .admin-header { height: 90px; padding: 0 50px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-        .admin-identity p { font-size: 10px; color: #333; letter-spacing: 2px; font-weight: 900; }
-        .admin-identity h3 { color: var(--neon); font-size: 20px; font-weight: 900; }
-        .live-pill { background: #080808; padding: 8px 15px; border-radius: 20px; font-size: 10px; color: #444; font-weight: 900; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); }
-        .pulse-dot { width: 8px; height: 8px; background: var(--neon); border-radius: 50%; animation: pulse 2s infinite; }
-        .admin-viewport { padding: 40px 50px; }
-        .stats-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 40px; }
-        .s-card { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 24px; display: flex; align-items: center; gap: 25px; }
-        .s-icon-box { background: #000; width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); }
-        .s-data span { font-size: 11px; color: #333; font-weight: 900; }
-        .s-data h2 { font-size: 28px; font-weight: 900; }
-        .audit-table-section { background: var(--panel); border: 1px solid var(--border); border-radius: 30px; padding: 35px; }
-        .table-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .search-wrapper { background: #000; border: 1px solid var(--border); padding: 10px 20px; border-radius: 15px; display: flex; align-items: center; gap: 10px; }
-        .search-wrapper input { background: none; border: none; color: #fff; outline: none; font-size: 14px; }
-        .guru-admin-table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; font-size: 11px; color: #222; font-weight: 900; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-        td { padding: 20px 15px; border-bottom: 1px solid #080808; }
-        .u-info .u-name { display: block; font-weight: 900; font-size: 14px; }
-        .u-info .u-mail { font-size: 12px; color: #444; }
-        .u-loc { font-size: 11px; color: #666; line-height: 1.5; }
-        .plan-badge { background: #000; border: 1px solid var(--border); color: var(--neon); padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; }
-        .amount-td { font-weight: 900; font-family: 'JetBrains Mono', monospace; color: var(--neon); }
-        .status-tag { font-size: 10px; font-weight: 900; text-transform: uppercase; }
-        .status-tag.activo { color: var(--neon); }
-        .status-tag.pendiente { color: #ffbb00; }
-        .action-btns { display: flex; gap: 10px; }
-        .action-btns button { background: #080808; border: 1px solid var(--border); color: #fff; width: 35px; height: 35px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .action-btns button.approve:hover { background: var(--neon); color: #000; }
-        .modal-root { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-        .modal-content { background: var(--panel); border: 1px solid var(--border); border-radius: 30px; width: 90%; max-width: 500px; overflow: hidden; }
-        .modal-header { padding: 20px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 30px; text-align: center; }
-        .modal-body img { max-width: 100%; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .admin-info p { font-size: 10px; color: #333; letter-spacing: 2px; font-weight: 900; }
+        .admin-info h3 { color: var(--neon); font-size: 22px; font-weight: 900; }
+        .status-pill { background: #080808; padding: 8px 15px; border-radius: 20px; font-size: 10px; color: #444; font-weight: 900; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); }
+        .dot { width: 8px; height: 8px; background: var(--neon); border-radius: 50%; box-shadow: 0 0 10px var(--neon); animation: blink 2s infinite; }
+        .admin-content { padding: 40px 50px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 40px; }
+        .stat-card { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 25px; display: flex; align-items: center; gap: 25px; }
+        .stat-card span { font-size: 11px; color: #333; font-weight: 900; }
+        .stat-card h3 { font-size: 32px; font-weight: 900; }
+        .table-container { background: var(--panel); border: 1px solid var(--border); border-radius: 30px; padding: 35px; }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .search-box { background: #000; border: 1px solid var(--border); padding: 10px 20px; border-radius: 15px; display: flex; align-items: center; gap: 10px; }
+        .search-box input { background: none; border: none; color: #fff; outline: none; }
+        .elite-table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; font-size: 11px; color: #222; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 25px 15px; border-bottom: 1px solid #080808; font-size: 14px; }
+        .u-cell strong { display: block; font-size: 15px; }
+        .u-cell span { font-size: 12px; color: #444; }
+        .plan-tag { background: #000; border: 1px solid var(--border); color: var(--neon); padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: 900; }
+        .price { font-weight: 900; color: var(--neon); font-family: 'JetBrains Mono', monospace; }
+        .status.activo { color: var(--neon); }
+        .status.pendiente { color: #ffbb00; }
+        .actions { display: flex; gap: 12px; }
+        .actions button { background: #080808; border: 1px solid var(--border); color: #fff; width: 38px; height: 38px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .actions button:hover { background: #fff; color: #000; }
+        .actions button.trash:hover { background: #ff4444; color: #fff; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+        .modal-card { background: var(--panel); border: 1px solid var(--border); border-radius: 30px; width: 90%; max-width: 500px; padding: 30px; }
+        .modal-top { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .modal-img img { width: 100%; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,1); }
+        @keyframes blink { 50% { opacity: 0.3; } }
       `}</style>
     </div>
   );
