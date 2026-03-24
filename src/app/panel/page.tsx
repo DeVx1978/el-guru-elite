@@ -143,48 +143,47 @@ export default function SocioPanel() {
     finally { setGuardandoPerfil(false); }
   };
 
-  const RenderInicio = () => (
+ const RenderInicio = () => (
     <div className="fade-in">
-      <header className="content-header">
+      <header className="content-header" style={{ marginBottom: '30px' }}>
         <div className="welcome-section">
-          <span className="elite-badge">{nivelSocio.toUpperCase()}</span>
-          <h1>Hola, <span>{nombre.split(' ')[0]}</span></h1>
-          <p className="welcome-sub">Gestión de activos bajo estándares de seguridad Élite.</p>
+          <span className="elite-badge" style={{ background: 'rgba(0,200,83,0.1)', color: '#00C853', padding: '4px 10px', borderRadius: '20px', fontSize: '9px', fontWeight: '800' }}>{nivelSocio.toUpperCase()}</span>
+          <h1 style={{ fontSize: '2rem', marginTop: '10px' }}>Hola, <span style={{ color: '#00C853' }}>{nombre.split(' ')[0]}</span></h1>
+          <p style={{ color: '#888', fontSize: '12px' }}>Gestión de activos bajo estándares de seguridad Élite.</p>
         </div>
-        <div className="geo-pill"><Globe size={12}/> {paisSocio}</div>
       </header>
 
-      <section className="glass-vault-card">
-        <div className="vault-top">
-          <p className="vault-label-text">BALANCE TOTAL <ChevronDown size={14}/></p>
-          <div className="yield-tag">+{((utilidad / (balance - utilidad)) * 100 || 0).toFixed(2)}%</div>
+      <section style={{ background: '#0a0a0a', border: '1px solid rgba(0, 200, 83, 0.3)', padding: '35px', borderRadius: '24px', marginBottom: '30px', boxShadow: '0 15px 40px rgba(0,0,0,0.8)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ color: '#888', fontSize: '10px', fontWeight: '800', letterSpacing: '1px' }}>BALANCE TOTAL <ChevronDown size={14}/></p>
+          <div style={{ background: 'rgba(0,200,83,0.1)', color: '#00C853', padding: '4px 10px', borderRadius: '20px', fontSize: '9px', fontWeight: '800' }}>+0.00%</div>
         </div>
-        <h2 className="vault-amount">
-          <span className="symbol">$</span>{balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        <h2 style={{ fontSize: '3.5rem', fontWeight: '800', margin: '20px 0', letterSpacing: '-2px' }}>
+          <span style={{ color: '#00C853', marginRight: '10px' }}>$</span>{balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </h2>
-        <div className="vault-footer">
-          <div className="status-live"><div className="pulse"></div> IA ALGORITMO ACTIVO</div>
-          <div className="profit-text">+${utilidad.toLocaleString()} USD UTILIDAD</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1a1a1a', paddingTop: '20px' }}>
+          <div style={{ color: '#00C853', fontSize: '9px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}><div className="pulse"></div> IA ALGORITMO ACTIVO</div>
+          <div style={{ color: '#D1D1D1', fontSize: '9px', fontWeight: '800' }}>+${utilidad.toLocaleString()} USD UTILIDAD</div>
         </div>
       </section>
 
-      <div className="stats-grid">
-        <div className="stat-box" onClick={() => setActiveTab('reportes')}>
-          <div className="sb-icon"><TrendingUp size={20} color="#00C853"/></div>
-          <div className="sb-info"><span className="vault-label-text">PROFIT TOTAL ACUMULADO</span><h4>${utilidad.toLocaleString()}</h4></div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '30px' }}>
+        <div style={{ background: '#0f0f0f', border: '1px solid #222', padding: '20px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <TrendingUp size={20} color="#00C853"/>
+          <div><p style={{ color: '#666', fontSize: '8px', fontWeight: '800' }}>PROFIT TOTAL</p><h4 style={{ margin: 0 }}>${utilidad.toLocaleString()}</h4></div>
         </div>
-        <div className="stat-box">
-          <div className="sb-icon"><ShieldCheck size={20} color="#00C853"/></div>
-          <div className="sb-info"><span className="vault-label-text">ESTADO DE AUDITORÍA</span><h4>VERIFICADA</h4></div>
+        <div style={{ background: '#0f0f0f', border: '1px solid #222', padding: '20px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <ShieldCheck size={20} color="#00C853"/>
+          <div><p style={{ color: '#666', fontSize: '8px', fontWeight: '800' }}>AUDITORÍA</p><h4 style={{ margin: 0 }}>VERIFICADA</h4></div>
         </div>
       </div>
 
-      <h3 className="hub-label">CENTRO DE OPERACIONES</h3>
-      <div className="hub-grid">
-        <button className="hub-card" onClick={() => setActiveTab('reportes')}><BarChart3 size={22}/> Rendimientos</button>
-        <button className="hub-card" onClick={() => setActiveTab('retiros')}><Wallet size={22}/> Retiros</button>
-        <button className="hub-card" onClick={() => setActiveTab('perfil')}><User size={22}/> Perfil</button>
-        <button className="hub-card" onClick={() => window.open('https://wa.me/soporte', '_blank')}><HelpCircle size={22}/> Soporte</button>
+      <h3 style={{ color: '#555', fontSize: '10px', fontWeight: '800', marginBottom: '15px', letterSpacing: '2px' }}>CENTRO DE OPERACIONES</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+        <button onClick={() => setActiveTab('reportes')} style={{ background: '#0f0f0f', border: '1px solid #222', padding: '15px', borderRadius: '16px', color: '#D1D1D1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><BarChart3 size={20} color="#00C853"/> <span style={{fontSize:'8px'}}>MERCADOS</span></button>
+        <button onClick={() => setActiveTab('retiros')} style={{ background: '#0f0f0f', border: '1px solid #222', padding: '15px', borderRadius: '16px', color: '#D1D1D1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><Wallet size={20} color="#00C853"/> <span style={{fontSize:'8px'}}>RETIROS</span></button>
+        <button onClick={() => setActiveTab('perfil')} style={{ background: '#0f0f0f', border: '1px solid #222', padding: '15px', borderRadius: '16px', color: '#D1D1D1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><User size={20} color="#00C853"/> <span style={{fontSize:'8px'}}>PERFIL</span></button>
+        <button onClick={() => window.open('https://wa.me/soporte', '_blank')} style={{ background: '#0f0f0f', border: '1px solid #222', padding: '15px', borderRadius: '16px', color: '#D1D1D1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><HelpCircle size={20} color="#00C853"/> <span style={{fontSize:'8px'}}>SOPORTE</span></button>
       </div>
     </div>
   );
@@ -252,7 +251,7 @@ export default function SocioPanel() {
           {activeTab === 'retiros' && (
             <div className="fade-in">
               <h2 className="section-title">Terminal de <span>Retiros</span></h2>
-              <div style={{ background: '#0a0a0a', border: '1px solid #222', padding: '40px', borderRadius: '35px', marginBottom: '30px', display: 'block', width: '100%', boxShadow: '0 20px 50px rgba(0,0,0,0.9)' }}>
+              <div style={{ background: '#0a0a0a', border: '1px solid rgba(0, 200, 83, 0.3)', padding: '35px', borderRadius: '24px', marginBottom: '30px', boxShadow: '0 15px 40px rgba(0,0,0,0.8)', display: 'block' }}>
                 <div style={{ borderBottom: '1px solid #1a1a1a', paddingBottom: '25px', marginBottom: '25px' }}>
                   <span className="vault-label-text">SALDO LÍQUIDO DISPONIBLE</span>
                   <h3 className="w-main-balance-text">${balanceVisual.toLocaleString()}</h3>
