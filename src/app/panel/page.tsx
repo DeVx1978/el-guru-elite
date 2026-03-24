@@ -226,9 +226,15 @@ export default function SocioPanel() {
           <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={18}/> Cajero</button>
           <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={18}/> Cuenta</button>
         </nav>
-        <div className="sidebar-footer">
-          {esAdmin && <button className="admin-trigger" onClick={() => router.push('/admin/auth')}> <Terminal size={16}/> ADMIN {pendientes > 0 && <span className="p-badge">{pendientes}</span>}</button>}
-          <button className="logout-trigger" onClick={handleLogout}><LogOut size={16}/> CERRAR SESIÓN</button>
+<div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '20px', marginTop: 'auto', paddingBottom: '20px' }}>
+          {esAdmin && (
+            <button onClick={() => router.push('/admin/auth')} style={{ width: '100%', background: 'rgba(0,200,83,0.05)', border: '1px solid rgba(0,200,83,0.2)', color: '#00C853', padding: '12px', borderRadius: '10px', fontWeight: '800', fontSize: '9px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <Terminal size={16}/> MODO ADMINISTRADOR {pendientes > 0 && <span style={{ background: '#ff4444', color: '#fff', padding: '2px 6px', borderRadius: '20px', fontSize: '8px', marginLeft: 'auto' }}>{pendientes}</span>}
+            </button>
+          )}
+          <button onClick={handleLogout} style={{ width: '100%', background: 'transparent', border: '1px solid #331111', color: '#ff4444', padding: '12px', borderRadius: '10px', fontWeight: '800', fontSize: '9px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: '0.8' }}>
+            <LogOut size={16}/> FINALIZAR SESIÓN
+          </button>
         </div>
       </aside>
 
@@ -243,7 +249,7 @@ export default function SocioPanel() {
 
         <main className="mansion-main">
           {activeTab !== 'inicio' && (
-            <button className="back-btn" onClick={() => setActiveTab('inicio')}><ArrowLeft size={16}/> REGRESAR A BÓVEDA</button>
+            <button onClick={() => setActiveTab('inicio')} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #222', color: '#00C853', padding: '10px 20px', borderRadius: '12px', fontSize: '9px', fontWeight: '800', letterSpacing: '2px', cursor: 'pointer', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '10px' }}> <ArrowLeft size={14}/> REGRESAR A BÓVEDA </button>
           )}
 
           {activeTab === 'inicio' && <RenderInicio />}
