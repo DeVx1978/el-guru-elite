@@ -112,7 +112,6 @@ export default function SocioPanel() {
     if (!montoRetiro || !detallesDestino) return alert("Complete los datos requeridos");
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setCodigoGenerado(code);
-    console.log("CÓDIGO SEGURIDAD:", code);
     setShow2FA(true);
   };
 
@@ -205,7 +204,6 @@ export default function SocioPanel() {
 
   return (
     <div className="mansion-container">
-      {/* 🛡️ MODAL 2FA - BLINDADO */}
       {show2FA && (
         <div className="security-overlay fade-in">
           <div className="security-card scale-in">
@@ -221,7 +219,6 @@ export default function SocioPanel() {
         </div>
       )}
 
-      {/* --- SIDEBAR PC BLINDADO --- */}
       <aside className="mansion-sidebar desktop-only">
         <div className="brand-logo">GURÚ<span>ÉLITE</span></div>
         <nav className="mansion-nav">
@@ -237,7 +234,6 @@ export default function SocioPanel() {
       </aside>
 
       <div className="mansion-viewport">
-        {/* --- HEADER MÓVIL BLINDADO --- */}
         <header className="mobile-header mobile-only">
           <div className="m-brand-box">GURÚ <span>ÉLITE</span></div>
           <div className="m-icons-box">
@@ -321,7 +317,6 @@ export default function SocioPanel() {
           )}
         </main>
 
-        {/* --- NAV INFERIOR MÓVIL --- */}
         <nav className="m-bottom-bar-fixed mobile-only">
           <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={20}/></button>
           <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={20}/></button>
@@ -334,17 +329,23 @@ export default function SocioPanel() {
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&display=swap');
         
-        :root { --main: #00C853; --bg: #000; --panel: #0a0a0a; --border: #151515; --text-muted: #A0A0A0; }
+        :root { --main: #00C853; --bg: #000; --panel: #0a0a0a; --border: #151515; --text-muted: #D1D1D1; }
         
         body { margin: 0; background: #000; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
 
+        /* --- BLINDAJE DE SEGURIDAD PARA SIDEBAR (ELIMINA COLISIÓN MÓVIL) --- */
+        .desktop-only { display: none !important; }
+        @media (min-width: 1024px) { 
+          .desktop-only { display: flex !important; }
+          .mobile-only { display: none !important; }
+        }
+
         .mansion-container { display: flex; min-height: 100vh; position: relative; }
 
-        /* SIDEBAR DESKTOP */
         .mansion-sidebar { width: 280px; background: #050505; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; z-index: 1000; }
         .brand-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
         .brand-logo span { color: var(--main); }
-        .mansion-nav button { width: 100%; text-align: left; padding: 16px; border-radius: 14px; background: transparent; color: var(--text-muted); border: none; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 8px; font-size: 0.85rem; }
+        .mansion-nav button { width: 100%; text-align: left; padding: 16px; border-radius: 14px; background: transparent; color: #666; border: none; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 8px; font-size: 0.85rem; }
         .mansion-nav button:hover, .mansion-nav button.active { color: #fff; background: #0c0c0c; }
         .mansion-nav button.active { color: var(--main); }
         .sidebar-footer { border-top: 1px solid var(--border); padding-top: 30px; }
@@ -352,44 +353,21 @@ export default function SocioPanel() {
         .p-badge { background: #ff4444; color: #fff; padding: 2px 6px; border-radius: 20px; font-size: 8px; }
         .logout-trigger { background: none; border: none; color: #ff4444; font-weight: 800; font-size: 10px; cursor: pointer; padding: 10px; opacity: 0.6; }
 
-        /* VIEWPORT */
         .mansion-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
-        .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; position: sticky; top: 0; z-index: 500; width: 100%; }
+        .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; position: sticky; top: 0; z-index: 500; width: 100%; flex-shrink: 0; }
         .m-brand-box { font-weight: 800; font-size: 1.1rem; color: #fff; display: flex; align-items: center; }
         .m-brand-box span { color: var(--main); margin-left: 5px; }
-        .m-icons-box { display: flex; align-items: center; gap: 15px; }
-        .m-admin-btn { background: rgba(0,200,83,0.1); border: 1px solid rgba(0,200,83,0.2); color: var(--main); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 
-        /* MAIN CONTENT */
         .mansion-main { padding: 40px 6%; max-width: 1000px; margin: 0 auto; width: 100%; position: relative; }
         .back-btn { background: none; border: none; color: var(--main); font-weight: 800; font-size: 9px; letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
-        .vault-label-text { color: var(--text-muted) !important; font-size: 9px !important; font-weight: 800 !important; letter-spacing: 1px !important; }
+        .vault-label-text { color: var(--text-muted) !important; font-size: 9px !important; font-weight: 800 !important; letter-spacing: 1.5px !important; text-transform: uppercase; }
 
-        /* CARDS GLASS */
-        .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card, .chart-container-mansion-fixed { 
-          background: rgba(10,10,10,0.9); 
-          border: 1px solid var(--border); 
-          padding: 50px; 
-          border-radius: 40px; 
-          margin-bottom: 30px; 
-          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-          backdrop-filter: blur(20px);
-        }
-
-        .vault-amount { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: -3px; margin: 20px 0; }
-        .symbol { color: var(--main); font-size: 2rem; vertical-align: top; margin-right: 10px; font-weight: 400; }
-        .yield-tag { background: rgba(0,200,83,0.1); color: var(--main); padding: 4px 10px; border-radius: 20px; font-size: 9px; font-weight: 800; }
-        .vault-footer { display: flex; justify-content: space-between; border-top: 1px solid #0c0c0c; padding-top: 30px; }
-        .pulse { width: 6px; height: 6px; background: var(--main); border-radius: 50%; animation: pulse 2s infinite; }
-        .status-live { font-size: 9px; font-weight: 800; color: var(--main); display: flex; align-items: center; gap: 10px; }
-        .profit-text { font-size: 9px; font-weight: 800; color: #D1D1D1; }
-
-        /* --- BLINDAJE DE INPUTS --- */
+        /* --- BLINDAJE NEGRO PROFUNDO (CORRECCIÓN CAJAS BLANCAS) --- */
         .vault-input-fixed {
           width: 100% !important;
           background: #000 !important;
           background-color: #000 !important;
-          border: 1px solid #1a1a1a !important;
+          border: 1px solid #222 !important;
           padding: 18px !important;
           border-radius: 15px !important;
           color: #fff !important;
@@ -398,65 +376,55 @@ export default function SocioPanel() {
           outline: none !important;
           transition: 0.3s !important;
           appearance: none !important;
+          -webkit-appearance: none !important;
+          -moz-appearance: none !important;
+          box-shadow: none !important;
         }
-        .vault-input-fixed:focus { border-color: var(--main) !important; }
+        .vault-input-fixed:focus { border-color: var(--main) !important; background: #050505 !important; }
         textarea.vault-input-fixed { min-height: 100px !important; resize: none !important; }
 
-        /* BOTONES ÉLITE */
-        .w-submit-btn-fixed, .p-save-btn-fixed, .verify-btn-vault { 
-          width: 100%; 
-          background: var(--main); 
-          color: #000; 
-          border: none; 
-          padding: 22px; 
-          border-radius: 20px; 
-          font-weight: 900; 
-          font-size: 12px; 
-          cursor: pointer; 
-          transition: 0.3s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          margin-top: 10px;
+        .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card, .chart-container-mansion-fixed { 
+          background: rgba(10,10,10,0.9); 
+          border: 1px solid var(--border); 
+          padding: 50px; 
+          border-radius: 40px; 
+          margin-bottom: 30px; 
+          box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+          backdrop-filter: blur(25px);
         }
-        .w-submit-btn-fixed:hover { background: #fff; transform: translateY(-3px); }
 
-        /* --- GRID Y LAYOUTS --- */
-        .stats-grid, .report-grid-fixed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
-        .stat-box, .r-card-glass { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 30px; border-radius: 25px; display: flex; align-items: center; gap: 20px; }
-        .sb-icon, .ps-icon-circle { width: 50px; height: 50px; background: #000; border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+        .vault-amount { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: -3px; margin: 20px 0; }
+        .w-main-balance-text { font-size: 3rem; font-weight: 800; margin: 15px 0; }
 
-        /* RESPONSIVIDAD MAESTRA */
-        .desktop-only { display: none !important; }
-        .mobile-only { display: flex !important; }
+        .w-submit-btn-fixed, .p-save-btn-fixed, .verify-btn-vault { 
+          width: 100%; background: var(--main); color: #000; border: none; padding: 22px; border-radius: 20px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.3s; margin-top: 15px; 
+        }
+        .w-submit-btn-fixed:hover { background: #fff; transform: translateY(-2px); }
+
+        .m-bottom-bar-fixed { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.9); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+        .m-bottom-bar-fixed button { background: none; border: none; color: #444; }
+        .m-bottom-bar-fixed button.active { color: var(--main); }
 
         @media (min-width: 1024px) { 
-          .desktop-only { display: flex !important; } 
-          .mobile-only { display: none !important; }
-          .mansion-main { padding: 30px 20px 80px; max-width: 900px; margin: 0 auto; }
-          .welcome-section h1 { font-size: 2.4rem; } 
-          .vault-amount { font-size: 4.5rem; }
-          .glass-vault-card { padding: 40px; }
-          .glass-withdraw-card { max-width: 650px; margin: 0 auto; }
+          .mansion-main { padding: 40px 20px 80px; max-width: 900px; margin: 0 auto; }
+          .welcome-section h1 { font-size: 2.3rem; } 
+          .vault-amount { font-size: 4.2rem; }
+          .glass-withdraw-card, .p-glass-card { max-width: 650px; margin: 0 auto 30px; }
           .profile-grid-mansion { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
+          .report-grid-fixed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         }
 
         @media (max-width: 1023px) {
           .mansion-main { padding: 30px 20px 120px; }
           .hub-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
-          .stats-grid, .report-grid-fixed, .profile-grid-mansion { display: flex; flex-direction: column; gap: 20px; }
           .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card { padding: 30px 20px; border-radius: 30px; }
           .vault-amount { font-size: 3.2rem; }
-          .m-bottom-bar-fixed { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.85); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
-          .m-bottom-bar-fixed button { background: none; border: none; color: var(--text-muted); }
-          .m-bottom-bar-fixed button.active { color: var(--main); }
         }
 
         @keyframes pulse { 50% { opacity: 0.3; } }
         .fade-in { animation: fi 0.8s ease forwards; }
         .scale-in { animation: si 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        @keyframes fi { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fi { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
