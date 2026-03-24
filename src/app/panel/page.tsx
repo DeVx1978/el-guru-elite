@@ -143,7 +143,7 @@ export default function SocioPanel() {
     finally { setGuardandoPerfil(false); }
   };
 
- const RenderInicio = () => (
+  const RenderInicio = () => (
     <div className="fade-in">
       <header className="content-header" style={{ marginBottom: '30px' }}>
         <div className="welcome-section">
@@ -226,7 +226,7 @@ export default function SocioPanel() {
           <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={18}/> Cajero</button>
           <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={18}/> Cuenta</button>
         </nav>
-<div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '20px', marginTop: 'auto', paddingBottom: '20px' }}>
+        <div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '20px', marginTop: 'auto', paddingBottom: '20px' }}>
           {esAdmin && (
             <button onClick={() => router.push('/admin/auth')} style={{ width: '100%', background: 'rgba(0,200,83,0.05)', border: '1px solid rgba(0,200,83,0.2)', color: '#00C853', padding: '12px', borderRadius: '10px', fontWeight: '800', fontSize: '9px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
               <Terminal size={16}/> MODO ADMINISTRADOR {pendientes > 0 && <span style={{ background: '#ff4444', color: '#fff', padding: '2px 6px', borderRadius: '20px', fontSize: '8px', marginLeft: 'auto' }}>{pendientes}</span>}
@@ -291,7 +291,7 @@ export default function SocioPanel() {
                 </div>
                 <div className="p-security-stack">
                   <div className="ps-card-glass"><div className="ps-icon-circle"><Mail size={16}/></div><div><span className="vault-label-text">EMAIL ASOCIADO</span><p>{editEmail}</p></div></div>
-                  <div className="ps-card-glass"><div className="ps-icon-circle"><ShieldCheck size={16}/></div><div><span className="vault-label-text">AUDITORÍA DE CUENTA</span><p className="v-tag-neon">ACTIVA</p></div></div>
+                  <div className="ps-card-glass"><div className="ps-icon-circle"><ShieldCheck size={16}/></div><div><span className="vault-label-text">AUDITORÍA DE CUENTA</span><p className="v-tag-neon" style={{color:'#00C853', fontWeight:'800'}}>ACTIVA</p></div></div>
                 </div>
               </div>
             </div>
@@ -337,7 +337,6 @@ export default function SocioPanel() {
         
         body { margin: 0; background: #000 !important; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
 
-        /* --- AISLAMIENTO RESPONSIVO RADICAL --- */
         .desktop-only { display: none !important; }
         @media (min-width: 1024px) { 
           .desktop-only { display: flex !important; }
@@ -359,20 +358,18 @@ export default function SocioPanel() {
         .mansion-main { padding: 40px 6%; max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box; position: relative; }
         .vault-label-text { color: #888 !important; font-size: 9px !important; font-weight: 800 !important; letter-spacing: 1.5px !important; text-transform: uppercase; }
 
-        /* --- BLINDAJE DE TARJETAS (HIERRO SÓLIDO) --- */
-        .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card, .stat-box, .stat-box-glass, .hub-card, .ps-card-glass { 
+        .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card, .stat-box, .hub-card, .ps-card-glass { 
           background: #0a0a0a !important; 
           border: 1px solid var(--border) !important; 
-          padding: 40px !important; 
-          border-radius: 35px !important; 
-          margin-bottom: 30px !important; 
+          padding: 30px !important; 
+          border-radius: 24px !important; 
+          margin-bottom: 25px !important; 
           display: block !important;
           width: 100% !important;
           box-sizing: border-box !important;
           box-shadow: 0 15px 40px rgba(0,0,0,0.9) !important;
         }
 
-        /* --- BLINDAJE DE INPUTS NEGROS --- */
         .vault-input-fixed {
           width: 100% !important;
           background: #000 !important;
@@ -385,35 +382,25 @@ export default function SocioPanel() {
           outline: none !important;
           appearance: none !important;
           -webkit-appearance: none !important;
-          -moz-appearance: none !important;
-          box-shadow: none !important;
         }
 
-        .w-submit-btn-fixed, .p-save-btn-fixed, .verify-btn-vault { 
-          width: 100%; background: var(--main); color: #000; border: none; padding: 22px; border-radius: 20px; font-weight: 900; margin-top: 15px; cursor: pointer; transition: 0.3s; 
+        .w-submit-btn-fixed, .p-save-btn-fixed { 
+          width: 100%; background: var(--main); color: #000; border: none; padding: 20px; border-radius: 16px; font-weight: 900; margin-top: 15px; cursor: pointer; transition: 0.3s; 
         }
 
         .m-bottom-bar-fixed { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
         .m-bottom-bar-fixed button { background: none; border: none; color: #444; }
         .m-bottom-bar-fixed button.active { color: var(--main); }
 
-        @media (min-width: 1024px) { 
-          .mansion-main { padding: 40px 20px 80px; max-width: 900px; margin: 0 auto; }
-          .glass-withdraw-card, .p-glass-card { max-width: 600px !important; margin: 0 auto 30px !important; }
-          .stats-grid, .report-grid-fixed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-          .stat-box { display: flex !important; align-items: center; gap: 20px; padding: 30px !important; }
-        }
+        .chart-container-mansion-fixed { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 30px; border-radius: 24px; }
+        .chart-bars-wrap-fixed { display: flex; align-items: flex-end; justify-content: space-between; height: 150px; gap: 8px; }
+        .c-bar-inner { background: linear-gradient(to top, #00C853, #00E676); width: 100%; border-radius: 4px; transition: 1s; }
+        .c-bar-box-fixed { flex: 1; background: #050505; height: 100%; border-radius: 4px; display: flex; align-items: flex-end; }
+        .chart-days-labels-fixed { display: flex; justify-content: space-between; margin-top: 15px; }
 
         @media (max-width: 1023px) {
           .mansion-main { padding: 30px 20px 120px !important; }
-          .hub-grid, .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-          .glass-vault-card, .p-glass-card, .glass-withdraw-card { padding: 25px !important; border-radius: 25px !important; }
-          .stat-box { display: block !important; padding: 25px !important; }
         }
-
-        .vault-amount { font-size: clamp(3rem, 10vw, 4.5rem); font-weight: 800; letter-spacing: -2px; margin: 15px 0; }
-        .fade-in { animation: fi 0.8s ease forwards; }
-        @keyframes fi { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
