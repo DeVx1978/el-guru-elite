@@ -154,7 +154,7 @@ export default function SocioPanel() {
         <div className="geo-pill"><Globe size={12}/> {paisSocio}</div>
       </header>
 
-      <section className="glass-vault-card">
+      <section className="glass-vault-card" data-mansion="card">
         <div className="vault-top">
           <p className="vault-label-text">BALANCE TOTAL <ChevronDown size={14}/></p>
           <div className="yield-tag">+{((utilidad / (balance - utilidad)) * 100 || 0).toFixed(2)}%</div>
@@ -169,11 +169,11 @@ export default function SocioPanel() {
       </section>
 
       <div className="stats-grid">
-        <div className="stat-box-glass" onClick={() => setActiveTab('reportes')}>
+        <div className="stat-box-glass" data-mansion="card" onClick={() => setActiveTab('reportes')}>
           <div className="sb-icon"><TrendingUp size={20} color="#00C853"/></div>
           <div className="sb-info"><span className="vault-label-text">PROFIT TOTAL ACUMULADO</span><h4>${utilidad.toLocaleString()}</h4></div>
         </div>
-        <div className="stat-box-glass">
+        <div className="stat-box-glass" data-mansion="card">
           <div className="sb-icon"><ShieldCheck size={20} color="#00C853"/></div>
           <div className="sb-info"><span className="vault-label-text">ESTADO DE AUDITORÍA</span><h4>VERIFICADA</h4></div>
         </div>
@@ -181,10 +181,10 @@ export default function SocioPanel() {
 
       <h3 className="hub-label">CENTRO DE OPERACIONES</h3>
       <div className="hub-grid">
-        <button className="hub-card" onClick={() => setActiveTab('reportes')}><BarChart3 size={22}/> Rendimientos</button>
-        <button className="hub-card" onClick={() => setActiveTab('retiros')}><Wallet size={22}/> Retiros</button>
-        <button className="hub-card" onClick={() => setActiveTab('perfil')}><User size={22}/> Perfil</button>
-        <button className="hub-card" onClick={() => window.open('https://wa.me/soporte', '_blank')}><HelpCircle size={22}/> Soporte</button>
+        <button className="hub-card" data-mansion="card" onClick={() => setActiveTab('reportes')}><BarChart3 size={22}/> Rendimientos</button>
+        <button className="hub-card" data-mansion="card" onClick={() => setActiveTab('retiros')}><Wallet size={22}/> Retiros</button>
+        <button className="hub-card" data-mansion="card" onClick={() => setActiveTab('perfil')}><User size={22}/> Perfil</button>
+        <button className="hub-card" data-mansion="card" onClick={() => window.open('https://wa.me/soporte', '_blank')}><HelpCircle size={22}/> Soporte</button>
       </div>
     </div>
   );
@@ -203,10 +203,10 @@ export default function SocioPanel() {
   );
 
   return (
-    <div className="mansion-container">
+    <div className="mansion-container" id="mansion-root">
       {show2FA && (
         <div className="security-overlay fade-in">
-          <div className="security-card scale-in">
+          <div className="security-card scale-in" data-mansion="card">
             <button className="close-x" onClick={() => setShow2FA(false)}><X size={20}/></button>
             <ShieldAlert size={40} color="#00C853" style={{marginBottom:'20px'}}/>
             <h2>VERIFICACIÓN DE SEGURIDAD</h2>
@@ -252,10 +252,10 @@ export default function SocioPanel() {
           {activeTab === 'retiros' && (
             <div className="fade-in">
               <h2 className="section-title">Terminal de <span>Retiros</span></h2>
-              <div className="glass-withdraw-card">
+              <div className="glass-withdraw-card" data-mansion="card">
                 <div className="w-header-box">
                   <span className="vault-label-text">SALDO LÍQUIDO DISPONIBLE</span>
-                  <h3 className="w-main-balance-text">${balanceVisual.toLocaleString()}</h3>
+                  <h3 className="w-header-balance">${balanceVisual.toLocaleString()}</h3>
                 </div>
                 <div className="w-method-selector">
                   <button className={metodoRetiro === 'banco' ? 'active' : ''} onClick={() => setMetodoRetiro('banco')}><Building2 size={16}/> BANCO</button>
@@ -263,7 +263,7 @@ export default function SocioPanel() {
                 </div>
                 <div className="w-fields-container">
                   <div className="w-input-group"><label className="vault-label-text">MONTO A RETIRAR (USD)</label><input className="vault-input-fixed" type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} /></div>
-                  <div className="w-input-group"><label className="vault-label-text">DESTINO DE FONDOS</label><textarea className="vault-input-fixed" placeholder="Banco, cuenta o wallet address..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} /></div>
+                  <div className="w-input-group"><label className="vault-label-text">DESTINO DE FONDOS</label><textarea className="vault-input-fixed" placeholder="Banco, cuenta o wallet..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} /></div>
                   <button className="w-submit-btn-fixed" onClick={iniciarProtocoloRetiro}><Lock size={16}/> ACTIVAR PROTOCOLO SEGURO</button>
                 </div>
               </div>
@@ -274,17 +274,17 @@ export default function SocioPanel() {
             <div className="fade-in">
               <h2 className="section-title">Ajustes de <span>Perfil</span></h2>
               <div className="profile-grid-mansion">
-                <div className="p-glass-card">
-                  <div className="p-header-info"><User size={20} color="#00C853"/> <span>INFORMACIÓN PERSONAL</span></div>
-                  <div className="p-input-row"><label className="vault-label-text">NOMBRE COMPLETO</label><input className="vault-input-fixed" value={editNombre} onChange={e => setEditNombre(e.target.value)}/></div>
-                  <div className="p-input-row"><label className="vault-label-text">PAÍS DE RESIDENCIA</label><input className="vault-input-fixed" value={editPais} onChange={e => setEditPais(e.target.value)}/></div>
+                <div className="p-glass-card" data-mansion="card">
+                  <div className="p-header-info"><User size={20} color="#00C853"/> <span>DATOS PERSONALES</span></div>
+                  <div className="p-input-row"><label className="vault-label-text">NOMBRE</label><input className="vault-input-fixed" value={editNombre} onChange={e => setEditNombre(e.target.value)}/></div>
+                  <div className="p-input-row"><label className="vault-label-text">PAÍS</label><input className="vault-input-fixed" value={editPais} onChange={e => setEditPais(e.target.value)}/></div>
                   <div className="p-input-row"><label className="vault-label-text">CIUDAD</label><input className="vault-input-fixed" value={editCiudad} onChange={e => setEditCiudad(e.target.value)}/></div>
-                  <div className="p-input-row"><label className="vault-label-text">TELÉFONO MÓVIL</label><input className="vault-input-fixed" value={editTelefono} onChange={e => setEditTelefono(e.target.value)}/></div>
+                  <div className="p-input-row"><label className="vault-label-text">TELÉFONO</label><input className="vault-input-fixed" value={editTelefono} onChange={e => setEditTelefono(e.target.value)}/></div>
                   <button className="p-save-btn-fixed" onClick={actualizarPerfil}>GUARDAR CAMBIOS</button>
                 </div>
                 <div className="p-security-stack">
-                  <div className="ps-card-glass"><div className="ps-icon-circle"><Mail size={16}/></div><div><span className="vault-label-text">EMAIL ASOCIADO</span><p>{editEmail}</p></div></div>
-                  <div className="ps-card-glass"><div className="ps-icon-circle"><ShieldCheck size={16}/></div><div><span className="vault-label-text">AUDITORÍA DE CUENTA</span><p className="v-tag-neon">ACTIVA</p></div></div>
+                  <div className="ps-card-glass" data-mansion="card"><div className="ps-icon-circle"><Mail size={16}/></div><div><span className="vault-label-text">EMAIL</span><p>{editEmail}</p></div></div>
+                  <div className="ps-card-glass" data-mansion="card"><div className="ps-icon-circle"><ShieldCheck size={16}/></div><div><span className="vault-label-text">AUDITORÍA</span><p className="v-tag-neon">ACTIVA</p></div></div>
                 </div>
               </div>
             </div>
@@ -294,22 +294,21 @@ export default function SocioPanel() {
             <div className="fade-in">
               <h2 className="section-title">Análisis de <span>Mercados</span></h2>
               <div className="report-grid-fixed">
-                <div className="r-card-glass">
-                   <div className="r-head"><Wallet size={16} color="#A0A0A0"/> <span className="vault-label-text">CAPITAL SEMILLA</span></div>
+                <div className="r-card-glass" data-mansion="card">
+                   <div className="r-head"><Wallet size={16} color="#A0A0A0"/> <span className="vault-label-text">CAPITAL</span></div>
                    <h4>${(balance - utilidad).toLocaleString()}</h4>
                 </div>
-                <div className="r-card-glass highlight-border">
-                   <div className="r-head"><Activity size={16} color="#00C853"/> <span className="vault-label-text">PROFIT TOTAL</span></div>
+                <div className="r-card-glass highlight-border" data-mansion="card">
+                   <div className="r-head"><Activity size={16} color="#00C853"/> <span className="vault-label-text">PROFIT</span></div>
                    <h4 className="neon-text">+${utilidad.toLocaleString()}</h4>
                 </div>
               </div>
-              <div className="chart-container-mansion-fixed">
+              <div className="chart-container-mansion-fixed" data-mansion="card">
                 <div className="chart-bars-wrap-fixed">
                   {[35, 65, 45, 85, 55, 95, 100].map((h, i) => (
                     <div key={i} className="c-bar-box-fixed"><div className="c-bar-inner" style={{height: h+'%'}}></div></div>
                   ))}
                 </div>
-                <div className="chart-days-labels-fixed"><span className="vault-label-text">L</span><span className="vault-label-text">M</span><span className="vault-label-text">M</span><span className="vault-label-text">J</span><span className="vault-label-text">V</span><span className="vault-label-text">S</span><span className="vault-label-text">D</span></div>
               </div>
             </div>
           )}
@@ -328,107 +327,79 @@ export default function SocioPanel() {
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&display=swap');
         :root { --main: #00C853; --bg: #000; --panel: #0a0a0a; --border: #151515; --text-muted: #D1D1D1; }
         
-        body { margin: 0; background: #000; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        body { margin: 0; background: #000 !important; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        /* --- AISLAMIENTO DE SIDEBAR (MÓVIL VS PC) --- */
+        /* --- BLINDAJE DE SEGURIDAD PARA SIDEBAR --- */
         .desktop-only { display: none !important; }
         @media (min-width: 1024px) { 
           .desktop-only { display: flex !important; }
           .mobile-only { display: none !important; }
         }
 
-        .mansion-container { display: flex; min-height: 100vh; position: relative; }
-        .mansion-sidebar { width: 280px; background: #050505; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; z-index: 1000; }
-        .brand-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
-        .brand-logo span { color: var(--main); }
-        .mansion-nav button { width: 100%; text-align: left; padding: 16px; border-radius: 14px; background: transparent; color: #666; border: none; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 8px; font-size: 0.85rem; }
-        .mansion-nav button:hover, .mansion-nav button.active { color: #fff; background: #0c0c0c; }
-        .mansion-nav button.active { color: var(--main); }
-        .sidebar-footer { border-top: 1px solid var(--border); padding-top: 30px; }
-        .admin-trigger { width: 100%; background: rgba(0,200,83,0.05); border: 1px solid rgba(0,200,83,0.1); color: var(--main); padding: 12px; border-radius: 10px; font-weight: 800; font-size: 9px; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-        .p-badge { background: #ff4444; color: #fff; padding: 2px 6px; border-radius: 20px; font-size: 8px; }
-        .logout-trigger { background: none; border: none; color: #ff4444; font-weight: 800; font-size: 10px; cursor: pointer; padding: 10px; opacity: 0.6; }
-
-        .mansion-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
-        .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; position: sticky; top: 0; z-index: 500; width: 100%; }
-        .m-brand-box { font-weight: 800; font-size: 1.1rem; color: #fff; display: flex; align-items: center; }
-        .m-brand-box span { color: var(--main); margin-left: 5px; }
-
-        .mansion-main { padding: 40px 6%; max-width: 1000px; margin: 0 auto; width: 100%; position: relative; }
-        .back-btn { background: none; border: none; color: var(--main); font-weight: 800; font-size: 9px; letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
-        .vault-label-text { color: var(--text-muted) !important; font-size: 9px !important; font-weight: 800 !important; letter-spacing: 1.5px !important; text-transform: uppercase; }
-
-        /* --- BLINDAJE DE INPUTS NEGROS (CORRECCIÓN FOTO 681) --- */
-        .vault-input-fixed {
-          width: 100% !important;
-          background: #000 !important;
-          background-color: #000 !important;
-          border: 1px solid #222 !important;
-          padding: 18px !important;
-          border-radius: 15px !important;
-          color: #fff !important;
-          font-size: 15px !important;
-          font-weight: 600 !important;
-          outline: none !important;
-          appearance: none !important;
-          -webkit-appearance: none !important;
-          -moz-appearance: none !important;
-        }
-
-        /* --- RESTAURACIÓN DE CONTENEDORES GLASS (ESTRUCTURA DE LA MANSIÓN) --- */
-        .glass-vault-card, 
-        .p-glass-card, 
-        .r-card-glass, 
-        .glass-withdraw-card, 
-        .chart-container-mansion-fixed,
-        .stat-box-glass,
-        .ps-card-glass { 
-          background: rgba(12,12,12,0.9) !important; 
-          border: 1px solid var(--border) !important; 
-          padding: 40px !important; 
-          border-radius: 35px !important; 
-          margin-bottom: 30px !important; 
-          box-shadow: 0 25px 50px rgba(0,0,0,0.9) !important;
-          backdrop-filter: blur(30px) !important;
+        /* --- SELECTOR DE ATRIBUTO: EL MARTILLO DE HIERRO --- */
+        [data-mansion="card"] {
+          background: rgba(15,15,15,0.92) !important;
+          border: 1px solid #1a1a1a !important;
+          padding: 40px !important;
+          border-radius: 35px !important;
+          margin-bottom: 25px !important;
+          box-shadow: 0 20px 60px rgba(0,0,0,1) !important;
+          backdrop-filter: blur(25px) !important;
           display: block !important;
           width: 100% !important;
           box-sizing: border-box !important;
         }
 
-        /* AJUSTES PARA GRIDS DENTRO DE GLASS */
-        .stat-box-glass { display: flex !important; align-items: center !important; gap: 20px !important; padding: 30px !important; cursor: pointer; }
-        .ps-card-glass { display: flex !important; align-items: center !important; gap: 20px !important; padding: 25px !important; }
-        .stats-grid, .report-grid-fixed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+        .mansion-container { display: flex; min-height: 100vh; background: #000 !important; }
+        .mansion-sidebar { width: 280px; background: #050505; border-right: 1px solid #111; display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; z-index: 1000; }
+        .brand-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
+        .brand-logo span { color: var(--main); }
+        .mansion-nav button { width: 100%; text-align: left; padding: 16px; border-radius: 14px; background: transparent; color: #555; border: none; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 8px; }
+        .mansion-nav button.active { color: var(--main); background: rgba(0,200,83,0.03); }
 
-        .vault-amount { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: -3px; margin: 20px 0; }
-        .w-main-balance-text { font-size: 3rem; font-weight: 800; margin: 15px 0; color: #fff; }
+        .mansion-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #000 !important; }
+        .mobile-header { height: 75px; border-bottom: 1px solid #111; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; position: sticky; top: 0; z-index: 500; }
+        
+        .mansion-main { padding: 40px 6%; max-width: 1000px; margin: 0 auto; width: 100%; position: relative; }
+        .vault-label-text { color: #888 !important; font-size: 9px !important; font-weight: 800 !important; letter-spacing: 1.5px !important; }
+
+        /* BLINDAJE INPUTS NEGROS */
+        .vault-input-fixed {
+          width: 100% !important;
+          background: #000 !important;
+          border: 1px solid #222 !important;
+          padding: 18px !important;
+          border-radius: 15px !important;
+          color: #fff !important;
+          font-size: 15px !important;
+          outline: none !important;
+          appearance: none !important;
+          -webkit-appearance: none !important;
+        }
 
         .w-submit-btn-fixed, .p-save-btn-fixed, .verify-btn-vault { 
-          width: 100%; background: var(--main); color: #000; border: none; padding: 22px; border-radius: 20px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.3s; margin-top: 25px; 
+          width: 100%; background: var(--main); color: #000; border: none; padding: 22px; border-radius: 20px; font-weight: 900; cursor: pointer; margin-top: 15px; 
         }
-        .w-submit-btn-fixed:hover { background: #fff; transform: translateY(-3px); }
 
-        .m-bottom-bar-fixed { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.95); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
-        .m-bottom-bar-fixed button { background: none; border: none; color: #444; }
+        .m-bottom-bar-fixed { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.95); backdrop-filter: blur(25px); border: 1px solid #111; border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+        .m-bottom-bar-fixed button { background: none; border: none; color: #333; }
         .m-bottom-bar-fixed button.active { color: var(--main); }
 
         @media (min-width: 1024px) { 
-          .mansion-main { padding: 40px 20px 80px; max-width: 900px; margin: 0 auto; }
-          .glass-withdraw-card, .p-glass-card { max-width: 650px; margin: 0 auto 30px; }
-          .profile-grid-mansion { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
+          .mansion-main { max-width: 900px; padding: 40px 20px 80px; }
+          .p-glass-card, .glass-withdraw-card { max-width: 650px; margin: 0 auto 25px; }
+          .profile-grid-mansion { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+          .report-grid-fixed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         }
 
         @media (max-width: 1023px) {
           .mansion-main { padding: 30px 20px 120px; }
-          .hub-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
-          .stats-grid, .report-grid-fixed, .profile-grid-mansion { display: flex; flex-direction: column; gap: 15px; }
-          .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card { padding: 30px 20px !important; border-radius: 25px !important; }
+          .stats-grid, .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+          [data-mansion="card"] { padding: 30px 20px !important; border-radius: 25px !important; }
         }
 
-        @keyframes pulse { 50% { opacity: 0.3; } }
         .fade-in { animation: fi 0.8s ease forwards; }
-        .scale-in { animation: si 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        @keyframes fi { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fi { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
