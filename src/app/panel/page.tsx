@@ -252,8 +252,8 @@ export default function SocioPanel() {
           {activeTab === 'retiros' && (
             <div className="fade-in">
               <h2 className="section-title">Terminal de <span>Retiros</span></h2>
-              <div className="glass-withdraw-card">
-                <div className="w-header-box">
+              <div style={{ background: '#0a0a0a', border: '1px solid #222', padding: '40px', borderRadius: '35px', marginBottom: '30px', display: 'block', width: '100%', boxShadow: '0 20px 50px rgba(0,0,0,0.9)' }}>
+                <div style={{ borderBottom: '1px solid #1a1a1a', paddingBottom: '25px', marginBottom: '25px' }}>
                   <span className="vault-label-text">SALDO LÍQUIDO DISPONIBLE</span>
                   <h3 className="w-main-balance-text">${balanceVisual.toLocaleString()}</h3>
                 </div>
