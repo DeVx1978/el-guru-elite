@@ -169,11 +169,11 @@ export default function SocioPanel() {
       </section>
 
       <div className="stats-grid">
-        <div className="stat-box" onClick={() => setActiveTab('reportes')}>
+        <div className="stat-box-glass" onClick={() => setActiveTab('reportes')}>
           <div className="sb-icon"><TrendingUp size={20} color="#00C853"/></div>
           <div className="sb-info"><span className="vault-label-text">PROFIT TOTAL ACUMULADO</span><h4>${utilidad.toLocaleString()}</h4></div>
         </div>
-        <div className="stat-box">
+        <div className="stat-box-glass">
           <div className="sb-icon"><ShieldCheck size={20} color="#00C853"/></div>
           <div className="sb-info"><span className="vault-label-text">ESTADO DE AUDITORÍA</span><h4>VERIFICADA</h4></div>
         </div>
@@ -280,9 +280,7 @@ export default function SocioPanel() {
                   <div className="p-input-row"><label className="vault-label-text">PAÍS DE RESIDENCIA</label><input className="vault-input-fixed" value={editPais} onChange={e => setEditPais(e.target.value)}/></div>
                   <div className="p-input-row"><label className="vault-label-text">CIUDAD</label><input className="vault-input-fixed" value={editCiudad} onChange={e => setEditCiudad(e.target.value)}/></div>
                   <div className="p-input-row"><label className="vault-label-text">TELÉFONO MÓVIL</label><input className="vault-input-fixed" value={editTelefono} onChange={e => setEditTelefono(e.target.value)}/></div>
-                  <button className="p-save-btn-fixed" onClick={actualizarPerfil} disabled={guardandoPerfil}>
-                    {guardandoPerfil ? 'SINCRONIZANDO...' : 'GUARDAR CAMBIOS'}
-                  </button>
+                  <button className="p-save-btn-fixed" onClick={actualizarPerfil}>GUARDAR CAMBIOS</button>
                 </div>
                 <div className="p-security-stack">
                   <div className="ps-card-glass"><div className="ps-icon-circle"><Mail size={16}/></div><div><span className="vault-label-text">EMAIL ASOCIADO</span><p>{editEmail}</p></div></div>
@@ -328,12 +326,11 @@ export default function SocioPanel() {
 
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&display=swap');
-        
         :root { --main: #00C853; --bg: #000; --panel: #0a0a0a; --border: #151515; --text-muted: #D1D1D1; }
         
         body { margin: 0; background: #000; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
 
-        /* --- BLINDAJE DE SEGURIDAD PARA SIDEBAR (ELIMINA COLISIÓN MÓVIL) --- */
+        /* --- AISLAMIENTO DE SIDEBAR (MÓVIL VS PC) --- */
         .desktop-only { display: none !important; }
         @media (min-width: 1024px) { 
           .desktop-only { display: flex !important; }
@@ -341,7 +338,6 @@ export default function SocioPanel() {
         }
 
         .mansion-container { display: flex; min-height: 100vh; position: relative; }
-
         .mansion-sidebar { width: 280px; background: #050505; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 40px 25px; position: sticky; top: 0; height: 100vh; z-index: 1000; }
         .brand-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
         .brand-logo span { color: var(--main); }
@@ -354,7 +350,7 @@ export default function SocioPanel() {
         .logout-trigger { background: none; border: none; color: #ff4444; font-weight: 800; font-size: 10px; cursor: pointer; padding: 10px; opacity: 0.6; }
 
         .mansion-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
-        .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; position: sticky; top: 0; z-index: 500; width: 100%; flex-shrink: 0; }
+        .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; position: sticky; top: 0; z-index: 500; width: 100%; }
         .m-brand-box { font-weight: 800; font-size: 1.1rem; color: #fff; display: flex; align-items: center; }
         .m-brand-box span { color: var(--main); margin-left: 5px; }
 
@@ -362,7 +358,7 @@ export default function SocioPanel() {
         .back-btn { background: none; border: none; color: var(--main); font-weight: 800; font-size: 9px; letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
         .vault-label-text { color: var(--text-muted) !important; font-size: 9px !important; font-weight: 800 !important; letter-spacing: 1.5px !important; text-transform: uppercase; }
 
-        /* --- BLINDAJE NEGRO PROFUNDO (CORRECCIÓN CAJAS BLANCAS) --- */
+        /* --- BLINDAJE DE INPUTS NEGROS (CORRECCIÓN FOTO 681) --- */
         .vault-input-fixed {
           width: 100% !important;
           background: #000 !important;
@@ -374,51 +370,59 @@ export default function SocioPanel() {
           font-size: 15px !important;
           font-weight: 600 !important;
           outline: none !important;
-          transition: 0.3s !important;
           appearance: none !important;
           -webkit-appearance: none !important;
           -moz-appearance: none !important;
-          box-shadow: none !important;
         }
-        .vault-input-fixed:focus { border-color: var(--main) !important; background: #050505 !important; }
-        textarea.vault-input-fixed { min-height: 100px !important; resize: none !important; }
 
-        .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card, .chart-container-mansion-fixed { 
-          background: rgba(10,10,10,0.9); 
-          border: 1px solid var(--border); 
-          padding: 50px; 
-          border-radius: 40px; 
-          margin-bottom: 30px; 
-          box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-          backdrop-filter: blur(25px);
+        /* --- RESTAURACIÓN DE CONTENEDORES GLASS (ESTRUCTURA DE LA MANSIÓN) --- */
+        .glass-vault-card, 
+        .p-glass-card, 
+        .r-card-glass, 
+        .glass-withdraw-card, 
+        .chart-container-mansion-fixed,
+        .stat-box-glass,
+        .ps-card-glass { 
+          background: rgba(12,12,12,0.9) !important; 
+          border: 1px solid var(--border) !important; 
+          padding: 40px !important; 
+          border-radius: 35px !important; 
+          margin-bottom: 30px !important; 
+          box-shadow: 0 25px 50px rgba(0,0,0,0.9) !important;
+          backdrop-filter: blur(30px) !important;
+          display: block !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
         }
+
+        /* AJUSTES PARA GRIDS DENTRO DE GLASS */
+        .stat-box-glass { display: flex !important; align-items: center !important; gap: 20px !important; padding: 30px !important; cursor: pointer; }
+        .ps-card-glass { display: flex !important; align-items: center !important; gap: 20px !important; padding: 25px !important; }
+        .stats-grid, .report-grid-fixed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
 
         .vault-amount { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 800; letter-spacing: -3px; margin: 20px 0; }
-        .w-main-balance-text { font-size: 3rem; font-weight: 800; margin: 15px 0; }
+        .w-main-balance-text { font-size: 3rem; font-weight: 800; margin: 15px 0; color: #fff; }
 
         .w-submit-btn-fixed, .p-save-btn-fixed, .verify-btn-vault { 
-          width: 100%; background: var(--main); color: #000; border: none; padding: 22px; border-radius: 20px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.3s; margin-top: 15px; 
+          width: 100%; background: var(--main); color: #000; border: none; padding: 22px; border-radius: 20px; font-weight: 900; font-size: 12px; cursor: pointer; transition: 0.3s; margin-top: 25px; 
         }
-        .w-submit-btn-fixed:hover { background: #fff; transform: translateY(-2px); }
+        .w-submit-btn-fixed:hover { background: #fff; transform: translateY(-3px); }
 
-        .m-bottom-bar-fixed { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.9); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+        .m-bottom-bar-fixed { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.95); backdrop-filter: blur(25px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
         .m-bottom-bar-fixed button { background: none; border: none; color: #444; }
         .m-bottom-bar-fixed button.active { color: var(--main); }
 
         @media (min-width: 1024px) { 
           .mansion-main { padding: 40px 20px 80px; max-width: 900px; margin: 0 auto; }
-          .welcome-section h1 { font-size: 2.3rem; } 
-          .vault-amount { font-size: 4.2rem; }
           .glass-withdraw-card, .p-glass-card { max-width: 650px; margin: 0 auto 30px; }
           .profile-grid-mansion { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
-          .report-grid-fixed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         }
 
         @media (max-width: 1023px) {
           .mansion-main { padding: 30px 20px 120px; }
           .hub-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
-          .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card { padding: 30px 20px; border-radius: 30px; }
-          .vault-amount { font-size: 3.2rem; }
+          .stats-grid, .report-grid-fixed, .profile-grid-mansion { display: flex; flex-direction: column; gap: 15px; }
+          .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card { padding: 30px 20px !important; border-radius: 25px !important; }
         }
 
         @keyframes pulse { 50% { opacity: 0.3; } }
