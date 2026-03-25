@@ -1,0 +1,22 @@
+.radar-page { min-height: 100vh; background: #000; color: #fff; font-family: sans-serif; overflow-x: hidden; }
+.r-nav { display: flex; justify-content: space-between; padding: 25px 6%; border-bottom: 1px solid #111; align-items: center; }
+.b-btn { background: none; border: 1px solid #222; color: #888; padding: 8px 18px; border-radius: 10px; cursor: pointer; font-size: 10px; font-weight: 800; display: flex; gap: 8px; }
+.logo { font-weight: 900; } .logo span { color: #00C853; }
+.r-container { padding: 40px 6%; max-width: 1200px; margin: 0 auto; }
+.hero { background: #050505; border: 1px solid #1a1a1a; border-radius: 40px; padding: 60px; margin-bottom: 30px; cursor: pointer; transition: 0.5s; text-align: center; position: relative; }
+.hero:hover { border-color: var(--c); box-shadow: 0 0 30px -10px var(--c); transform: scale(1.01); }
+.icon-l { margin-bottom: 30px; transition: 0.8s; } .hero:hover .icon-l { transform: rotate(360deg); }
+.hero h1 { font-size: 3.5rem; font-weight: 900; letter-spacing: -3px; margin-bottom: 15px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.card { background: #080808; border: 1px solid #111; border-radius: 30px; padding: 40px 20px; text-align: center; cursor: pointer; transition: 0.4s; }
+.card:hover { border-color: var(--c); box-shadow: 0 0 25px -10px var(--c); transform: translateY(-8px); }
+.icon-s { margin-bottom: 20px; transition: 0.8s; } .card:hover .icon-s { transform: rotate(360deg); }
+.drawer { position: fixed; top: 0; right: -450px; width: 450px; height: 100vh; background: #050505; border-left: 1px solid #111; z-index: 1000; transition: 0.5s; padding: 40px; }
+.drawer.open { right: 0; }
+.close { background: none; border: none; color: #fff; cursor: pointer; margin-bottom: 30px; }
+.d-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+.st { background: #0c0c0c; padding: 20px; border-radius: 20px; border: 1px solid #111; }
+.st span { font-size: 8px; color: #555; display: block; }
+.d-btn { width: 100%; border: none; padding: 20px; border-radius: 15px; font-weight: 900; color: #000; cursor: pointer; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .drawer { width: 100%; } .hero h1 { font-size: 2rem; } }
