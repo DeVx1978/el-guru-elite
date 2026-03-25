@@ -1317,27 +1317,82 @@ export default function SocioPanel() {
                 }
                 .mobile-bottom-navbar button.active { color: var(--neon-green); }
 
-                @media (max-width: 1023px) {
+                /* --- BLOQUE DE RESPONSIVIDAD ÉLITE (REEMPLAZAR AQUÍ) --- */
+                @media (max-width: 1024px) {
+                    .desktop-only { display: none !important; }
+                    .mobile-only { display: flex !important; }
+                    .premium-sidebar { display: none !important; }
+                    
+                    .premium-viewport { width: 100vw !important; overflow-x: hidden !important; }
                     .premium-content-area { 
-                        padding: 30px 20px 180px; 
+                        padding: 20px 15px 120px !important; 
+                        width: 100% !important; 
+                        margin: 0 !important;
                     }
-                    .main-vault-card { padding: 35px 25px; flex-direction: column; text-align: center; }
-                    .main-balance-text { font-size: 3rem; }
-                    .vault-visual { margin-top: 30px; }
-                    .vault-stats-row { justify-content: center; gap: 20px; }
-                    .secondary-grid, .markets-summary-grid { grid-template-columns: 1fr; }
-                    .profile-form-grid { grid-template-columns: 1fr; }
-                    .actions-strip { grid-template-columns: 1fr 1fr; }
-                    .radar-access-banner { 
-                        padding: 24px; 
-                        margin-top: 30px; 
-                        margin-bottom: 60px; 
+
+                    /* Ajuste del Balance Gigante */
+                    .main-vault-card { 
+                        padding: 30px 20px !important; 
+                        flex-direction: column !important; 
+                        text-align: center !important;
+                        border-radius: 24px !important;
                     }
-                    .banner-content h4 { font-size: 14px; }
-                    .premium-title { font-size: 1.8rem; }
-                    .mobile-bottom-navbar { height: 78px; }
-                    .side-info-grid { grid-template-columns: 1fr; }
+                    .main-balance-text { 
+                        font-size: clamp(2.2rem, 8vw, 2.8rem) !important; 
+                        letter-spacing: -1px !important; 
+                        word-break: break-all !important;
+                    }
+                    .main-balance-text small { font-size: 1.2rem !important; }
+                    .vault-stats-row { justify-content: center !important; gap: 15px !important; }
+
+                    /* Ajuste de Grids */
+                    .secondary-grid, .markets-summary-grid, .profile-form-grid, .side-info-grid { 
+                        grid-template-columns: 1fr !important; 
+                        gap: 15px !important;
+                    }
+                    .actions-strip { 
+                        grid-template-columns: 1fr 1fr !important; 
+                        gap: 10px !important; 
+                    }
+
+                    /* Inputs y Botones */
+                    .elite-input-field, .elite-mobile-input, .premium-otp-input { 
+                        width: 100% !important; 
+                        font-size: 16px !important; /* Evita zoom automático en iPhone */
+                    }
+
+                    /* Navegación Móvil */
+                    .mobile-premium-header { 
+                        height: 65px !important; 
+                        background: #000 !important; 
+                        border-bottom: 1px solid #111 !important; 
+                        position: sticky !important; 
+                        top: 0; 
+                        z-index: 1000 !important;
+                    }
+                    .mobile-bottom-navbar { 
+                        position: fixed !important; 
+                        bottom: 0 !important; 
+                        left: 0 !important; 
+                        right: 0 !important; 
+                        height: 85px !important; 
+                        background: rgba(5,5,5,0.98) !important; 
+                        backdrop-filter: blur(20px) !important; 
+                        border-top: 1px solid #111 !important; 
+                        display: flex !important; 
+                        justify-content: space-around !important; 
+                        align-items: center !important; 
+                        padding-bottom: env(safe-area-inset-bottom, 15px) !important; 
+                        z-index: 9999 !important;
+                    }
+                    .mobile-bottom-navbar button { 
+                        color: #444 !important; 
+                        font-size: 10px !important; 
+                        font-weight: 800 !important;
+                    }
+                    .mobile-bottom-navbar button.active { color: var(--neon-green) !important; }
                 }
+                /* --- FIN DEL BLOQUE --- */
             `}</style>
         </div>
     );
