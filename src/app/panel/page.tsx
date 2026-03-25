@@ -3,405 +3,1342 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import {
-  User, Wallet, TrendingUp, ShieldCheck, LogOut,
-  Zap, Trophy, Activity, ShieldAlert,
-  Settings, HelpCircle, BarChart3, LayoutDashboard,
-  Building2, Landmark, Globe, X, Terminal, ArrowUpRight, Menu, CreditCard, ChevronDown, Lock, ArrowLeft, Mail, Phone, MapPin, Bell
+    User, Wallet, TrendingUp, ShieldCheck, LogOut,
+    Zap, Activity, ShieldAlert, BarChart3, LayoutDashboard,
+    Building2, Globe, X, Terminal, ArrowUpRight, Lock, ArrowLeft,
+    Mail, Bell, ChevronDown, HelpCircle, Users, CreditCard, PieChart,
+    ArrowDownLeft, ArrowUpRight as ArrowUpRightIcon, Star, Cpu, MapPin, Phone
 } from 'lucide-react';
 
-const clientSupabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+const clientSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function SocioPanel() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [nombre, setNombre] = useState("Socio");
-  const [esAdmin, setEsAdmin] = useState(false);
-  const [pendientes, setPendientes] = useState(0);
-  const [activeTab, setActiveTab] = useState('inicio');
-  const [menuMovil, setMenuMovil] = useState(false);
+    const router = useRouter();
 
-  const [balance, setBalance] = useState(0);
-  const [balanceVisual, setBalanceVisual] = useState(0);
-  const [nivelSocio, setNivelSocio] = useState("Socio Élite");
-  const [utilidad, setUtilidad] = useState(0);
-  const [paisSocio, setPaisSocio] = useState("Colombia");
+    const [loading, setLoading] = useState(true);
+    const [nombre, setNombre] = useState("Socio");
+    const [esAdmin, setEsAdmin] = useState(false);
+    const [pendientes, setPendientes] = useState(0);
+    const [activeTab, setActiveTab] = useState('inicio');
 
-  const [metodoRetiro, setMetodoRetiro] = useState('banco'); 
-  const [montoRetiro, setMontoRetiro] = useState('');
-  const [detallesDestino, setDetallesDestino] = useState(''); 
-  const [enviandoRetiro, setEnviandoRetiro] = useState(false);
-  const [mensajeRetiro, setMensajeRetiro] = useState({ tipo: '', texto: '' });
-  const [show2FA, setShow2FA] = useState(false);
-  const [codigoIngresado, setCodigoIngresado] = useState('');
-  const [codigoGenerado, setCodigoGenerado] = useState('');
+    const [balance, setBalance] = useState(0);
+    const [balanceVisual, setBalanceVisual] = useState(0);
+    const [nivelSocio, setNivelSocio] = useState("Socio Élite");
+    const [utilidad, setUtilidad] = useState(0);
+    const [editEmail, setEditEmail] = useState("");
 
-  const [editNombre, setEditNombre] = useState("");
-  const [editPais, setEditPais] = useState("");
-  const [editTelefono, setEditTelefono] = useState("");
-  const [editCiudad, setEditCiudad] = useState("");
-  const [editEmail, setEditEmail] = useState("");
-  const [guardandoPerfil, setGuardandoPerfil] = useState(false);
+    const [metodoRetiro, setMetodoRetiro] = useState('banco');
+    const [montoRetiro, setMontoRetiro] = useState('');
+    const [detallesDestino, setDetallesDestino] = useState('');
+    const [enviandoRetiro, setEnviandoRetiro] = useState(false);
+    const [show2FA, setShow2FA] = useState(false);
+    const [codigoIngresado, setCodigoIngresado] = useState('');
+    const [codigoGenerado, setCodigoGenerado] = useState('');
 
-  useEffect(() => {
-    const socioId = localStorage.getItem('socio_id');
-    const socioNombre = localStorage.getItem('socio_nombre');
-    if (!socioId) {
-      router.push('/login');
-    } else {
-      setNombre(socioNombre || "Socio");
-      setEditNombre(socioNombre || "");
-      conectarBovedaElite(socioId);
+    const [editNombre, setEditNombre] = useState("");
+    const [editPais, setEditPais] = useState("");
+    const [editTelefono, setEditTelefono] = useState("");
+    const [editCiudad, setEditCiudad] = useState("");
+    const [guardandoPerfil, setGuardandoPerfil] = useState(false);
+
+    // Contadores animados por pestaña
+    const [cajeroBalanceVisual, setCajeroBalanceVisual] = useState(0);
+    const [perfilInversionVisual, setPerfilInversionVisual] = useState(0);
+
+    useEffect(() => {
+        const socioId = localStorage.getItem('socio_id');
+        const socioNombre = localStorage.getItem('socio_nombre');
+
+        if (!socioId) {
+            router.push('/login');
+            return;
+        }
+
+        setNombre(socioNombre || "Socio");
+        setEditNombre(socioNombre || "");
+
+        conectarBovedaElite(socioId);
+    }, [router]);
+
+    const conectarBovedaElite = async (idSocio: string) => {
+        try {
+            const { data: socioBase, error: errorBase } = await clientSupabase
+                .from('socios')
+                .select('*')
+                .eq('id', idSocio)
+                .single();
+
+            const { data: socioElite, error: errorElite } = await clientSupabase
+                .from('socios_elite')
+                .select('*')
+                .eq('id_socio', idSocio)
+                .single();
+
+            if (errorBase || errorElite) {
+                console.error("Error al cargar socio:", errorBase || errorElite);
+                alert("Error al cargar tus datos. Intenta iniciar sesión nuevamente.");
+                router.push('/login');
+                return;
+            }
+
+            if (socioBase && socioElite) {
+                const capital = Number(socioElite.inversion_minima) || 0;
+                const ganancia = Number(socioBase.utilidad_total) || 0;
+
+                setBalance(capital + ganancia);
+                setUtilidad(ganancia);
+                setNivelSocio(socioElite.nivel_socio || "Socio Élite");
+                setEditPais(socioElite.pais || "Colombia");
+                setEditTelefono(socioElite.telefono || "");
+                setEditCiudad(socioElite.ciudad || "");
+                setEditEmail(socioBase.email || "");
+                setEsAdmin(socioBase.rol === 'admin' || socioBase.email === 'mariajose@gmail.com');
+            }
+        } catch (err) {
+            console.error("Error inesperado:", err);
+            alert("Ocurrió un error al conectar con la bóveda. Por favor inicia sesión nuevamente.");
+            router.push('/login');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (esAdmin && !loading) obtenerPendientesAdmin();
+    }, [esAdmin, loading]);
+
+    // Contador principal (Inicio) - Animación desde $0 con efecto IA suave
+    useEffect(() => {
+        if (!loading && balance > 0) {
+            let start = 0;
+            const duration = 1800;
+            const increment = balance / (duration / 16);
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= balance) {
+                    setBalanceVisual(balance);
+                    clearInterval(timer);
+                } else {
+                    setBalanceVisual(Math.floor(start));
+                }
+            }, 16);
+            return () => clearInterval(timer);
+        }
+    }, [loading, balance]);
+
+    // Contador para pestaña CAJERO
+    useEffect(() => {
+        if (activeTab === 'retiros' && balance > 0) {
+            let start = 0;
+            const duration = 1200;
+            const increment = balance / (duration / 16);
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= balance) {
+                    setCajeroBalanceVisual(balance);
+                    clearInterval(timer);
+                } else {
+                    setCajeroBalanceVisual(Math.floor(start));
+                }
+            }, 16);
+            return () => clearInterval(timer);
+        }
+    }, [activeTab, balance]);
+
+    // Contador para pestaña CUENTA (Inversión inicial)
+    useEffect(() => {
+        if (activeTab === 'perfil' && balance > 0) {
+            let start = 0;
+            const duration = 1400;
+            const target = balance - utilidad;
+            const increment = target / (duration / 16);
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= target) {
+                    setPerfilInversionVisual(target);
+                    clearInterval(timer);
+                } else {
+                    setPerfilInversionVisual(Math.floor(start));
+                }
+            }, 16);
+            return () => clearInterval(timer);
+        }
+    }, [activeTab, balance, utilidad]);
+
+    const obtenerPendientesAdmin = async () => {
+        const { count } = await clientSupabase.from('socios').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente');
+        setPendientes(count || 0);
+    };
+
+    const handleLogout = () => {
+        localStorage.clear();
+        router.push('/login');
+    };
+
+    const iniciarProtocoloRetiro = () => {
+        if (!montoRetiro || !detallesDestino) return alert("Complete los datos requeridos");
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        setCodigoGenerado(code);
+        setShow2FA(true);
+    };
+
+    const confirmarRetiroFinal = async () => {
+        if (codigoIngresado !== codigoGenerado) return alert("Código inválido");
+        setEnviandoRetiro(true);
+        const socioId = localStorage.getItem('socio_id');
+        try {
+            await clientSupabase.from('retiros').insert([{
+                id_socio: socioId,
+                monto: parseFloat(montoRetiro),
+                billetera: detallesDestino,
+                estado: 'pendiente'
+            }]);
+            setShow2FA(false);
+            setMontoRetiro('');
+            setDetallesDestino('');
+            alert("Solicitud en auditoría enviada correctamente.");
+        } catch (err) {
+            alert("Error en el envío.");
+        } finally {
+            setEnviandoRetiro(false);
+        }
+    };
+
+    const actualizarPerfil = async () => {
+        setGuardandoPerfil(true);
+        const socioId = localStorage.getItem('socio_id');
+        try {
+            await clientSupabase.from('socios').update({ nombre: editNombre }).eq('id', socioId);
+            await clientSupabase.from('socios_elite').update({
+                pais: editPais,
+                telefono: editTelefono,
+                ciudad: editCiudad
+            }).eq('id_socio', socioId);
+            setNombre(editNombre);
+            localStorage.setItem('socio_nombre', editNombre);
+            alert("Perfil actualizado correctamente.");
+        } catch (err) {
+            alert("Error al actualizar perfil.");
+        } finally {
+            setGuardandoPerfil(false);
+        }
+    };
+
+    const getNivelStyles = () => {
+        const nivel = nivelSocio.toLowerCase();
+        if (nivel.includes('titanium')) return { color: '#FFD600', shadow: '0 0 20px rgba(255, 214, 0, 0.4)' };
+        if (nivel.includes('vip')) return { color: '#AA00FF', shadow: '0 0 20px rgba(170, 0, 255, 0.4)' };
+        if (nivel.includes('élite')) return { color: '#00B0FF', shadow: '0 0 20px rgba(0, 176, 255, 0.4)' };
+        return { color: '#00C853', shadow: '0 0 20px rgba(0, 200, 83, 0.4)' };
+    };
+
+    const RenderInicio = () => (
+        <div className="fade-in premium-dashboard">
+            <header className="premium-header">
+                <div className="header-greeting">
+                    <span className="rank-badge" style={{ 
+                        borderColor: getNivelStyles().color, 
+                        color: getNivelStyles().color,
+                        boxShadow: getNivelStyles().shadow 
+                    }}>
+                        <Star size={10} fill={getNivelStyles().color} style={{marginRight: '6px'}}/>
+                        {nivelSocio.toUpperCase()}
+                    </span>
+                    <h1>Hola, <span>{nombre.split(' ')[0]}</span></h1>
+                    <p>Terminal de Gestión de Activos Bancarios • DeVx Global</p>
+                </div>
+                <div className="header-actions-top desktop-only">
+                    <button className="icon-circle-btn"><Bell size={18} /></button>
+                    <div className="user-pill">
+                        <div className="avatar-mini">{nombre.charAt(0)}</div>
+                        <span>ID: {localStorage.getItem('socio_id')?.slice(0, 5)}</span>
+                    </div>
+                </div>
+            </header>
+
+            <section className="main-vault-card">
+                <div className="vault-glass-overlay"></div>
+                <div className="vault-info">
+                    <div className="vault-label">
+                        <ShieldCheck size={14} color="#00C853" />
+                        <span>TOTAL ASSETS UNDER MANAGEMENT</span>
+                    </div>
+                    <h2 className="main-balance-text">
+                        <small>$</small>{balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </h2>
+                    <div className="vault-stats-row">
+                        <div className="v-stat">
+                            <span className="v-label">SAVINGS</span>
+                            <span className="v-value">${(balance - utilidad).toLocaleString()}</span>
+                        </div>
+                        <div className="v-stat divider"></div>
+                        <div className="v-stat">
+                            <span className="v-label">EARNED THIS MONTH</span>
+                            <span className="v-value positive">+${utilidad.toLocaleString()} <ArrowUpRightIcon size={12}/></span>
+                        </div>
+                    </div>
+                </div>
+                <div className="vault-visual">
+                    <div className="pulse-aura"></div>
+                    <Zap size={40} color="#00C853" />
+                </div>
+            </section>
+
+            <div className="secondary-grid">
+                <div className="premium-card">
+                    <div className="card-head">
+                        <TrendingUp size={18} color="#AA00FF" />
+                        <span>HOLDINGS GROWTH</span>
+                    </div>
+                    <div className="chart-simulation">
+                        {[40, 70, 45, 90, 65, 80, 100].map((h, i) => (
+                            <div key={i} className="bar-wrapper">
+                                <div className="bar-inner" style={{ height: `${h}%`, backgroundColor: '#AA00FF' }}></div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="card-footer-info">
+                        <span className="percentage-up">+12.4% this week</span>
+                    </div>
+                </div>
+
+                <div className="premium-card">
+                    <div className="card-head">
+                        <Activity size={18} color="#00B0FF" />
+                        <span>REAL-TIME AUDIT</span>
+                    </div>
+                    <div className="audit-status">
+                        <div className="status-indicator">
+                            <div className="dot"></div>
+                            <span>SYSTEM ONLINE</span>
+                        </div>
+                        <h3>VERIFICADA</h3>
+                        <p>DeVx Engine v4.2 running active</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 className="section-subtitle">OPERATIONS CENTER</h3>
+            <div className="actions-strip">
+                <button onClick={() => setActiveTab('reportes')} className="strip-btn blue">
+                    <div className="icon-box"><BarChart3 size={20} /></div>
+                    <span>MERCADOS</span>
+                </button>
+                <button onClick={() => setActiveTab('retiros')} className="strip-btn purple">
+                    <div className="icon-box"><Wallet size={20} /></div>
+                    <span>RETIROS</span>
+                </button>
+                <button onClick={() => setActiveTab('perfil')} className="strip-btn green">
+                    <div className="icon-box"><User size={20} /></div>
+                    <span>PERFIL</span>
+                </button>
+                <button onClick={() => window.open('https://wa.me/soporte', '_blank')} className="strip-btn gold">
+                    <div className="icon-box"><HelpCircle size={20} /></div>
+                    <span>SOPORTE</span>
+                </button>
+            </div>
+
+            <div className="radar-access-banner" onClick={() => router.push('/radar')}>
+                <div className="banner-content">
+                    <div className="banner-icon"><Globe size={24} className="spin-slow" /></div>
+                    <div>
+                        <h4>ACCESO RADAR GLOBAL</h4>
+                        <p>Análisis satelital de mercados de élite en tiempo real.</p>
+                    </div>
+                </div>
+                <ArrowUpRight size={20} />
+            </div>
+        </div>
+    );
+
+    if (loading) {
+        return (
+            <div className="elite-loader">
+                <div className="scanner-ring"></div>
+                <div className="loading-text">
+                    <span>DE<span style={{color: '#00C853'}}>VX</span></span>
+                    <p>ESTABILIZANDO CONEXIÓN BANCARIA...</p>
+                </div>
+                <style jsx>{`
+                    .elite-loader { 
+                        background: #000000; 
+                        height: 100vh; 
+                        display: flex; 
+                        flex-direction: column; 
+                        justify-content: center; 
+                        align-items: center; 
+                        position: fixed; 
+                        inset: 0; 
+                        z-index: 9999;
+                    }
+                    .scanner-ring { 
+                        width: 92px; 
+                        height: 92px; 
+                        border: 3px solid #111111; 
+                        border-top: 3px solid #00C853; 
+                        border-radius: 50%; 
+                        animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+                        box-shadow: 0 0 40px #00C853;
+                    }
+                    .loading-text { 
+                        margin-top: 40px; 
+                        text-align: center; 
+                    }
+                    .loading-text span { 
+                        font-weight: 900; 
+                        letter-spacing: 6px; 
+                        font-size: 1.8rem; 
+                        color: #ffffff; 
+                        text-shadow: 0 0 20px #00C853;
+                    }
+                    .loading-text p { 
+                        color: #666666; 
+                        font-size: 11px; 
+                        letter-spacing: 3px; 
+                        margin-top: 14px; 
+                        font-weight: 800; 
+                    }
+                    @keyframes spin { to { transform: rotate(360deg); } }
+                `}</style>
+            </div>
+        );
     }
-  }, [router]);
 
-  const conectarBovedaElite = async (idSocio: string) => {
-    try {
-      const { data: socioBase } = await clientSupabase.from('socios').select('*').eq('id', idSocio).single();
-      const { data: socioElite } = await clientSupabase.from('socios_elite').select('*').eq('id_socio', idSocio).single();
-
-      if (socioBase && socioElite) {
-        const capital = Number(socioElite.inversion_minima) || 0;
-        const ganancia = Number(socioBase.utilidad_total) || 0;
-        setBalance(capital + ganancia);
-        setNivelSocio(socioElite.nivel_socio || "Socio Élite");
-        setUtilidad(ganancia);
-        setPaisSocio(socioElite.pais || "Colombia");
-        setEditPais(socioElite.pais || "Colombia");
-        setEditTelefono(socioElite.telefono || "");
-        setEditCiudad(socioElite.ciudad || "");
-        setEditEmail(socioBase.email);
-        setEsAdmin(socioBase?.rol === 'admin' || socioBase?.email === 'mariajose@gmail.com');
-      }
-    } catch (err) { console.error("Error conexión:", err); }
-    finally { setTimeout(() => setLoading(false), 2000); }
-  };
-
-  useEffect(() => {
-    if (esAdmin && !loading) { obtenerPendientesAdmin(); }
-  }, [esAdmin, loading]);
-
-  useEffect(() => {
-    if (!loading && balance > 0) {
-      let start = 0;
-      const duration = 1500;
-      const increment = balance / (duration / 16);
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= balance) {
-          setBalanceVisual(balance);
-          clearInterval(timer);
-        } else {
-          setBalanceVisual(start);
-        }
-      }, 16);
-      return () => clearInterval(timer);
-    }
-  }, [loading, balance]);
-
-  const obtenerPendientesAdmin = async () => {
-    const { count } = await clientSupabase.from('socios').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente');
-    setPendientes(count || 0);
-  };
-
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push('/login');
-  };
-
-  const iniciarProtocoloRetiro = () => {
-    if (!montoRetiro || !detallesDestino) return alert("Complete los datos requeridos");
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setCodigoGenerado(code);
-    setShow2FA(true);
-  };
-
-  const confirmarRetiroFinal = async () => {
-    if (codigoIngresado !== codigoGenerado) return alert("Código inválido");
-    setEnviandoRetiro(true);
-    const socioId = localStorage.getItem('socio_id');
-    try {
-      await clientSupabase.from('retiros').insert([{ 
-        id_socio: socioId, monto: parseFloat(montoRetiro), billetera: detallesDestino, estado: 'pendiente' 
-      }]);
-      setShow2FA(false);
-      setMontoRetiro(''); setDetallesDestino('');
-      alert("Solicitud en auditoría enviada correctamente.");
-    } catch (err) { alert("Error en el envío."); }
-    finally { setEnviandoRetiro(false); }
-  };
-
-  const actualizarPerfil = async () => {
-    setGuardandoPerfil(true);
-    const socioId = localStorage.getItem('socio_id');
-    try {
-      await clientSupabase.from('socios').update({ nombre: editNombre }).eq('id', socioId);
-      await clientSupabase.from('socios_elite').update({ pais: editPais, telefono: editTelefono, ciudad: editCiudad }).eq('id_socio', socioId);
-      setNombre(editNombre);
-      localStorage.setItem('socio_nombre', editNombre);
-      alert("Perfil actualizado correctamente.");
-    } catch (err) { alert("Error al actualizar perfil."); }
-    finally { setGuardandoPerfil(false); }
-  };
-
-  const RenderInicio = () => (
-    <div className="fade-in">
-      <header className="content-header" style={{ marginBottom: '30px' }}>
-        <div className="welcome-section">
-          <span className="elite-badge" style={{ background: 'rgba(0,200,83,0.1)', color: '#00C853', padding: '4px 10px', borderRadius: '20px', fontSize: '9px', fontWeight: '800' }}>{nivelSocio.toUpperCase()}</span>
-          <h1 style={{ fontSize: '2rem', marginTop: '10px' }}>Hola, <span style={{ color: '#00C853' }}>{nombre.split(' ')[0]}</span></h1>
-          <p style={{ color: '#888', fontSize: '12px' }}>Gestión de activos bajo estándares de seguridad Élite.</p>
-        </div>
-      </header>
-
-      <section style={{ background: '#0a0a0a', border: '1px solid rgba(0, 200, 83, 0.3)', padding: '35px', borderRadius: '24px', marginBottom: '30px', boxShadow: '0 15px 40px rgba(0,0,0,0.8)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ color: '#888', fontSize: '10px', fontWeight: '800', letterSpacing: '1px' }}>BALANCE TOTAL <ChevronDown size={14}/></p>
-          <div style={{ background: 'rgba(0,200,83,0.1)', color: '#00C853', padding: '4px 10px', borderRadius: '20px', fontSize: '9px', fontWeight: '800' }}>+0.00%</div>
-        </div>
-        <h2 style={{ fontSize: '3.5rem', fontWeight: '800', margin: '20px 0', letterSpacing: '-2px' }}>
-          <span style={{ color: '#00C853', marginRight: '10px' }}>$</span>{balanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-        </h2>
-        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #1a1a1a', paddingTop: '20px' }}>
-          <div style={{ color: '#00C853', fontSize: '9px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}><div className="pulse"></div> IA ALGORITMO ACTIVO</div>
-          <div style={{ color: '#D1D1D1', fontSize: '9px', fontWeight: '800' }}>+${utilidad.toLocaleString()} USD UTILIDAD</div>
-        </div>
-      </section>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '30px' }}>
-        <div style={{ background: '#0f0f0f', border: '1px solid #222', padding: '20px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <TrendingUp size={20} color="#00C853"/>
-          <div><p style={{ color: '#666', fontSize: '8px', fontWeight: '800' }}>PROFIT TOTAL</p><h4 style={{ margin: 0 }}>${utilidad.toLocaleString()}</h4></div>
-        </div>
-        <div style={{ background: '#0f0f0f', border: '1px solid #222', padding: '20px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <ShieldCheck size={20} color="#00C853"/>
-          <div><p style={{ color: '#666', fontSize: '8px', fontWeight: '800' }}>AUDITORÍA</p><h4 style={{ margin: 0 }}>VERIFICADA</h4></div>
-        </div>
-      </div>
-
-      <h3 style={{ color: '#555', fontSize: '10px', fontWeight: '800', marginBottom: '15px', letterSpacing: '2px' }}>CENTRO DE OPERACIONES</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-        <button onClick={() => setActiveTab('reportes')} style={{ background: '#0f0f0f', border: '1px solid #222', padding: '15px', borderRadius: '16px', color: '#D1D1D1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><BarChart3 size={20} color="#00C853"/> <span style={{fontSize:'8px'}}>MERCADOS</span></button>
-        <button onClick={() => setActiveTab('retiros')} style={{ background: '#0f0f0f', border: '1px solid #222', padding: '15px', borderRadius: '16px', color: '#D1D1D1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><Wallet size={20} color="#00C853"/> <span style={{fontSize:'8px'}}>RETIROS</span></button>
-        <button onClick={() => setActiveTab('perfil')} style={{ background: '#0f0f0f', border: '1px solid #222', padding: '15px', borderRadius: '16px', color: '#D1D1D1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><User size={20} color="#00C853"/> <span style={{fontSize:'8px'}}>PERFIL</span></button>
-        <button onClick={() => window.open('https://wa.me/soporte', '_blank')} style={{ background: '#0f0f0f', border: '1px solid #222', padding: '15px', borderRadius: '16px', color: '#D1D1D1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}><HelpCircle size={20} color="#00C853"/> <span style={{fontSize:'8px'}}>SOPORTE</span></button>
-      </div>
-    </div>
-  );
-
-  if (loading) return (
-    <div className="elite-loader">
-      <div className="scanner-ring"></div>
-      <p>ESCANEANDO CREDENCIALES ÉLITE...</p>
-      <style jsx>{`
-        .elite-loader { background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .scanner-ring { width: 50px; height: 50px; border: 2px solid #111; border-top: 2px solid #00C853; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        p { color: #00C853; font-size: 10px; letter-spacing: 5px; margin-top: 25px; font-weight: 300; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
-    </div>
-  );
-
-  return (
-    <div className="mansion-container">
-      {show2FA && (
-        <div className="security-overlay fade-in">
-          <div className="security-card scale-in">
-            <button className="close-x" onClick={() => setShow2FA(false)}><X size={20}/></button>
-            <ShieldAlert size={40} color="#00C853" style={{marginBottom:'20px'}}/>
-            <h2>VERIFICACIÓN DE SEGURIDAD</h2>
-            <p className="vault-label-text">Se ha enviado un código a su email: {editEmail}</p>
-            <input className="vault-input-fixed" type="text" maxLength={6} placeholder="000000" value={codigoIngresado} onChange={(e) => setCodigoIngresado(e.target.value)} />
-            <button className="w-submit-btn-fixed" onClick={confirmarRetiroFinal} disabled={enviandoRetiro}>
-              {enviandoRetiro ? 'PROCESANDO...' : 'CONFIRMAR IDENTIDAD'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <aside className="mansion-sidebar desktop-only">
-        <div className="brand-logo">GURÚ<span>ÉLITE</span></div>
-        <nav className="mansion-nav">
-          <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={18}/> Mi Bóveda</button>
-          <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={18}/> Mercados</button>
-          <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={18}/> Cajero</button>
-          <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={18}/> Cuenta</button>
-        </nav>
-        <div style={{ borderTop: '1px solid #1a1a1a', paddingTop: '20px', marginTop: 'auto', paddingBottom: '20px' }}>
-          {esAdmin && (
-            <button onClick={() => router.push('/admin/auth')} style={{ width: '100%', background: 'rgba(0,200,83,0.05)', border: '1px solid rgba(0,200,83,0.2)', color: '#00C853', padding: '12px', borderRadius: '10px', fontWeight: '800', fontSize: '9px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <Terminal size={16}/> MODO ADMINISTRADOR {pendientes > 0 && <span style={{ background: '#ff4444', color: '#fff', padding: '2px 6px', borderRadius: '20px', fontSize: '8px', marginLeft: 'auto' }}>{pendientes}</span>}
-            </button>
-          )}
-          <button onClick={handleLogout} style={{ width: '100%', background: 'transparent', border: '1px solid #331111', color: '#ff4444', padding: '12px', borderRadius: '10px', fontWeight: '800', fontSize: '9px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: '0.8' }}>
-            <LogOut size={16}/> FINALIZAR SESIÓN
-          </button>
-        </div>
-      </aside>
-
-      <div className="mansion-viewport">
-        <header className="mobile-header mobile-only">
-          <div className="m-brand-box">GURÚ <span>ÉLITE</span></div>
-          <div className="m-icons-box">
-             {esAdmin && <button className="m-admin-btn" onClick={() => router.push('/admin/auth')}><Terminal size={18}/></button>}
-             <button className="m-bell-btn"><Bell size={18} color="#555"/></button>
-          </div>
-        </header>
-
-        <main className="mansion-main">
-          {activeTab !== 'inicio' && (
-            <button onClick={() => setActiveTab('inicio')} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #222', color: '#00C853', padding: '10px 20px', borderRadius: '12px', fontSize: '9px', fontWeight: '800', letterSpacing: '2px', cursor: 'pointer', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '10px' }}> <ArrowLeft size={14}/> REGRESAR A BÓVEDA </button>
-          )}
-
-          {activeTab === 'inicio' && <RenderInicio />}
-          
-          {activeTab === 'retiros' && (
-            <div className="fade-in">
-              <h2 className="section-title">Terminal de <span>Retiros</span></h2>
-              <div style={{ background: '#0a0a0a', border: '1px solid rgba(0, 200, 83, 0.3)', padding: '35px', borderRadius: '24px', marginBottom: '30px', boxShadow: '0 15px 40px rgba(0,0,0,0.8)', display: 'block' }}>
-                <div style={{ borderBottom: '1px solid #1a1a1a', paddingBottom: '25px', marginBottom: '25px' }}>
-                  <span className="vault-label-text">SALDO LÍQUIDO DISPONIBLE</span>
-                  <h3 className="w-main-balance-text">${balanceVisual.toLocaleString()}</h3>
+    return (
+        <div className="premium-mansion-layout">
+            {show2FA && (
+                <div className="security-overlay fade-in">
+                    <div className="security-card scale-in">
+                        <button className="close-x" onClick={() => setShow2FA(false)}><X size={20} /></button>
+                        <div className="security-icon-header">
+                            <ShieldAlert size={48} color="#00C853" />
+                            <div className="glow-shield"></div>
+                        </div>
+                        <h2>VERIFICACIÓN DE SEGURIDAD</h2>
+                        <p>Autorización de retiro para: <br/><strong>{editEmail}</strong></p>
+                        <div className="otp-container">
+                            <input
+                                className="premium-otp-input"
+                                type="text"
+                                maxLength={6}
+                                placeholder="000 000"
+                                value={codigoIngresado}
+                                onChange={(e) => setCodigoIngresado(e.target.value)}
+                            />
+                        </div>
+                        <button className="premium-submit-btn" onClick={confirmarRetiroFinal} disabled={enviandoRetiro}>
+                            {enviandoRetiro ? 'PROCESANDO TRANSACCIÓN...' : 'CONFIRMAR IDENTIDAD'}
+                        </button>
+                    </div>
                 </div>
-                <div className="w-method-selector">
-                  <button className={metodoRetiro === 'banco' ? 'active' : ''} onClick={() => setMetodoRetiro('banco')}><Building2 size={16}/> BANCO</button>
-                  <button className={metodoRetiro === 'cripto' ? 'active' : ''} onClick={() => setMetodoRetiro('cripto')}><Zap size={16}/> USDT</button>
+            )}
+
+            {/* SIDEBAR DESKTOP */}
+            <aside className="premium-sidebar desktop-only">
+                <div className="sidebar-brand">
+                    <div className="logo-icon">G</div>
+                    <span>GURÚ<strong>ÉLITE</strong></span>
                 </div>
-                <div className="w-fields-container">
-                  <div className="w-input-group"><label className="vault-label-text">MONTO A RETIRAR (USD)</label><input className="vault-input-fixed" type="number" placeholder="0.00" value={montoRetiro} onChange={e => setMontoRetiro(e.target.value)} /></div>
-                  <div className="w-input-group"><label className="vault-label-text">DESTINO DE FONDOS</label><textarea className="vault-input-fixed" placeholder="Banco, cuenta o wallet address..." value={detallesDestino} onChange={e => setDetallesDestino(e.target.value)} /></div>
-                  <button className="w-submit-btn-fixed" onClick={iniciarProtocoloRetiro}><Lock size={16}/> ACTIVAR PROTOCOLO SEGURO</button>
+                
+                <nav className="sidebar-nav">
+                    <div className="nav-group">
+                        <p className="nav-label">MAIN TERMINAL</p>
+                        <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}>
+                            <LayoutDashboard size={18} /> Mi Bóveda
+                        </button>
+                        <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}>
+                            <BarChart3 size={18} /> Mercados
+                        </button>
+                        <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}>
+                            <Wallet size={18} /> Cajero
+                        </button>
+                        <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}>
+                            <User size={18} /> Cuenta
+                        </button>
+                    </div>
+
+                    <div className="nav-group">
+                        <p className="nav-label">ESTRUCTURA</p>
+                        <button onClick={() => router.push('/info/quienes-somos')}>
+                            <Users size={18} /> Quiénes Somos
+                        </button>
+                        <button onClick={() => router.push('/info/confidencialidad')}>
+                            <Lock size={18} /> Confidencialidad
+                        </button>
+                    </div>
+                </nav>
+
+                <div className="sidebar-footer">
+                    {esAdmin && (
+                        <button className="admin-toggle-btn" onClick={() => router.push('/admin/auth')}>
+                            <Terminal size={14} /> 
+                            <span>MODO ADMIN</span>
+                            {pendientes > 0 && <span className="admin-badge">{pendientes}</span>}
+                        </button>
+                    )}
+                    <button className="logout-btn" onClick={handleLogout}>
+                        <LogOut size={16} /> <span>CERRAR SESIÓN</span>
+                    </button>
                 </div>
-              </div>
+            </aside>
+
+            <div className="premium-viewport">
+                {/* HEADER MOBILE - Eliminado "DVX" duplicado */}
+                <header className="mobile-premium-header mobile-only">
+                    <div className="m-title">MI BÓVEDA</div>
+                    <button className="m-notif"><Bell size={20} /></button>
+                </header>
+
+                <main className="premium-content-area">
+                    {activeTab !== 'inicio' && (
+                        <button onClick={() => setActiveTab('inicio')} className="premium-back-btn">
+                            <ArrowLeft size={16} /> REGRESAR A BÓVEDA
+                        </button>
+                    )}
+
+                    {activeTab === 'inicio' && <RenderInicio />}
+
+                    {activeTab === 'retiros' && (
+                        <div className="fade-in premium-section tab-transition">
+                            <h2 className="premium-title">Terminal de <span className="neon-purple">Retiros</span></h2>
+                            
+                            {/* Micro-gráfico de límite diario */}
+                            <div className="daily-limit-chart">
+                                <div className="chart-header-small">
+                                    <span>LÍMITE DE RETIRO DIARIO</span>
+                                    <span className="limit-value">$2,500 / $5,000</span>
+                                </div>
+                                <div className="bars-container">
+                                    {[85, 62, 91, 45, 78, 33, 67].map((height, i) => (
+                                        <div key={i} className="bar-col">
+                                            <div className="bar-fill" style={{ height: `${height}%` }}></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="premium-glass-card withdraw-card purple-theme">
+                                <div className="withdraw-display">
+                                    <span className="balance-label">SALDO LÍQUIDO DISPONIBLE</span>
+                                    <h3 className="balance-counter neon-purple-glow">
+                                        <small>$</small>{cajeroBalanceVisual.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                    </h3>
+                                </div>
+                                
+                                <div className="method-grid">
+                                    <button 
+                                        className={`method-btn ${metodoRetiro === 'banco' ? 'active' : ''}`} 
+                                        onClick={() => setMetodoRetiro('banco')}
+                                    >
+                                        <Building2 size={22} />
+                                        <span>TRANSFERENCIA BANCARIA</span>
+                                    </button>
+                                    <button 
+                                        className={`method-btn ${metodoRetiro === 'cripto' ? 'active' : ''}`} 
+                                        onClick={() => setMetodoRetiro('cripto')}
+                                    >
+                                        <Zap size={22} />
+                                        <span>USDT (TRC20)</span>
+                                    </button>
+                                </div>
+
+                                <div className="premium-form">
+                                    <div className="p-input-group">
+                                        <label>MONTO A RETIRAR (USD)</label>
+                                        <div className="input-with-symbol elite-input">
+                                            <span className="symbol">$</span>
+                                            <input 
+                                                type="number" 
+                                                placeholder="0.00" 
+                                                value={montoRetiro} 
+                                                onChange={e => setMontoRetiro(e.target.value)} 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="p-input-group">
+                                        <label>DESTINO DE FONDOS</label>
+                                        <textarea 
+                                            className="elite-textarea"
+                                            placeholder="Ingrese datos de cuenta bancaria o dirección de billetera USDT..." 
+                                            value={detallesDestino} 
+                                            onChange={e => setDetallesDestino(e.target.value)} 
+                                        />
+                                    </div>
+                                    <button className="premium-action-btn purple-action" onClick={iniciarProtocoloRetiro}>
+                                        <Lock size={20} /> ACTIVAR PROTOCOLO SEGURO
+                                    </button>
+                                    <p className="form-hint">Todas las transacciones pasan por un proceso de auditoría de 24h a 48h.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'perfil' && (
+                        <div className="fade-in premium-section tab-transition">
+                            <h2 className="premium-title">Ajustes de <span className="neon-purple">Cuenta</span></h2>
+                            
+                            <div className="membership-badge-container">
+                                <div className="membership-badge" style={getNivelStyles()}>
+                                    <Star size={32} fill={getNivelStyles().color} />
+                                    <span>{nivelSocio.toUpperCase()}</span>
+                                </div>
+                            </div>
+
+                            <div className="profile-main-card premium-glass-card">
+                                <div className="profile-header">
+                                    <User size={28} color="#00B0FF" />
+                                    <h3>INFORMACIÓN PERSONAL</h3>
+                                </div>
+                                
+                                <div className="profile-form-grid">
+                                    <div className="input-wrapper">
+                                        <label>NOMBRE COMPLETO</label>
+                                        <div className="icon-input">
+                                            <User size={18} color="#00B0FF" />
+                                            <input 
+                                                value={editNombre} 
+                                                onChange={e => setEditNombre(e.target.value)} 
+                                                placeholder="Nombre completo"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="input-wrapper">
+                                        <label>PAÍS</label>
+                                        <div className="icon-input">
+                                            <Globe size={18} color="#00B0FF" />
+                                            <input 
+                                                value={editPais} 
+                                                onChange={e => setEditPais(e.target.value)} 
+                                                placeholder="País"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="input-wrapper">
+                                        <label>CIUDAD</label>
+                                        <div className="icon-input">
+                                            <MapPin size={18} color="#00B0FF" />
+                                            <input 
+                                                value={editCiudad} 
+                                                onChange={e => setEditCiudad(e.target.value)} 
+                                                placeholder="Ciudad"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="input-wrapper">
+                                        <label>TELÉFONO MÓVIL</label>
+                                        <div className="icon-input">
+                                            <Phone size={18} color="#00B0FF" />
+                                            <input 
+                                                value={editTelefono} 
+                                                onChange={e => setEditTelefono(e.target.value)} 
+                                                placeholder="Teléfono"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    className="premium-save-btn" 
+                                    onClick={actualizarPerfil} 
+                                    disabled={guardandoPerfil}
+                                >
+                                    {guardandoPerfil ? 'SINCRONIZANDO...' : 'GUARDAR CAMBIOS'}
+                                </button>
+                            </div>
+
+                            <div className="side-info-grid">
+                                <div className="mini-info-card premium-glass-card">
+                                    <Mail size={24} color="#00B0FF" />
+                                    <div className="info-content">
+                                        <label>EMAIL ASOCIADO</label>
+                                        <p className="email-value">{editEmail}</p>
+                                    </div>
+                                </div>
+                                <div className="mini-info-card premium-glass-card">
+                                    <ShieldCheck size={24} color="#00C853" />
+                                    <div className="info-content">
+                                        <label>AUDITORÍA DE CUENTA</label>
+                                        <p className="status-active">ACTIVA</p>
+                                    </div>
+                                </div>
+                                <div className="mini-info-card premium-glass-card investment-card">
+                                    <PieChart size={24} color="#00B0FF" />
+                                    <div className="info-content">
+                                        <label>INVERSIÓN INICIAL</label>
+                                        <h3 className="investment-counter">
+                                            ${perfilInversionVisual.toLocaleString()}
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'reportes' && (
+                        <div className="fade-in premium-section">
+                            <h2 className="premium-title">Análisis de <span>Mercados</span></h2>
+                            <div className="markets-summary-grid">
+                                <div className="premium-glass-card market-stat">
+                                    <div className="m-head"><Wallet size={16} /> CAPITAL SEMILLA</div>
+                                    <h3>${(balance - utilidad).toLocaleString()}</h3>
+                                </div>
+                                <div className="premium-glass-card market-stat glow-purple">
+                                    <div className="m-head"><Activity size={16} /> PROFIT TOTAL</div>
+                                    <h3 className="neon-text-purple">+${utilidad.toLocaleString()}</h3>
+                                </div>
+                            </div>
+
+                            <div className="premium-glass-card big-chart-card">
+                                <div className="chart-header">
+                                    <h4>ESTADÍSTICAS SEMANALES</h4>
+                                    <div className="chart-legend">
+                                        <div className="leg-item"><span className="dot purple"></span> Rendimiento</div>
+                                    </div>
+                                </div>
+                                <div className="premium-chart-container">
+                                    <div className="chart-bars-wrap">
+                                        {[35, 65, 45, 85, 55, 95, 100, 70, 85].map((h, i) => (
+                                            <div key={i} className="chart-bar-col">
+                                                <div className="bar-glow" style={{ height: `${h}%` }}></div>
+                                                <div className="bar-main" style={{ height: `${h}%` }}></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="chart-labels">
+                                        <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span><span>L</span><span>M</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </main>
+
+                {/* BOTTOM NAV MOBILE */}
+                <nav className="mobile-bottom-navbar mobile-only">
+                    <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}>
+                        <LayoutDashboard size={20} />
+                        <span>Inicio</span>
+                    </button>
+                    <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}>
+                        <BarChart3 size={20} />
+                        <span>Mercados</span>
+                    </button>
+                    <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}>
+                        <Wallet size={20} />
+                        <span>Cajero</span>
+                    </button>
+                    <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}>
+                        <User size={20} />
+                        <span>Cuenta</span>
+                    </button>
+                </nav>
             </div>
-          )}
 
-          {activeTab === 'perfil' && (
-            <div className="fade-in">
-              <h2 className="section-title">Ajustes de <span>Perfil</span></h2>
-              <div className="profile-grid-mansion">
-                <div className="p-glass-card">
-                  <div className="p-header-info"><User size={20} color="#00C853"/> <span>INFORMACIÓN PERSONAL</span></div>
-                  <div className="p-input-row"><label className="vault-label-text">NOMBRE COMPLETO</label><input className="vault-input-fixed" value={editNombre} onChange={e => setEditNombre(e.target.value)}/></div>
-                  <div className="p-input-row"><label className="vault-label-text">PAÍS DE RESIDENCIA</label><input className="vault-input-fixed" value={editPais} onChange={e => setEditPais(e.target.value)}/></div>
-                  <div className="p-input-row"><label className="vault-label-text">CIUDAD</label><input className="vault-input-fixed" value={editCiudad} onChange={e => setEditCiudad(e.target.value)}/></div>
-                  <div className="p-input-row"><label className="vault-label-text">TELÉFONO MÓVIL</label><input className="vault-input-fixed" value={editTelefono} onChange={e => setEditTelefono(e.target.value)}/></div>
-                  <button className="p-save-btn-fixed" onClick={actualizarPerfil} disabled={guardandoPerfil}>
-                    {guardandoPerfil ? 'SINCRONIZANDO...' : 'GUARDAR CAMBIOS'}
-                  </button>
-                </div>
-                <div className="p-security-stack">
-                  <div className="ps-card-glass"><div className="ps-icon-circle"><Mail size={16}/></div><div><span className="vault-label-text">EMAIL ASOCIADO</span><p>{editEmail}</p></div></div>
-                  <div className="ps-card-glass"><div className="ps-icon-circle"><ShieldCheck size={16}/></div><div><span className="vault-label-text">AUDITORÍA DE CUENTA</span><p className="v-tag-neon" style={{color:'#00C853', fontWeight:'800'}}>ACTIVA</p></div></div>
-                </div>
-              </div>
-            </div>
-          )}
+            <style jsx global>{`
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+                
+                :root {
+                    --neon-green: #00C853;
+                    --electric-blue: #00B0FF;
+                    --vibrant-purple: #AA00FF;
+                    --titanium-gold: #FFD600;
+                    --alert-red: #FF3D00;
+                    --pure-black: #000000;
+                    --card-bg: #050505;
+                    --soft-border: #111111;
+                    --text-muted: #888888;
+                }
 
-          {activeTab === 'reportes' && (
-            <div className="fade-in">
-              <h2 className="section-title">Análisis de <span>Mercados</span></h2>
-              <div className="report-grid-fixed">
-                <div className="r-card-glass">
-                   <div className="r-head"><Wallet size={16} color="#A0A0A0"/> <span className="vault-label-text">CAPITAL SEMILLA</span></div>
-                   <h4>${(balance - utilidad).toLocaleString()}</h4>
-                </div>
-                <div className="r-card-glass highlight-border">
-                   <div className="r-head"><Activity size={16} color="#00C853"/> <span className="vault-label-text">PROFIT TOTAL</span></div>
-                   <h4 className="neon-text">+${utilidad.toLocaleString()}</h4>
-                </div>
-              </div>
-              <div className="chart-container-mansion-fixed">
-                <div className="chart-bars-wrap-fixed">
-                  {[35, 65, 45, 85, 55, 95, 100].map((h, i) => (
-                    <div key={i} className="c-bar-box-fixed"><div className="c-bar-inner" style={{height: h+'%'}}></div></div>
-                  ))}
-                </div>
-                <div className="chart-days-labels-fixed"><span className="vault-label-text">L</span><span className="vault-label-text">M</span><span className="vault-label-text">M</span><span className="vault-label-text">J</span><span className="vault-label-text">V</span><span className="vault-label-text">S</span><span className="vault-label-text">D</span></div>
-              </div>
-            </div>
-          )}
-        </main>
+                * { box-sizing: border-box; }
+                body { margin: 0; background: var(--pure-black); color: #ffffff; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
 
-        <nav className="m-bottom-bar-fixed mobile-only">
-          <button className={activeTab === 'inicio' ? 'active' : ''} onClick={() => setActiveTab('inicio')}><LayoutDashboard size={20}/></button>
-          <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}><BarChart3 size={20}/></button>
-          <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}><Wallet size={20}/></button>
-          <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}><User size={20}/></button>
-          <button onClick={handleLogout}><LogOut size={20} color="#ff4444"/></button>
-        </nav>
-      </div>
+                .premium-mansion-layout { display: flex; min-height: 100vh; background: var(--pure-black); }
+                .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+                .tab-transition { transition: opacity 0.45s cubic-bezier(0.23, 1, 0.32, 1), transform 0.45s cubic-bezier(0.23, 1, 0.32, 1); }
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&display=swap');
-        :root { --main: #00C853; --bg: #000; --border: #1a1a1a; --text-muted: #D1D1D1; }
-        
-        body { margin: 0; background: #000 !important; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+                /* SIDEBAR */
+                .premium-sidebar { 
+                    width: 280px; 
+                    background: #020202; 
+                    border-right: 1px solid var(--soft-border); 
+                    height: 100vh; 
+                    position: sticky; 
+                    top: 0; 
+                    display: flex; 
+                    flex-direction: column; 
+                    padding: 40px 25px; 
+                    z-index: 100;
+                }
+                .sidebar-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 50px; }
+                .logo-icon { width: 32px; height: 32px; background: var(--neon-green); border-radius: 8px; color: #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.2rem; }
+                .sidebar-brand span { font-weight: 400; font-size: 1.1rem; letter-spacing: -0.5px; }
+                .sidebar-brand strong { color: var(--neon-green); font-weight: 800; }
 
-        .desktop-only { display: none !important; }
-        @media (min-width: 1024px) { 
-          .desktop-only { display: flex !important; }
-          .mobile-only { display: none !important; }
-        }
+                .nav-label { font-size: 10px; color: #444; font-weight: 800; letter-spacing: 2px; margin: 25px 0 15px 15px; }
+                .sidebar-nav { flex: 1; }
+                .sidebar-nav button { 
+                    width: 100%; 
+                    background: transparent; 
+                    border: none; 
+                    color: #666; 
+                    padding: 14px 18px; 
+                    display: flex; 
+                    align-items: center; 
+                    gap: 15px; 
+                    font-weight: 600; 
+                    font-size: 14px; 
+                    cursor: pointer; 
+                    transition: all 0.3s; 
+                    border-radius: 14px; 
+                    margin-bottom: 5px;
+                }
+                .sidebar-nav button:hover { color: #fff; background: rgba(255,255,255,0.03); }
+                .sidebar-nav button.active { color: var(--neon-green); background: rgba(0, 200, 83, 0.05); }
 
-        .mansion-container { display: flex; min-height: 100vh; background: #000; }
-        .mansion-sidebar { width: 280px; background: #050505; border-right: 1px solid var(--border); position: sticky; top: 0; height: 100vh; z-index: 1000; padding: 40px 25px; box-sizing: border-box; display: flex; flex-direction: column; }
-        .brand-logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -1px; margin-bottom: 50px; }
-        .brand-logo span { color: var(--main); }
-        .mansion-nav button { width: 100%; text-align: left; padding: 16px; border-radius: 14px; background: transparent; color: #555; border: none; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 8px; }
-        .mansion-nav button.active { color: var(--main); background: rgba(0,200,83,0.03); }
+                .sidebar-footer { padding-top: 20px; border-top: 1px solid var(--soft-border); }
+                .admin-toggle-btn { 
+                    width: 100%; background: rgba(0, 200, 83, 0.05); border: 1px solid rgba(0, 200, 83, 0.2); 
+                    color: var(--neon-green); padding: 14px; border-radius: 12px; font-weight: 800; 
+                    font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px;
+                }
+                .admin-badge { background: var(--alert-red); color: #fff; padding: 2px 6px; border-radius: 20px; font-size: 9px; margin-left: auto; }
+                .logout-btn { 
+                    width: 100%; background: transparent; border: 1px solid #200505; color: var(--alert-red); 
+                    padding: 14px; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; 
+                    display: flex; align-items: center; justify-content: center; gap: 10px; opacity: 0.8; transition: 0.3s;
+                }
+                .logout-btn:hover { opacity: 1; background: #200505; }
 
-        .mansion-viewport { flex: 1; display: flex; flex-direction: column; background: #000; min-width: 0; }
-        .mobile-header { height: 75px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: #000; position: sticky; top: 0; z-index: 500; }
-        .m-brand-box { font-weight: 800; font-size: 1.1rem; color: #fff; display: flex; align-items: center; }
-        .m-brand-box span { color: var(--main); margin-left: 5px; }
+                /* VIEWPORT */
+                .premium-viewport { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+                .premium-content-area { 
+                    padding: 40px 6% 160px; 
+                    max-width: 1200px; 
+                    margin: 0 auto; 
+                    width: 100%; 
+                }
 
-        .mansion-main { padding: 40px 6%; max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box; position: relative; }
-        .vault-label-text { color: #888 !important; font-size: 9px !important; font-weight: 800 !important; letter-spacing: 1.5px !important; text-transform: uppercase; }
+                /* HEADER MOBILE - DVX eliminado */
+                .mobile-premium-header { 
+                    height: 75px; 
+                    border-bottom: 1px solid #111; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: space-between; 
+                    padding: 0 20px; 
+                    background: #000; 
+                    position: sticky; 
+                    top: 0; 
+                    z-index: 500; 
+                }
+                .m-title { font-weight: 800; font-size: 13px; letter-spacing: 1px; color: #fff; }
+                .m-notif { background: none; border: none; color: #444; }
 
-        .glass-vault-card, .p-glass-card, .r-card-glass, .glass-withdraw-card, .stat-box, .hub-card, .ps-card-glass { 
-          background: #0a0a0a !important; 
-          border: 1px solid var(--border) !important; 
-          padding: 30px !important; 
-          border-radius: 24px !important; 
-          margin-bottom: 25px !important; 
-          display: block !important;
-          width: 100% !important;
-          box-sizing: border-box !important;
-          box-shadow: 0 15px 40px rgba(0,0,0,0.9) !important;
-        }
+                /* HEADER DESKTOP (sin cambios) */
+                .premium-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+                .rank-badge { 
+                    display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; 
+                    border: 1px solid; font-size: 9px; font-weight: 800; letter-spacing: 2px; margin-bottom: 15px; 
+                }
+                .header-greeting h1 { font-size: 2.2rem; font-weight: 800; margin: 0; letter-spacing: -1.5px; }
+                .header-greeting h1 span { color: var(--neon-green); }
+                .header-greeting p { color: #555; font-size: 12px; margin-top: 5px; font-weight: 500; }
+                .header-actions-top { display: flex; align-items: center; gap: 15px; }
+                .icon-circle-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--soft-border); color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+                .icon-circle-btn:hover { color: #fff; border-color: #333; }
+                .user-pill { background: var(--card-bg); border: 1px solid var(--soft-border); padding: 5px 15px 5px 5px; border-radius: 30px; display: flex; align-items: center; gap: 10px; color: #aaa; font-size: 12px; font-weight: 600; }
+                .avatar-mini { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #00C853, #00B0FF); color: #000; font-weight: 900; display: flex; align-items: center; justify-content: center; font-size: 14px; }
 
-        .vault-input-fixed {
-          width: 100% !important;
-          background: #000 !important;
-          background-color: #000 !important;
-          border: 1px solid #222 !important;
-          padding: 18px !important;
-          border-radius: 15px !important;
-          color: #fff !important;
-          font-size: 15px !important;
-          outline: none !important;
-          appearance: none !important;
-          -webkit-appearance: none !important;
-        }
+                /* VAULT CARD */
+                .main-vault-card { 
+                    background: #080808; border: 1px solid var(--soft-border); border-radius: 32px; 
+                    padding: 50px; position: relative; overflow: hidden; display: flex; justify-content: space-between; 
+                    align-items: center; margin-bottom: 30px;
+                }
+                .vault-glass-overlay { position: absolute; top: 0; right: 0; width: 40%; height: 100%; background: linear-gradient(90deg, transparent, rgba(0, 200, 83, 0.03)); pointer-events: none; }
+                .vault-label { display: flex; align-items: center; gap: 10px; color: #555; font-size: 11px; font-weight: 800; letter-spacing: 2px; margin-bottom: 15px; }
+                .main-balance-text { font-size: 4.5rem; font-weight: 800; margin: 0; letter-spacing: -3px; }
+                .main-balance-text small { font-size: 2rem; color: var(--neon-green); margin-right: 10px; vertical-align: middle; font-weight: 400; }
+                .vault-stats-row { display: flex; align-items: center; gap: 40px; margin-top: 30px; }
+                .v-stat { display: flex; flex-direction: column; gap: 5px; }
+                .v-stat.divider { width: 1px; height: 30px; background: #222; }
+                .v-label { font-size: 10px; color: #444; font-weight: 800; letter-spacing: 1px; }
+                .v-value { font-size: 1.1rem; font-weight: 700; }
+                .v-value.positive { color: var(--neon-green); display: flex; align-items: center; gap: 5px; }
+                
+                .vault-visual { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
+                .pulse-aura { position: absolute; width: 100%; height: 100%; border: 2px solid var(--neon-green); border-radius: 50%; opacity: 0.2; animation: vaultPulse 2s infinite; }
+                @keyframes vaultPulse { 0% { transform: scale(0.8); opacity: 0.3; } 100% { transform: scale(1.5); opacity: 0; } }
 
-        .w-submit-btn-fixed, .p-save-btn-fixed { 
-          width: 100%; background: var(--main); color: #000; border: none; padding: 20px; border-radius: 16px; font-weight: 900; margin-top: 15px; cursor: pointer; transition: 0.3s; 
-        }
+                /* CARDS GRID */
+                .secondary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+                .premium-card { background: var(--card-bg); border: 1px solid var(--soft-border); border-radius: 24px; padding: 30px; position: relative; overflow: hidden; }
+                .card-head { display: flex; align-items: center; gap: 12px; color: #555; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 25px; }
+                .chart-simulation { display: flex; align-items: flex-end; justify-content: space-between; height: 60px; gap: 5px; }
+                .bar-wrapper { flex: 1; background: #111; height: 100%; border-radius: 4px; display: flex; align-items: flex-end; }
+                .bar-inner { width: 100%; border-radius: 3px; transition: height 1s ease-out; }
+                .card-footer-info { margin-top: 15px; }
+                .percentage-up { font-size: 11px; color: var(--neon-green); font-weight: 700; }
 
-        .m-bottom-bar-fixed { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 999; }
-        .m-bottom-bar-fixed button { background: none; border: none; color: #444; }
-        .m-bottom-bar-fixed button.active { color: var(--main); }
+                .audit-status h3 { font-size: 1.8rem; font-weight: 800; margin: 10px 0 5px; color: var(--electric-blue); }
+                .audit-status p { font-size: 10px; color: #444; font-weight: 600; margin: 0; }
+                .status-indicator { display: flex; align-items: center; gap: 8px; font-size: 9px; font-weight: 800; color: #555; }
+                .status-indicator .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--electric-blue); box-shadow: 0 0 10px var(--electric-blue); animation: blink 1.5s infinite; }
+                @keyframes blink { 50% { opacity: 0.3; } }
 
-        .chart-container-mansion-fixed { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 30px; border-radius: 24px; }
-        .chart-bars-wrap-fixed { display: flex; align-items: flex-end; justify-content: space-between; height: 150px; gap: 8px; }
-        .c-bar-inner { background: linear-gradient(to top, #00C853, #00E676); width: 100%; border-radius: 4px; transition: 1s; }
-        .c-bar-box-fixed { flex: 1; background: #050505; height: 100%; border-radius: 4px; display: flex; align-items: flex-end; }
-        .chart-days-labels-fixed { display: flex; justify-content: space-between; margin-top: 15px; }
+                /* ACTIONS */
+                .section-subtitle { font-size: 10px; color: #444; font-weight: 800; letter-spacing: 3px; margin-bottom: 20px; }
+                .actions-strip { 
+                    display: grid; 
+                    grid-template-columns: repeat(4, 1fr); 
+                    gap: 15px; 
+                    margin-bottom: 40px; 
+                }
+                .strip-btn { 
+                    background: var(--card-bg); 
+                    border: 2px solid var(--soft-border); 
+                    border-radius: 20px; 
+                    padding: 22px 16px; 
+                    display: flex; 
+                    flex-direction: column; 
+                    align-items: center; 
+                    gap: 14px; 
+                    cursor: pointer; 
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                .strip-btn .icon-box { 
+                    width: 52px; 
+                    height: 52px; 
+                    border-radius: 16px; 
+                    background: #0a0a0a; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    transition: 0.3s;
+                }
+                .strip-btn span { 
+                    font-size: 11px; 
+                    font-weight: 800; 
+                    letter-spacing: 1px; 
+                }
+                .strip-btn:hover { 
+                    border-color: #555; 
+                    transform: translateY(-6px); 
+                    box-shadow: 0 12px 30px rgba(255,255,255,0.04);
+                }
 
-        @media (max-width: 1023px) {
-          .mansion-main { padding: 30px 20px 120px !important; }
-        }
-      `}</style>
-    </div>
-  );
+                .strip-btn.blue { border-color: #00B0FF; }
+                .strip-btn.blue .icon-box { color: #00B0FF; filter: drop-shadow(0 0 20px #00B0FF); }
+                .strip-btn.blue span { color: #00B0FF; }
+
+                .strip-btn.purple { border-color: #AA00FF; }
+                .strip-btn.purple .icon-box { color: #AA00FF; filter: drop-shadow(0 0 20px #AA00FF); }
+                .strip-btn.purple span { color: #AA00FF; }
+
+                .strip-btn.green { border-color: #00C853; }
+                .strip-btn.green .icon-box { color: #00C853; filter: drop-shadow(0 0 20px #00C853); }
+                .strip-btn.green span { color: #00C853; }
+
+                .strip-btn.gold { border-color: #FFD600; }
+                .strip-btn.gold .icon-box { color: #FFD600; filter: drop-shadow(0 0 20px #FFD600); }
+                .strip-btn.gold span { color: #FFD600; }
+
+                /* RADAR GLOBAL */
+                .radar-access-banner { 
+                    background: linear-gradient(90deg, #050505, #0a0a0a); 
+                    border: 1px solid var(--soft-border); 
+                    border-radius: 24px; 
+                    padding: 28px 40px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: space-between; 
+                    cursor: pointer; 
+                    transition: 0.3s; 
+                    margin-top: 30px;
+                    margin-bottom: 40px;
+                }
+                .radar-access-banner:hover { 
+                    border-color: var(--neon-green); 
+                    box-shadow: 0 10px 30px rgba(0, 200, 83, 0.05); 
+                }
+                .banner-content { display: flex; align-items: center; gap: 20px; }
+                .banner-icon { 
+                    width: 56px; 
+                    height: 56px; 
+                    border-radius: 16px; 
+                    background: rgba(0, 200, 83, 0.12); 
+                    color: var(--neon-green); 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                }
+                .banner-content h4 { margin: 0; font-weight: 800; font-size: 1.15rem; }
+                .banner-content p { margin: 6px 0 0; font-size: 12.5px; color: #666; }
+                .spin-slow { animation: spin 12s linear infinite; }
+
+                /* SECTIONS */
+                .premium-title { font-size: 2.4rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 40px; }
+                .premium-title span { color: var(--neon-green); }
+                .neon-purple { color: var(--vibrant-purple); text-shadow: 0 0 20px rgba(170,0,255,0.6); }
+
+                .premium-glass-card { 
+                    background: rgba(5,5,5,0.95); 
+                    border: 1px solid rgba(255,255,255,0.08); 
+                    border-radius: 28px; 
+                    padding: 42px; 
+                    backdrop-filter: blur(20px);
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+                }
+
+                .premium-back-btn { 
+                    background: #0a0a0a; 
+                    border: 1px solid #222; 
+                    color: var(--neon-green); 
+                    padding: 10px 20px; 
+                    border-radius: 12px; 
+                    font-weight: 800; 
+                    font-size: 11px; 
+                    cursor: pointer; 
+                    display: flex; 
+                    align-items: center; 
+                    gap: 10px; 
+                    margin-bottom: 30px; 
+                    transition: all 0.3s;
+                }
+                .premium-back-btn:hover { background: #111; border-color: var(--neon-green); }
+
+                /* CAJERO */
+                .withdraw-card {
+                    border: 2px solid var(--vibrant-purple);
+                    box-shadow: 0 0 50px rgba(170, 0, 255, 0.25);
+                }
+                .withdraw-display {
+                    text-align: center;
+                    padding-bottom: 32px;
+                    border-bottom: 1px solid #222;
+                    margin-bottom: 32px;
+                }
+                .balance-label {
+                    font-size: 11px;
+                    letter-spacing: 3px;
+                    color: #666;
+                    font-weight: 800;
+                }
+                .balance-counter {
+                    font-size: 4.8rem;
+                    font-weight: 900;
+                    letter-spacing: -4px;
+                    line-height: 1;
+                }
+                .neon-purple-glow {
+                    color: var(--vibrant-purple);
+                    text-shadow: 0 0 40px #AA00FF, 0 0 80px rgba(170,0,255,0.6);
+                }
+
+                .method-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 16px;
+                    margin-bottom: 40px;
+                }
+                .method-btn {
+                    background: #0a0a0a;
+                    border: 2px solid #222;
+                    border-radius: 16px;
+                    padding: 24px 20px;
+                    color: #777;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 12px;
+                    font-weight: 600;
+                    font-size: 13px;
+                    transition: all 0.3s ease;
+                }
+                .method-btn:hover { border-color: #444; }
+                .method-btn.active {
+                    border-color: var(--vibrant-purple);
+                    color: white;
+                    background: rgba(170,0,255,0.08);
+                    box-shadow: 0 0 25px rgba(170,0,255,0.3);
+                }
+
+                .elite-input { position: relative; }
+                .elite-input .symbol {
+                    position: absolute;
+                    left: 22px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: var(--vibrant-purple);
+                    font-size: 1.4rem;
+                    font-weight: 700;
+                }
+                .elite-input input, .elite-textarea {
+                    width: 100%;
+                    background: #000000 !important;
+                    border: 2px solid var(--vibrant-purple) !important;
+                    color: #ffffff !important;
+                    padding: 18px 20px 18px 52px;
+                    border-radius: 14px;
+                    font-size: 16px;
+                    outline: none;
+                    transition: all 0.3s;
+                }
+                .elite-input input:focus, .elite-textarea:focus {
+                    border-color: #fff !important;
+                    box-shadow: 0 0 0 4px rgba(170,0,255,0.25);
+                }
+                .elite-textarea { min-height: 110px; resize: vertical; padding: 18px 20px; }
+
+                .purple-action {
+                    width: 100%;
+                    background: linear-gradient(90deg, #AA00FF, #D16EFF);
+                    color: #000;
+                    border: none;
+                    padding: 22px;
+                    border-radius: 16px;
+                    font-size: 15px;
+                    font-weight: 900;
+                    letter-spacing: 1px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    margin-top: 12px;
+                }
+                .purple-action:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 15px 40px rgba(170,0,255,0.5);
+                }
+
+                .form-hint {
+                    text-align: center;
+                    font-size: 11px;
+                    color: #555;
+                    margin-top: 24px;
+                    font-weight: 500;
+                }
+
+                /* CUENTA */
+                .membership-badge-container {
+                    display: flex;
+                    justify-content: center;
+                    margin: 20px 0 50px;
+                }
+                .membership-badge {
+                    display: flex;
+                    align-items: center;
+                    gap: 18px;
+                    padding: 16px 48px;
+                    border-radius: 9999px;
+                    font-size: 1.95rem;
+                    font-weight: 900;
+                    letter-spacing: -1.2px;
+                    text-transform: uppercase;
+                    box-shadow: 0 0 70px currentColor;
+                    border: 4px solid currentColor;
+                    background: rgba(0,0,0,0.6);
+                    transition: all 0.4s ease;
+                }
+
+                .profile-main-card { margin-bottom: 40px; }
+                .profile-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    margin-bottom: 32px;
+                    padding-bottom: 20px;
+                    border-bottom: 1px solid #222;
+                }
+                .profile-header h3 {
+                    margin: 0;
+                    font-size: 1.35rem;
+                    font-weight: 800;
+                    letter-spacing: 0.5px;
+                }
+
+                .profile-form-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 24px;
+                }
+                .input-wrapper label {
+                    display: block;
+                    font-size: 10px;
+                    font-weight: 800;
+                    letter-spacing: 2px;
+                    color: #666;
+                    margin-bottom: 8px;
+                }
+                .icon-input {
+                    display: flex;
+                    align-items: center;
+                    background: #000;
+                    border: 2px solid #00B0FF;
+                    border-radius: 14px;
+                    overflow: hidden;
+                    transition: all 0.3s;
+                }
+                .icon-input:focus-within {
+                    border-color: #fff;
+                    box-shadow: 0 0 0 4px rgba(0,176,255,0.25);
+                }
+                .icon-input svg {
+                    margin-left: 18px;
+                    flex-shrink: 0;
+                }
+                .icon-input input {
+                    flex: 1;
+                    background: transparent;
+                    border: none;
+                    padding: 18px 20px;
+                    color: #fff;
+                    font-size: 15px;
+                    outline: none;
+                }
+
+                .premium-save-btn {
+                    width: 100%;
+                    background: var(--neon-green);
+                    color: #000;
+                    border: none;
+                    padding: 20px;
+                    border-radius: 14px;
+                    font-weight: 900;
+                    font-size: 15px;
+                    margin-top: 32px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+                .premium-save-btn:hover {
+                    transform: scale(1.02);
+                    box-shadow: 0 10px 30px rgba(0,200,83,0.4);
+                }
+
+                .side-info-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 20px;
+                }
+                .mini-info-card {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                    padding: 28px;
+                }
+                .mini-info-card svg { flex-shrink: 0; }
+                .info-content label {
+                    font-size: 10px;
+                    color: #666;
+                    font-weight: 800;
+                    letter-spacing: 1.5px;
+                }
+                .email-value {
+                    font-size: 15px;
+                    font-weight: 700;
+                    margin-top: 4px;
+                }
+                .status-active {
+                    color: var(--neon-green);
+                    font-weight: 800;
+                    font-size: 15px;
+                    margin-top: 4px;
+                }
+                .investment-card h3 {
+                    font-size: 2.4rem;
+                    font-weight: 900;
+                    margin-top: 6px;
+                    color: #fff;
+                }
+
+                /* MARKETS */
+                .markets-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+                .market-stat .m-head { font-size: 10px; color: #555; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+                .market-stat h3 { font-size: 2.2rem; font-weight: 800; margin: 0; }
+                .neon-text-purple { color: var(--vibrant-purple); text-shadow: 0 0 15px rgba(170, 0, 255, 0.3); }
+                .glow-purple { border-color: rgba(170, 0, 255, 0.2) !important; }
+
+                .big-chart-card { padding: 40px !important; }
+                .chart-header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+                .chart-header h4 { margin: 0; font-weight: 800; font-size: 14px; letter-spacing: 1px; color: #aaa; }
+                .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+                .dot.purple { background: var(--vibrant-purple); box-shadow: 0 0 10px var(--vibrant-purple); }
+                .chart-legend { font-size: 10px; font-weight: 700; color: #444; }
+                
+                .premium-chart-container { height: 250px; display: flex; flex-direction: column; }
+                .chart-bars-wrap { flex: 1; display: flex; align-items: flex-end; justify-content: space-between; gap: 15px; padding-bottom: 20px; border-bottom: 1px solid #111; }
+                .chart-bar-col { flex: 1; position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+                .bar-main { width: 100%; max-width: 40px; background: var(--vibrant-purple); border-radius: 8px 8px 0 0; position: relative; z-index: 2; transition: height 1.5s ease-in-out; }
+                .bar-glow { position: absolute; width: 100%; max-width: 60px; background: linear-gradient(to top, transparent, rgba(170, 0, 255, 0.15)); border-radius: 12px; filter: blur(10px); }
+                .chart-labels { display: flex; justify-content: space-between; padding-top: 15px; color: #333; font-size: 10px; font-weight: 800; }
+
+                /* SECURITY */
+                .security-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+                .security-card { background: #050505; border: 1px solid #222; border-radius: 40px; padding: 60px 40px; max-width: 450px; width: 100%; text-align: center; position: relative; }
+                .security-icon-header { position: relative; margin-bottom: 30px; display: flex; justify-content: center; }
+                .glow-shield { position: absolute; width: 60px; height: 60px; background: var(--neon-green); filter: blur(30px); opacity: 0.3; }
+                .security-card h2 { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; margin-bottom: 15px; }
+                .security-card p { color: #666; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+                .premium-otp-input { background: #000 !important; border: 1px solid #333 !important; border-radius: 15px; padding: 20px; width: 100%; font-size: 2rem; font-weight: 800; text-align: center; letter-spacing: 15px; color: var(--neon-green) !important; outline: none; margin-bottom: 30px; }
+                .premium-otp-input::placeholder { letter-spacing: 5px; opacity: 0.2; }
+                .premium-submit-btn { width: 100%; background: var(--neon-green); color: #000; padding: 20px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; font-size: 14px; }
+
+                /* MOBILE NAV */
+                .mobile-bottom-navbar { 
+                    position: fixed; 
+                    bottom: 0; 
+                    left: 0; 
+                    right: 0; 
+                    height: 85px; 
+                    background: rgba(5,5,5,0.94); 
+                    backdrop-filter: blur(25px); 
+                    border-top: 1px solid var(--soft-border); 
+                    display: flex; 
+                    justify-content: space-around; 
+                    align-items: center; 
+                    padding-bottom: 15px; 
+                    z-index: 1000; 
+                }
+                .mobile-bottom-navbar button { 
+                    background: none; 
+                    border: none; 
+                    color: #444; 
+                    display: flex; 
+                    flex-direction: column; 
+                    align-items: center; 
+                    gap: 6px; 
+                }
+                .mobile-bottom-navbar button span { 
+                    font-size: 9px; 
+                    font-weight: 700; 
+                    letter-spacing: 0.5px; 
+                }
+                .mobile-bottom-navbar button.active { color: var(--neon-green); }
+
+                @media (max-width: 1023px) {
+                    .premium-content-area { 
+                        padding: 30px 20px 180px; 
+                    }
+                    .main-vault-card { padding: 35px 25px; flex-direction: column; text-align: center; }
+                    .main-balance-text { font-size: 3rem; }
+                    .vault-visual { margin-top: 30px; }
+                    .vault-stats-row { justify-content: center; gap: 20px; }
+                    .secondary-grid, .markets-summary-grid { grid-template-columns: 1fr; }
+                    .profile-form-grid { grid-template-columns: 1fr; }
+                    .actions-strip { grid-template-columns: 1fr 1fr; }
+                    .radar-access-banner { 
+                        padding: 24px; 
+                        margin-top: 30px; 
+                        margin-bottom: 60px; 
+                    }
+                    .banner-content h4 { font-size: 14px; }
+                    .premium-title { font-size: 1.8rem; }
+                    .mobile-bottom-navbar { height: 78px; }
+                    .side-info-grid { grid-template-columns: 1fr; }
+                }
+            `}</style>
+        </div>
+    );
 }
