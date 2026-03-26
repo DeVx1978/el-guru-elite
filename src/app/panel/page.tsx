@@ -15,7 +15,7 @@ const clientSupabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function SocioPanel() {
+function SocioPanel() {
     const router = useRouter();
 
     const [loading, setLoading] = useState(true);
@@ -106,47 +106,45 @@ export default function SocioPanel() {
         }
     };
 
+    // MOTOR UNIFICADO: Gestiona admin y animaciones en un solo flujo (Adiós parpadeo)
     useEffect(() => {
-        if (esAdmin && !loading) obtenerPendientesAdmin();
-    }, [esAdmin, loading]);
+        // 1. Datos Administrativos
+        if (esAdmin && !loading) {
+            const fetchPendientes = async () => {
+                const { count } = await clientSupabase
+                    .from('socios')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('estado', 'pendiente');
+                setPendientes(count || 0);
+            };
+            fetchPendientes();
+        }
 
-    // Contador principal (Inicio) - Animación desde $0 con efecto IA suave
-    useEffect(() => {
+        // 2. Lógica de animación de balances sincronizada
         if (!loading && balance > 0) {
             let start = 0;
-            const duration = 1800;
+            const duration = 1000; 
             const increment = balance / (duration / 16);
+            
             const timer = setInterval(() => {
                 start += increment;
                 if (start >= balance) {
                     setBalanceVisual(balance);
-                    clearInterval(timer);
-                } else {
-                    setBalanceVisual(Math.floor(start));
-                }
-            }, 16);
-            return () => clearInterval(timer);
-        }
-    }, [loading, balance]);
-
-    // Contador para pestaña CAJERO
-    useEffect(() => {
-        if (activeTab === 'retiros' && balance > 0) {
-            let start = 0;
-            const duration = 1200;
-            const increment = balance / (duration / 16);
-            const timer = setInterval(() => {
-                start += increment;
-                if (start >= balance) {
                     setCajeroBalanceVisual(balance);
+                    setPerfilInversionVisual(balance - utilidad);
                     clearInterval(timer);
                 } else {
-                    setCajeroBalanceVisual(Math.floor(start));
+                    const current = Math.floor(start);
+                    setBalanceVisual(current);
+                    // Actualizamos las pestañas de forma inteligente
+                    if (activeTab === 'retiros') setCajeroBalanceVisual(current);
+                    if (activeTab === 'perfil') setPerfilInversionVisual(current - utilidad);
                 }
             }, 16);
+            
             return () => clearInterval(timer);
         }
-    }, [activeTab, balance]);
+    }, [loading, balance, esAdmin, activeTab, utilidad]);
 
     // Contador para pestaña CUENTA (Inversión inicial)
     useEffect(() => {
@@ -726,18 +724,33 @@ export default function SocioPanel() {
                         <BarChart3 size={20} />
                         <span>Mercados</span>
                     </button>
-                    <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}>
-                        <Wallet size={20} />
-                        <span>Cajero</span>
-                    </button>
-                    <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}>
-                        <User size={20} />
-                        <span>Cuenta</span>
-                    </button>
-                </nav>
-            </div>
+                    {/* ACCESO AL BÚNKER - VERSIÓN SLIM ÉLITE (ANCHO PROTEGIDO) */}
+                             {/* 1. Botón Mercados */}
+                <button className={activeTab === 'reportes' ? 'active' : ''} onClick={() => setActiveTab('reportes')}>
+                    <BarChart3 size={20} />
+                    <span>Mercados</span>
+                </button>
 
-            <style jsx global>{`
+                {/* AQUÍ YA NO DEBE QUEDAR NADA DEL BÚNKER RECTANGULAR */}
+
+                {/* 2. Botón Cajero */}
+                <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}>
+                    <Wallet size={20} />
+                    <span>Cajero</span>
+                </button>
+                    <button className={activeTab === 'retiros' ? 'active' : ''} onClick={() => setActiveTab('retiros')}>
+                    <Wallet size={20} />
+                    <span>Cajero</span>
+                </button>
+
+                <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}>
+                    <User size={20} />
+                    <span>Cuenta</span>
+                </button>
+            </nav>
+        </div>
+
+        <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
                 
                 :root {
@@ -1391,9 +1404,53 @@ export default function SocioPanel() {
                         font-weight: 800 !important;
                     }
                     .mobile-bottom-navbar button.active { color: var(--neon-green) !important; }
-                }
+              }
                 /* --- FIN DEL BLOQUE --- */
             `}</style>
+
+            {/* BOTÓN BÚNKER ÉLITE - INTEGRADO CORRECTAMENTE */}
+            {esAdmin && (
+                <div 
+                    onClick={() => router.push('/admin/auth')}
+                    style={{
+                        position: 'fixed',
+                        bottom: '100px', 
+                        left: '20px',
+                        width: '52px',
+                        height: '52px',
+                        backgroundColor: '#000',
+                        border: '2px solid #00C853',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 0 20px rgba(0, 200, 83, 0.6)',
+                        cursor: 'pointer',
+                        zIndex: 100000 
+                    }}
+                >
+                    <ShieldCheck size={28} color="#00C853" />
+                    {pendientes > 0 && (
+                        <span style={{
+                            position: 'absolute',
+                            top: '-2px',
+                            right: '-2px',
+                            background: '#FF3D00',
+                            color: 'white',
+                            fontSize: '10px',
+                            fontWeight: '900',
+                            padding: '2px 7px',
+                            borderRadius: '10px',
+                            border: '2px solid #000',
+                            boxShadow: '0 0 10px rgba(255, 61, 0, 0.5)'
+                        }}>
+                            {pendientes}
+                        </span>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
+
+export default SocioPanel;
