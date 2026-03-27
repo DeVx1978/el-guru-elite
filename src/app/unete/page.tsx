@@ -4,8 +4,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { 
   User, Mail, Lock, Phone, Target, Zap, Award, Star, 
-  MapPin, UploadCloud, CheckCircle2, AlertTriangle, Eye, EyeOff, Briefcase,
-  ChevronRight, ArrowLeft, Globe, ShieldCheck, Info, Landmark, TrendingUp, Sparkles
+  MapPin, UploadCloud, ShieldCheck, Landmark, Sparkles, Clock, Eye, EyeOff, ChevronRight, ArrowLeft, Globe, TrendingUp, Briefcase
 } from 'lucide-react';
 
 const clientSupabase = createClient(
@@ -69,7 +68,7 @@ export default function UnetePage() {
   const [formData, setFormData] = useState({
     nombre: '', email: '', password: '', confirmPassword: '',
     pais: '', ciudad: '', codigoArea: '', telefono: '',
-    plan: '', metodoPago: '', tyc: false, politicas: false
+    plan: '', metodoPago: '', tyc: false
   });
 
   const metodosDisponibles = obtenerMetodosPago(formData.pais);
@@ -96,53 +95,67 @@ export default function UnetePage() {
     }
   };
 
+  // ====================== FUNCIÓN CORREGIDA Y MEJORADA ======================
   const finalizarRegistro = async () => {
+    if (!comprobante) {
+      setError("Debes subir el comprobante de depósito");
+      return;
+    }
+
     setLoading(true);
     setError(null);
+
     try {
-      const correoLimpio = formData.email.trim().toLowerCase();
+      // Insertar en tabla 'socios'
       const { data: socio, error: errSocio } = await clientSupabase
         .from('socios')
         .insert([{
           nombre: formData.nombre.trim(),
-          email: correoLimpio,
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
-          pais: formData.pais,      
+          pais: formData.pais,
           telefono: `${formData.codigoArea} ${formData.telefono}`,
-          plan: formData.plan,      
+          plan: formData.plan,
           estado: 'pendiente',
           rol: 'socio'
         }])
-        .select().single();
-      
-      if (errSocio) throw new Error(errSocio.message);
+        .select()
+        .single();
 
-      await clientSupabase.from('socios_elite').insert([{
-          id_socio: socio.id,
-          nivel_socio: formData.plan.toUpperCase(),
-          ciudad: formData.ciudad
+      if (errSocio) {
+        console.error("Error Supabase socios:", errSocio);
+        throw new Error(`Error al crear socio: ${errSocio.message}`);
+      }
+
+      if (!socio?.id) throw new Error("No se recibió el ID del socio");
+
+      // Insertar en tabla 'socios_elite'
+      const { error: errElite } = await clientSupabase.from('socios_elite').insert([{
+        id_socio: socio.id,
+        nivel_socio: formData.plan.toUpperCase(),
+        ciudad: formData.ciudad || ''
       }]);
 
+      if (errElite) {
+        console.error("Error Supabase socios_elite:", errElite);
+        throw new Error(`Error al crear registro elite: ${errElite.message}`);
+      }
+
+      // Éxito → Ir al paso 5
       setPaso(5);
-    } catch (err: any) { 
-      setError(err.message); 
+
+    } catch (err: any) {
+      console.error("Error completo en registro:", err);
+      setError(err.message || "Error desconocido al procesar el registro. Revisa la consola.");
+    } finally {
       setLoading(false);
     }
   };
 
-  // VALIDACIÓN DE LOGICA REFORZADA
-  const paso1Valido = formData.nombre.trim().length > 2 && 
-                      formData.email.includes('@') && 
-                      formData.password.length >= 6 && 
-                      formData.password === formData.confirmPassword && 
-                      formData.tyc === true;
-
-  const paso2Valido = formData.pais !== '' && 
-                      formData.pais !== 'Seleccione Nación...' && 
-                      formData.ciudad.trim().length > 1 && 
-                      formData.telefono.trim().length > 5;
-
+  const paso1Valido = formData.nombre.trim().length > 2 && formData.email.includes('@') && formData.password.length >= 6 && formData.password === formData.confirmPassword && formData.tyc;
+  const paso2Valido = formData.pais !== '' && formData.ciudad.trim().length > 1 && formData.telefono.trim().length > 5;
   const paso3Valido = formData.plan !== '';
+  const paso4Valido = !!comprobante;
 
   if (!isMounted) return <div className="min-h-screen bg-black" />;
 
@@ -150,162 +163,163 @@ export default function UnetePage() {
     <div className="unete-wrapper">
       <div className="bg-gradient-radial"></div>
 
-      <nav className="unete-nav">
-        <button onClick={() => paso > 1 ? setPaso(paso-1) : router.push('/')} className="nav-back-elite">
-          <ArrowLeft size={18} className="text-[#00C853]"/> <span>VOLVER</span>
+      <nav className="unete-nav" style={{position:'relative', zIndex:100, width:'100%', maxWidth:'1200px', padding:'40px 5%', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+        <button onClick={() => paso > 1 ? setPaso(paso-1) : router.push('/')} style={{background:'transparent', border:'none', color:'#444', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', gap:'10px'}}>
+          <ArrowLeft size={18}/> <span>VOLVER</span>
         </button>
-        <div className="elite-stepper">
-          <div className="step-tag">FASE 0{paso}</div>
-          <div className="progress-track-elite">
-            <div className="progress-fill-neon" style={{ width: `${(paso/4)*100}%` }}></div>
+        <div style={{textAlign:'right'}}>
+          <div style={{fontSize:'10px', color:'#1a1a1a', letterSpacing:'4px'}}>FASE 0{paso}</div>
+          <div style={{width:'120px', height:'3px', background:'#111', borderRadius:'10px', overflow:'hidden', marginTop:'5px'}}>
+            <div style={{ 
+                width: `${(paso/4)*100}%`, height: '100%', transition: '1s cubic-bezier(0.4, 0, 0.2, 1)',
+                backgroundColor: paso === 1 ? '#00C853' : paso === 2 ? '#00B0FF' : paso === 3 ? '#AA00FF' : '#FFD600' 
+            }}></div>
           </div>
         </div>
       </nav>
 
-      <main className="unete-content">
-        <div className="vault-container-premium">
-          <div className="security-scan-fx"></div>
-
-          {/* PASO 1: IDENTIDAD */}
+      <main className="unete-content" style={{display:'flex', justifyContent:'center', alignItems:'center', minHeight:'80vh', position:'relative', zIndex:10, padding:'20px'}}>
+        <div className="vault-container" style={{width:'100%', maxWidth:'550px', background:'rgba(5,5,5,0.85)', backdropFilter:'blur(50px)', border:'1px solid rgba(255,255,255,0.05)', padding:'50px', borderRadius:'40px', boxShadow:'0 50px 100px rgba(0,0,0,1)'}}>
+          
           {paso === 1 && (
             <div className="fade-in">
-              <span className="badge-protocol"><Sparkles size={12} className="mr-2"/> PROTOCOLO DE IDENTIDAD</span>
-              <h1 className="title-premium">FORJAR <span className="neon-text">IDENTIDAD</span></h1>
-              
-              <div className="stack-inputs-premium">
-                <div className="input-group-premium">
-                  <User size={18} className="icon-input-fx"/>
-                  <input name="nombre" placeholder="Nombre Completo" value={formData.nombre} onChange={handleInputChange} autoComplete="off" />
-                </div>
-                <div className="input-group-premium">
-                  <Mail size={18} className="icon-input-fx"/>
-                  <input name="email" placeholder="Email de Inversor" value={formData.email} onChange={handleInputChange} autoComplete="off" />
-                </div>
-                <div className="grid-dual-premium">
-                  <div className="input-group-premium">
-                    <Lock size={18} className="icon-input-fx"/>
-                    <input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange}/>
-                    <button onClick={() => setShowPass(!showPass)} className="btn-v-eye">{showPass ? <EyeOff size={16}/> : <Eye size={16}/>}</button>
-                  </div>
-                  <div className="input-group-premium">
-                    <Lock size={18} className="icon-input-fx"/>
-                    <input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Validar" value={formData.confirmPassword} onChange={handleInputChange}/>
-                  </div>
+              <span style={{color: '#00C853', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><Sparkles size={12} className="mr-2"/> PROTOCOLO DE IDENTIDAD</span>
+              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>FORJAR <span style={{color: '#00C853', textShadow: '0 0 20px rgba(0,200,83,0.4)'}}>IDENTIDAD</span></h1>
+              <div style={{display:'flex', flexDirection:'column', gap:'15px', marginBottom:'40px'}}>
+                <div className="input-group-elite" style={{borderColor:'#00C85344'}}><User size={18} style={{color:'#00C853'}}/><input name="nombre" placeholder="Nombre Completo" value={formData.nombre} onChange={handleInputChange} autoComplete="off" /></div>
+                <div className="input-group-elite" style={{borderColor:'#00C85344'}}><Mail size={18} style={{color:'#00C853'}}/><input name="email" placeholder="Email de Inversor" value={formData.email} onChange={handleInputChange} autoComplete="off" /></div>
+                <div style={{display:'flex', gap:'15px'}}>
+                   <div className="input-group-elite" style={{flex:1, borderColor:'#00C85344'}}><Lock size={18} style={{color:'#00C853'}}/><input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange}/><button onClick={() => setShowPass(!showPass)} style={{background:'transparent', border:'none', color:'#333', cursor:'pointer'}}>{showPass ? <EyeOff size={16}/> : <Eye size={16}/>}</button></div>
+                   <div className="input-group-elite" style={{flex:1, borderColor:'#00C85344'}}><Lock size={18} style={{color:'#00C853'}}/><input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Validar" value={formData.confirmPassword} onChange={handleInputChange}/></div>
                 </div>
               </div>
-
-              <div className="legal-area-premium">
-                <label className="checkbox-cyber-label">
-                  <input type="checkbox" name="tyc" checked={formData.tyc} onChange={handleInputChange} />
-                  <div className="custom-check-vault"></div>
-                  <span>ACEPTO PROTOCOLOS DE SEGURIDAD ÉLITE</span>
-                </label>
-              </div>
-
-              <button 
-                disabled={!paso1Valido} 
-                onClick={() => setPaso(2)} 
-                className={`btn-action-main-neon ${paso1Valido ? 'active-glow' : 'locked-dim'}`}
-              >
-                {paso1Valido ? 'INICIAR SECUENCIA' : 'COMPLETE SUS DATOS'} <ChevronRight size={20} className="ml-2"/>
-              </button>
+              <label style={{display:'flex', alignItems:'center', gap:'15px', cursor:'pointer', marginBottom:'30px'}}>
+                <input type="checkbox" name="tyc" checked={formData.tyc} onChange={handleInputChange} style={{display:'none'}} />
+                <div style={{width:'22px', height:'22px', border:'2px solid #00C853', borderRadius:'6px', background: formData.tyc ? '#00C853' : 'transparent'}}></div>
+                <span style={{fontSize:'11px', color:'#444', fontWeight:'700'}}>ACEPTO PROTOCOLOS DE SEGURIDAD ÉLITE</span>
+              </label>
+              <button onClick={() => paso1Valido && setPaso(2)} className="btn-final" style={{background: paso1Valido ? '#00C853' : '#080808', color: paso1Valido ? '#000' : '#222', cursor: paso1Valido ? 'pointer' : 'not-allowed'}}>INICIAR SECUENCIA</button>
             </div>
           )}
 
-          {/* PASO 2: GEOGRAFÍA */}
           {paso === 2 && (
             <div className="fade-in">
-              <h1 className="title-premium">ORIGEN <span className="neon-text-blue">GEOGRÁFICO</span></h1>
-              <div className="stack-inputs-premium">
-                <div className="input-group-premium border-blue-glow">
-                  <Globe size={18} className="icon-input-fx text-[#00B0FF]"/>
-                  <select name="pais" value={formData.pais} onChange={(e) => {
-                    const p = paises.find(x => x.nombre === e.target.value);
-                    setFormData({...formData, pais: e.target.value, codigoArea: p?.codigo || ''});
-                  }}>{paises.map(p => <option key={p.nombre} value={p.nombre} className="opt-dark">{p.flag} {p.nombre}</option>)}</select>
-                </div>
-                <div className="input-group-premium border-blue-glow">
-                  <MapPin size={18} className="icon-input-fx text-[#00B0FF]"/>
-                  <input name="ciudad" placeholder="Jurisdicción de Residencia" value={formData.ciudad} onChange={handleInputChange}/>
-                </div>
-                <div className="grid-phone-premium">
-                  <div className="area-code-vault">{formData.codigoArea || '--'}</div>
-                  <div className="input-group-premium flex-1 border-blue-glow">
-                    <Phone size={18} className="icon-input-fx text-[#00B0FF]"/>
-                    <input name="telefono" placeholder="WhatsApp Móvil" value={formData.telefono} onChange={handleInputChange}/>
-                  </div>
+              <span style={{color: '#00B0FF', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><Globe size={12} className="mr-2"/> PROTOCOLO GEOGRÁFICO</span>
+              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>ORIGEN <span style={{color: '#00B0FF', textShadow: '0 0 20px rgba(0,176,255,0.4)'}}>GEOGRÁFICO</span></h1>
+              <div style={{display:'flex', flexDirection:'column', gap:'15px', marginBottom:'40px'}}>
+                <div className="input-group-elite" style={{borderColor:'#00B0FF44'}}><Globe size={18} style={{color:'#00B0FF'}}/><select name="pais" value={formData.pais} onChange={(e) => { const p = paises.find(x => x.nombre === e.target.value); setFormData({...formData, pais: e.target.value, codigoArea: p?.codigo || ''}); }} style={{appearance:'none'}}>{paises.map(p => <option key={p.nombre} value={p.nombre} style={{background:'#000'}}>{p.flag} {p.nombre}</option>)}</select></div>
+                <div className="input-group-elite" style={{borderColor:'#00B0FF44'}}><MapPin size={18} style={{color:'#00B0FF'}}/><input name="ciudad" placeholder="Jurisdicción de Residencia" value={formData.ciudad} onChange={handleInputChange}/></div>
+                <div className="input-group-elite" style={{borderColor:'#00B0FF44', gap:0}}>
+                  <Phone size={18} style={{color:'#00B0FF', marginRight:'15px'}}/>
+                  <span style={{color:'#00B0FF', fontWeight:'900', borderRight:'1px solid #222', paddingRight:'15px', marginRight:'15px', fontFamily:'JetBrains Mono'}}>{formData.codigoArea || '+??'}</span>
+                  <input name="telefono" placeholder="WhatsApp Móvil" value={formData.telefono} onChange={handleInputChange} style={{paddingLeft:0}} />
                 </div>
               </div>
-              <button 
-                disabled={!paso2Valido} 
-                onClick={() => setPaso(3)} 
-                className={`btn-action-main-neon btn-blue ${paso2Valido ? 'active-glow' : 'locked-dim'}`}
-              >
-                VALIDAR UBICACIÓN
-              </button>
+              <button onClick={() => paso2Valido && setPaso(3)} className="btn-final" style={{background: paso2Valido ? '#00B0FF' : '#080808', color: paso2Valido ? '#000' : '#222', cursor: paso2Valido ? 'pointer' : 'not-allowed'}}>VALIDAR UBICACIÓN</button>
             </div>
           )}
 
-          {/* PASO 3: MEMBRESÍAS CON BORDE NEÓN */}
           {paso === 3 && (
             <div className="fade-in">
-              <h1 className="title-premium">RANGO DE <span className="neon-text-purple">INVERSIÓN</span></h1>
-              <div className="plans-stack-premium">
+              <span style={{color: '#AA00FF', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><TrendingUp size={12} className="mr-2"/> PROTOCOLO DE CAPITAL</span>
+              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>RANGO DE <span style={{color: '#AA00FF', textShadow: '0 0 20px rgba(170,0,255,0.4)'}}>INVERSIÓN</span></h1>
+              <div style={{display:'flex', flexDirection:'column', gap:'10px', marginBottom:'30px'}}>
                 {planes.map(p => (
-                  <div key={p.id} 
-                    className={`plan-card-premium ${formData.plan === p.id ? 'active' : ''}`} 
-                    onClick={() => setFormData({...formData, plan: p.id})} 
-                    style={{'--p-color': p.color} as any}
-                  >
-                    <div className="p-icon-premium" style={{color: p.color, background: `${p.color}15`}}><p.icon size={20}/></div>
-                    <div className="p-data-premium"><h3>{p.nombre}</h3><p>{p.porcentaje}</p></div>
-                    <div className="p-price-premium" style={{color: p.color}}>${p.precio}</div>
-                    {/* BORDE NEÓN DINÁMICO */}
-                    <div className="card-border-fx" style={{background: `linear-gradient(90deg, transparent, ${p.color}, transparent)`}}></div>
+                  <div key={p.id} onClick={() => setFormData({...formData, plan: p.id})} style={{background: '#040404', border: formData.plan === p.id ? `1px solid ${p.color}` : '1px solid #111', padding:'20px', borderRadius:'15px', display:'flex', alignItems:'center', gap:'20px', cursor:'pointer'}}>
+                    <div style={{color:p.color, background:`${p.color}15`, padding:'10px', borderRadius:'10px'}}><p.icon size={20}/></div>
+                    <div style={{flex:1}}><h3 style={{fontSize:'14px', fontWeight:'900'}}>{p.nombre}</h3><p style={{fontSize:'11px', color:'#444'}}>{p.porcentaje}</p></div>
+                    <div style={{color:p.color, fontWeight:'900', fontSize:'1.2rem'}}>${p.precio}</div>
                   </div>
                 ))}
               </div>
-              <button 
-                disabled={!paso3Valido} 
-                onClick={() => setPaso(4)} 
-                className={`btn-action-main-neon btn-purple ${paso3Valido ? 'active-glow' : 'locked-dim'}`}
-              >
-                PROSEGUIR AL PAGO
-              </button>
+              <button onClick={() => paso3Valido && setPaso(4)} className="btn-final" style={{background: paso3Valido ? '#AA00FF' : '#080808', color: paso3Valido ? '#fff' : '#222', cursor: paso3Valido ? 'pointer' : 'not-allowed'}}>PROSEGUIR AL PAGO</button>
             </div>
           )}
 
-          {/* PASO 4: DEPÓSITO - TERMINAL BLACK */}
           {paso === 4 && (
             <div className="fade-in">
-              <h1 className="title-premium">VERIFICAR <span className="neon-text-gold">DEPÓSITO</span></h1>
-              <div className="terminal-vault-premium">
-                <div className="term-header-fx"><span>SECURE_NODE_TRANSFER_V4</span></div>
-                <div className="term-body-fx">
-                  <select name="metodoPago" className="term-select-fx" value={formData.metodoPago} onChange={handleInputChange}>
-                    {metodosDisponibles.map(m => <option key={m.id} value={m.id} className="opt-dark">{m.nombre}</option>)}
+              <span style={{color: '#FFD600', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><Landmark size={12} className="mr-2"/> PROTOCOLO DE TRANSFERENCIA</span>
+              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>VERIFICAR <span style={{color: '#FFD600', textShadow: '0 0 20px rgba(255,214,0,0.4)'}}>DEPÓSITO</span></h1>
+              
+              <div style={{background:'#000', border:'1px solid #111', borderRadius:'25px', padding:'30px', marginBottom:'30px', fontFamily:'JetBrains Mono'}}>
+                <div style={{background:'#050505', border:'1px solid #FFD60044', borderRadius:'12px', height:'55px', display:'flex', alignItems:'center', padding:'0 15px', gap:'10px', marginBottom:'20px'}}>
+                  <Landmark size={18} style={{color:'#FFD600'}}/>
+                  <select 
+                    name="metodoPago" 
+                    value={formData.metodoPago} 
+                    onChange={handleInputChange} 
+                    style={{background:'transparent', color:'#fff', border:'none', width:'100%', outline:'none', appearance:'none'}}
+                  >
+                    {metodosDisponibles.map(m => (
+                      <option key={m.id} value={m.id} style={{background:'#000'}}>{m.nombre}</option>
+                    ))}
                   </select>
-                  <p className="term-info-txt">
-                    <span className="term-cursor">{'>>'} </span> 
-                    {metodosDisponibles.find(m => m.id === formData.metodoPago)?.info}
-                  </p>
                 </div>
-                <div className="term-upload-vault" onClick={() => fileInputRef.current?.click()} style={{ borderColor: comprobante ? '#00C853' : '#111' }}>
-                  <input type="file" ref={fileInputRef} hidden onChange={handleFileChange} accept="image/*"/>
+                
+                <div style={{color:'#555', fontSize:'13px', lineHeight:'1.6', marginBottom:'25px', borderLeft:'2px solid #222', paddingLeft:'15px'}}>
+                  <span style={{color:'#FFD600'}}>{">> "}</span>
+                  {metodosDisponibles.find(m => m.id === formData.metodoPago)?.info}
+                </div>
+
+                <div 
+                  onClick={() => fileInputRef.current?.click()} 
+                  style={{ 
+                    border: '2px dashed #111', 
+                    borderRadius: '20px', 
+                    height: '180px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    cursor: 'pointer', 
+                    overflow: 'hidden', 
+                    borderColor: comprobante ? '#FFD600' : '#111' 
+                  }}
+                >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    hidden 
+                    onChange={handleFileChange} 
+                    accept="image/*" 
+                  />
                   {comprobanteUrl ? (
-                    <img src={comprobanteUrl} className="voucher-preview-img" alt="Voucher" />
+                    <img src={comprobanteUrl} style={{width:'100%', height:'100%', objectFit:'contain'}} alt="Voucher" />
                   ) : (
-                    <div className="flex flex-col items-center gap-3">
-                      <UploadCloud size={35} className="text-[#222]"/>
-                      <p className="text-[10px] font-bold tracking-widest text-[#1a1a1a]">SUBIR VOUCHER</p>
-                    </div>
+                    <UploadCloud size={35} style={{color: '#FFD600', opacity: '0.2'}}/>
                   )}
                 </div>
               </div>
+
+              {comprobante && (
+                <div style={{color: '#FFD600', fontSize: '13px', textAlign: 'center', margin: '15px 0', fontWeight:'700'}}>
+                  ✓ Comprobante cargado correctamente
+                </div>
+              )}
+
+              {error && (
+                <div style={{ 
+                  background: '#FF3D0011', 
+                  border: '1px solid #FF3D00', 
+                  color: '#FF3D00', 
+                  padding: '15px', 
+                  borderRadius: '12px', 
+                  marginBottom: '20px',
+                  fontSize: '13px'
+                }}>
+                  ⚠️ {error}
+                </div>
+              )}
+
               <button 
                 disabled={loading || !comprobante} 
                 onClick={finalizarRegistro} 
-                className={`btn-action-main-neon btn-gold ${(!comprobante || loading) ? 'locked-dim' : 'active-glow'}`}
+                className="btn-final" 
+                style={{
+                  background: (!comprobante || loading) ? '#080808' : '#FFD600', 
+                  color: (!comprobante || loading) ? '#222' : '#000', 
+                  cursor: (!comprobante || loading) ? 'not-allowed' : 'pointer',
+                  opacity: (!comprobante || loading) ? 0.6 : 1
+                }}
               >
                 {loading ? 'SINCRONIZANDO...' : 'FINALIZAR REGISTRO'}
               </button>
@@ -313,109 +327,29 @@ export default function UnetePage() {
           )}
 
           {paso === 5 && (
-            <div className="fade-in success-vault-center">
-              <div className="final-glow-icon-fx"><ShieldCheck size={100} color="#00C853"/></div>
-              <h1 className="title-premium">SOLICITUD <span className="neon-text">AUDITADA</span></h1>
-              <div className="alert-message-fx">
-                <Info size={24} color="#00C853" />
-                <p>Su información ha sido recibida bajo protocolos de encriptación. El equipo financiero validará su depósito para activar su cuenta Élite.</p>
+            <div className="fade-in" style={{textAlign:'center'}}>
+              <div style={{marginBottom:'30px', display:'inline-block', padding:'30px', background:'#FFD60011', borderRadius:'100%', border:'1px solid #FFD60022'}}><Clock size={60} style={{color: '#FFD600'}} className="animate-pulse"/></div>
+              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>SOLICITUD EN <span style={{color: '#FFD600', textShadow: '0 0 20px rgba(255,214,0,0.4)'}}>REVISIÓN</span></h1>
+              <div style={{background:'#080808', border:'1px solid #111', padding:'25px', borderRadius:'20px', marginBottom:'35px', color:'#666', fontSize:'14px', lineHeight:'1.6'}}>
+                <p>Su información ha sido recibida y se encuentra en fase de auditoría.</p>
+                <p style={{color:'#FFD600', fontWeight:'700', marginTop:'10px'}}>El pago y los datos serán verificados. En las próximas horas su cuenta será activada oficialmente tras la validación financiera.</p>
               </div>
-              <button onClick={() => window.location.href = '/'} className="btn-action-main-neon active-glow">ENTRAR A LA PLATAFORMA</button>
+              <button onClick={() => window.location.href = '/'} className="btn-final" style={{background:'#FFD600', color:'#000'}}>ENTENDIDO</button>
             </div>
           )}
         </div>
       </main>
 
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&family=JetBrains+Mono&display=swap');
-
-        .unete-wrapper { background: #000; min-height: 100vh; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; overflow-x: hidden; position: relative; }
-        .bg-gradient-radial { position: fixed; inset: 0; background: radial-gradient(circle at center, #080808 0%, #000 100%); z-index: 0; pointer-events: none; }
-
-        /* NAVEGACIÓN - Z-INDEX CORREGIDO */
-        .unete-nav { position: relative; z-index: 200; padding: 50px 8%; display: flex; justify-content: space-between; align-items: center; }
-        .nav-back-elite { background: rgba(255,255,255,0.02); border: 1px solid #111; color: #444; padding: 12px 25px; border-radius: 12px; font-weight: 800; font-size: 10px; letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.3s; pointer-events: auto; }
-        .nav-back-elite:hover { border-color: #00C853; color: #fff; box-shadow: 0 0 20px rgba(0,200,83,0.1); }
-        
-        .elite-stepper { width: 100%; max-width: 250px; text-align: right; }
-        .step-tag { font-size: 10px; font-weight: 900; color: #1a1a1a; letter-spacing: 4px; margin-bottom: 8px; }
-        .progress-track-elite { height: 2px; background: #080808; border-radius: 10px; overflow: hidden; }
-        .progress-fill-neon { height: 100%; background: #00C853; transition: 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 15px rgba(0, 200, 83, 0.4); }
-
-        /* VAULT CONTAINER */
-        .unete-content { position: relative; z-index: 10; flex: 1; display: flex; justify-content: center; align-items: center; padding-bottom: 100px; padding-top: 20px; }
-        .vault-container-premium { width: 100%; max-width: 580px; background: rgba(4,4,4,0.7); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.03); padding: 60px; border-radius: 50px; box-shadow: 0 80px 150px rgba(0,0,0,0.9); position: relative; overflow: hidden; }
-        
-        .security-scan-fx { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(to right, transparent, #00C853, transparent); animation: scannerFx 4s infinite linear; opacity: 0.4; }
-        @keyframes scannerFx { 0% { top: 0; } 100% { top: 100%; } }
-
-        .badge-protocol { font-size: 9px; font-weight: 800; color: #00C853; letter-spacing: 5px; margin-bottom: 25px; display: flex; align-items: center; opacity: 0.6; text-transform: uppercase; }
-        .title-premium { font-size: 3.2rem; font-weight: 800; line-height: 0.85; letter-spacing: -4px; margin-bottom: 45px; }
-        .neon-text { color: #00C853; text-shadow: 0 0 35px rgba(0, 200, 83, 0.4); }
-        .neon-text-blue { color: #00B0FF; text-shadow: 0 0 35px rgba(0, 176, 255, 0.4); }
-        .neon-text-purple { color: #AA00FF; text-shadow: 0 0 35px rgba(170, 0, 255, 0.4); }
-        .neon-text-gold { color: #FFD600; text-shadow: 0 0 35px rgba(255, 214, 0, 0.4); }
-
-        /* INPUTS - PROTOCOLO CAJAS NEGRAS */
-        .stack-inputs-premium { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
-        .input-group-premium { background: #000 !important; border: 1px solid #111; border-radius: 18px; display: flex; align-items: center; padding: 0 25px; gap: 20px; transition: 0.4s; }
-        .input-group-premium:focus-within { border-color: #00C853; box-shadow: 0 10px 30px rgba(0,200,83,0.08); }
-        .input-group-premium input, .input-group-premium select { background: transparent !important; border: none !important; padding: 24px 0 !important; color: #fff !important; font-size: 15px; font-weight: 300; width: 100%; outline: none; -webkit-box-shadow: 0 0 0px 1000px #000 inset !important; -webkit-text-fill-color: #fff !important; }
-        .opt-dark { background: #080808 !important; color: #fff !important; }
-        .icon-input-fx { color: #151515; transition: 0.3s; }
-        .input-group-premium:focus-within .icon-input-fx { color: #00C853; }
-        
-        .grid-dual-premium, .grid-phone-premium { display: flex; gap: 15px; }
-        .area-code-vault { background: #060606; border: 1px solid #111; padding: 24px; border-radius: 18px; font-weight: 800; color: #00B0FF; min-width: 85px; text-align: center; }
-
-        /* CHECKBOX - ESTILO RADAR */
-        .legal-area-premium { margin-bottom: 45px; }
-        .checkbox-cyber-label { display: flex; align-items: center; gap: 18px; cursor: pointer; }
-        .checkbox-cyber-label input { display: none; }
-        .custom-check-vault { width: 24px; height: 24px; border: 2px solid #111; border-radius: 8px; transition: 0.3s; position: relative; }
-        .checkbox-cyber-label input:checked + .custom-check-vault { background: #00C853; border-color: #00C853; box-shadow: 0 0 15px #00C853; }
-        .checkbox-cyber-label input:checked + .custom-check-vault:after { content: '✓'; color: #000; position: absolute; left: 5px; top: -1px; font-weight: 900; font-size: 16px; }
-        .checkbox-cyber-label span { font-size: 11px; font-weight: 700; color: #333; letter-spacing: 2px; }
-
-        /* BOTONES - ACTIVACIÓN INTELIGENTE */
-        .btn-action-main-neon { width: 100%; padding: 30px; border-radius: 20px; border: none; font-weight: 900; font-size: 14px; letter-spacing: 5px; transition: 0.5s; cursor: pointer; text-transform: uppercase; }
-        .btn-action-main-neon.locked-dim { background: #080808; color: #1a1a1a; cursor: not-allowed; }
-        .btn-action-main-neon.active-glow { background: #00C853; color: #000; box-shadow: 0 20px 50px rgba(0, 200, 83, 0.4); animation: pulseNeon 3s infinite; }
-        
-        @keyframes pulseNeon { 
-          0%, 100% { transform: scale(1); box-shadow: 0 20px 50px rgba(0, 200, 83, 0.3); } 
-          50% { transform: scale(1.01); box-shadow: 0 25px 60px rgba(0, 200, 83, 0.5); } 
-        }
-
-        /* PLAN CARDS - BORDES NEÓN */
-        .plans-stack-premium { display: flex; flex-direction: column; gap: 14px; margin-bottom: 45px; }
-        .plan-card-premium { background: rgba(255,255,255,0.01); border: 1px solid #0a0a0a; border-radius: 26px; padding: 28px; display: flex; align-items: center; gap: 24px; cursor: pointer; transition: 0.4s; position: relative; overflow: hidden; }
-        .plan-card-premium:hover { border-color: var(--p-color); transform: translateX(12px); }
-        .plan-card-premium.active { border-color: var(--p-color); background: rgba(255,255,255,0.04); }
-        .card-border-fx { position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; opacity: 0; transition: 0.3s; }
-        .plan-card-premium.active .card-border-fx { opacity: 1; }
-        .p-price-premium { margin-left: auto; font-size: 2.2rem; font-weight: 800; letter-spacing: -2px; }
-
-        /* TERMINAL VAULT - BLACK STYLE */
-        .terminal-vault-premium { background: #000; border: 1px solid #111; border-radius: 35px; padding: 40px; margin-bottom: 45px; font-family: 'JetBrains Mono', monospace; }
-        .term-header-fx { font-size: 9px; color: #222; margin-bottom: 25px; letter-spacing: 3px; font-weight: 800; }
-        .term-select-fx { width: 100%; background: #050505; border: 1px solid #111; color: #00C853; padding: 20px; border-radius: 14px; outline: none; margin-bottom: 25px; font-weight: 700; font-size: 14px; }
-        .term-info-txt { color: #555; font-size: 13px; line-height: 1.8; margin-bottom: 35px; }
-        .term-cursor { color: #00C853; animation: blinkFx 1s infinite; }
-        @keyframes blinkFx { 50% { opacity: 0; } }
-        .term-upload-vault { border: 2px dashed #111; height: 180px; border-radius: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; cursor: pointer; transition: 0.3s; background: #020202; }
-        .term-upload-vault:hover { border-color: #00C853; }
-        .voucher-preview-img { width: 100%; height: 100%; object-fit: contain; padding: 20px; }
-
-        .fade-in { animation: vaultAppear 1s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        @keyframes vaultAppear { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
-
-        @media (max-width: 600px) {
-          .vault-container-premium { padding: 40px 25px; border-radius: 40px; }
-          .title-premium { font-size: 2.4rem; }
-          .p-price-premium { font-size: 1.6rem; }
-          .btn-action-main-neon { padding: 24px; font-size: 11px; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap');
+        .unete-wrapper { background: #000; min-height: 100vh; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; overflow-x: hidden; }
+        .bg-gradient-radial { position: fixed; inset: 0; background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%); z-index: 0; pointer-events: none; }
+        .input-group-elite { background: #000 !important; border: 1px solid #111 !important; border-radius: 14px; height: 65px; display: flex; align-items: center; padding: 0 20px; gap: 15px; margin-bottom: 15px; transition: 0.3s; }
+        .input-group-elite input, .input-group-elite select { background: transparent !important; color: #fff !important; border: none !important; width: 100% !important; font-size: 16px; outline: none !important; -webkit-box-shadow: 0 0 0px 1000px #000 inset !important; -webkit-text-fill-color: #fff !important; }
+        .input-group-elite input:focus, .input-group-elite input:active { background: transparent !important; -webkit-box-shadow: 0 0 0px 1000px #000 inset !important; }
+        .btn-final { width: 100%; padding: 25px; border-radius: 18px; border: none; font-weight: 900; letter-spacing: 4px; text-transform: uppercase; transition: 0.4s; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .fade-in { animation: appear 0.6s ease-out forwards; }
+        @keyframes appear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
