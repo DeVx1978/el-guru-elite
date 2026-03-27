@@ -95,7 +95,6 @@ export default function UnetePage() {
     }
   };
 
-  // ====================== FUNCIÓN CORREGIDA Y MEJORADA ======================
   const finalizarRegistro = async () => {
     if (!comprobante) {
       setError("Debes subir el comprobante de depósito");
@@ -106,7 +105,6 @@ export default function UnetePage() {
     setError(null);
 
     try {
-      // Insertar en tabla 'socios'
       const { data: socio, error: errSocio } = await clientSupabase
         .from('socios')
         .insert([{
@@ -122,31 +120,22 @@ export default function UnetePage() {
         .select()
         .single();
 
-      if (errSocio) {
-        console.error("Error Supabase socios:", errSocio);
-        throw new Error(`Error al crear socio: ${errSocio.message}`);
-      }
+      if (errSocio) throw new Error(`Error al crear socio: ${errSocio.message}`);
+      if (!socio?.id) throw new Error("No se recibió ID del socio");
 
-      if (!socio?.id) throw new Error("No se recibió el ID del socio");
-
-      // Insertar en tabla 'socios_elite'
       const { error: errElite } = await clientSupabase.from('socios_elite').insert([{
         id_socio: socio.id,
         nivel_socio: formData.plan.toUpperCase(),
         ciudad: formData.ciudad || ''
       }]);
 
-      if (errElite) {
-        console.error("Error Supabase socios_elite:", errElite);
-        throw new Error(`Error al crear registro elite: ${errElite.message}`);
-      }
+      if (errElite) throw new Error(`Error en socios_elite: ${errElite.message}`);
 
-      // Éxito → Ir al paso 5
       setPaso(5);
 
     } catch (err: any) {
-      console.error("Error completo en registro:", err);
-      setError(err.message || "Error desconocido al procesar el registro. Revisa la consola.");
+      console.error("Error completo en finalizarRegistro:", err);
+      setError(err.message || "Error desconocido al procesar el registro. Intenta de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -184,13 +173,13 @@ export default function UnetePage() {
           {paso === 1 && (
             <div className="fade-in">
               <span style={{color: '#00C853', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><Sparkles size={12} className="mr-2"/> PROTOCOLO DE IDENTIDAD</span>
-              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>FORJAR <span style={{color: '#00C853', textShadow: '0 0 20px rgba(0,200,83,0.4)'}}>IDENTIDAD</span></h1>
+              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>FORJAR <span style={{color: '#00C853', textShadow: '0 0 20px rgba(0,200,83,0.4)'}}>IDENTIDAD</span></h1>
               <div style={{display:'flex', flexDirection:'column', gap:'15px', marginBottom:'40px'}}>
                 <div className="input-group-elite" style={{borderColor:'#00C85344'}}><User size={18} style={{color:'#00C853'}}/><input name="nombre" placeholder="Nombre Completo" value={formData.nombre} onChange={handleInputChange} autoComplete="off" /></div>
                 <div className="input-group-elite" style={{borderColor:'#00C85344'}}><Mail size={18} style={{color:'#00C853'}}/><input name="email" placeholder="Email de Inversor" value={formData.email} onChange={handleInputChange} autoComplete="off" /></div>
-                <div style={{display:'flex', gap:'15px'}}>
-                   <div className="input-group-elite" style={{flex:1, borderColor:'#00C85344'}}><Lock size={18} style={{color:'#00C853'}}/><input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange}/><button onClick={() => setShowPass(!showPass)} style={{background:'transparent', border:'none', color:'#333', cursor:'pointer'}}>{showPass ? <EyeOff size={16}/> : <Eye size={16}/>}</button></div>
-                   <div className="input-group-elite" style={{flex:1, borderColor:'#00C85344'}}><Lock size={18} style={{color:'#00C853'}}/><input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Validar" value={formData.confirmPassword} onChange={handleInputChange}/></div>
+                <div className="responsive-row" style={{display:'flex', gap:'15px'}}>
+                    <div className="input-group-elite" style={{flex:1, borderColor:'#00C85344'}}><Lock size={18} style={{color:'#00C853'}}/><input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange}/><button onClick={() => setShowPass(!showPass)} className="btn-pass-toggle" style={{background:'transparent', border:'none', cursor:'pointer'}}>{showPass ? <EyeOff size={16}/> : <Eye size={16}/>}</button></div>
+                    <div className="input-group-elite" style={{flex:1, borderColor:'#00C85344'}}><Lock size={18} style={{color:'#00C853'}}/><input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Validar" value={formData.confirmPassword} onChange={handleInputChange}/></div>
                 </div>
               </div>
               <label style={{display:'flex', alignItems:'center', gap:'15px', cursor:'pointer', marginBottom:'30px'}}>
@@ -205,7 +194,7 @@ export default function UnetePage() {
           {paso === 2 && (
             <div className="fade-in">
               <span style={{color: '#00B0FF', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><Globe size={12} className="mr-2"/> PROTOCOLO GEOGRÁFICO</span>
-              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>ORIGEN <span style={{color: '#00B0FF', textShadow: '0 0 20px rgba(0,176,255,0.4)'}}>GEOGRÁFICO</span></h1>
+              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>ORIGEN <span style={{color: '#00B0FF', textShadow: '0 0 20px rgba(0,176,255,0.4)'}}>GEOGRÁFICO</span></h1>
               <div style={{display:'flex', flexDirection:'column', gap:'15px', marginBottom:'40px'}}>
                 <div className="input-group-elite" style={{borderColor:'#00B0FF44'}}><Globe size={18} style={{color:'#00B0FF'}}/><select name="pais" value={formData.pais} onChange={(e) => { const p = paises.find(x => x.nombre === e.target.value); setFormData({...formData, pais: e.target.value, codigoArea: p?.codigo || ''}); }} style={{appearance:'none'}}>{paises.map(p => <option key={p.nombre} value={p.nombre} style={{background:'#000'}}>{p.flag} {p.nombre}</option>)}</select></div>
                 <div className="input-group-elite" style={{borderColor:'#00B0FF44'}}><MapPin size={18} style={{color:'#00B0FF'}}/><input name="ciudad" placeholder="Jurisdicción de Residencia" value={formData.ciudad} onChange={handleInputChange}/></div>
@@ -222,7 +211,7 @@ export default function UnetePage() {
           {paso === 3 && (
             <div className="fade-in">
               <span style={{color: '#AA00FF', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><TrendingUp size={12} className="mr-2"/> PROTOCOLO DE CAPITAL</span>
-              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>RANGO DE <span style={{color: '#AA00FF', textShadow: '0 0 20px rgba(170,0,255,0.4)'}}>INVERSIÓN</span></h1>
+              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>RANGO DE <span style={{color: '#AA00FF', textShadow: '0 0 20px rgba(170,0,255,0.4)'}}>INVERSIÓN</span></h1>
               <div style={{display:'flex', flexDirection:'column', gap:'10px', marginBottom:'30px'}}>
                 {planes.map(p => (
                   <div key={p.id} onClick={() => setFormData({...formData, plan: p.id})} style={{background: '#040404', border: formData.plan === p.id ? `1px solid ${p.color}` : '1px solid #111', padding:'20px', borderRadius:'15px', display:'flex', alignItems:'center', gap:'20px', cursor:'pointer'}}>
@@ -239,7 +228,7 @@ export default function UnetePage() {
           {paso === 4 && (
             <div className="fade-in">
               <span style={{color: '#FFD600', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><Landmark size={12} className="mr-2"/> PROTOCOLO DE TRANSFERENCIA</span>
-              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>VERIFICAR <span style={{color: '#FFD600', textShadow: '0 0 20px rgba(255,214,0,0.4)'}}>DEPÓSITO</span></h1>
+              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>VERIFICAR <span style={{color: '#FFD600', textShadow: '0 0 20px rgba(255,214,0,0.4)'}}>DEPÓSITO</span></h1>
               
               <div style={{background:'#000', border:'1px solid #111', borderRadius:'25px', padding:'30px', marginBottom:'30px', fontFamily:'JetBrains Mono'}}>
                 <div style={{background:'#050505', border:'1px solid #FFD60044', borderRadius:'12px', height:'55px', display:'flex', alignItems:'center', padding:'0 15px', gap:'10px', marginBottom:'20px'}}>
@@ -329,7 +318,7 @@ export default function UnetePage() {
           {paso === 5 && (
             <div className="fade-in" style={{textAlign:'center'}}>
               <div style={{marginBottom:'30px', display:'inline-block', padding:'30px', background:'#FFD60011', borderRadius:'100%', border:'1px solid #FFD60022'}}><Clock size={60} style={{color: '#FFD600'}} className="animate-pulse"/></div>
-              <h1 style={{fontSize:'3.5rem', fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>SOLICITUD EN <span style={{color: '#FFD600', textShadow: '0 0 20px rgba(255,214,0,0.4)'}}>REVISIÓN</span></h1>
+              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>SOLICITUD EN <span style={{color: '#FFD600', textShadow: '0 0 20px rgba(255,214,0,0.4)'}}>REVISIÓN</span></h1>
               <div style={{background:'#080808', border:'1px solid #111', padding:'25px', borderRadius:'20px', marginBottom:'35px', color:'#666', fontSize:'14px', lineHeight:'1.6'}}>
                 <p>Su información ha sido recibida y se encuentra en fase de auditoría.</p>
                 <p style={{color:'#FFD600', fontWeight:'700', marginTop:'10px'}}>El pago y los datos serán verificados. En las próximas horas su cuenta será activada oficialmente tras la validación financiera.</p>
@@ -346,10 +335,32 @@ export default function UnetePage() {
         .bg-gradient-radial { position: fixed; inset: 0; background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%); z-index: 0; pointer-events: none; }
         .input-group-elite { background: #000 !important; border: 1px solid #111 !important; border-radius: 14px; height: 65px; display: flex; align-items: center; padding: 0 20px; gap: 15px; margin-bottom: 15px; transition: 0.3s; }
         .input-group-elite input, .input-group-elite select { background: transparent !important; color: #fff !important; border: none !important; width: 100% !important; font-size: 16px; outline: none !important; -webkit-box-shadow: 0 0 0px 1000px #000 inset !important; -webkit-text-fill-color: #fff !important; }
-        .input-group-elite input:focus, .input-group-elite input:active { background: transparent !important; -webkit-box-shadow: 0 0 0px 1000px #000 inset !important; }
         .btn-final { width: 100%; padding: 25px; border-radius: 18px; border: none; font-weight: 900; letter-spacing: 4px; text-transform: uppercase; transition: 0.4s; display: flex; align-items: center; justify-content: center; font-size: 14px; }
         .fade-in { animation: appear 0.6s ease-out forwards; }
         @keyframes appear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PARCHE DE ÉLITE: RESPONSIVIDAD Y BLINDAJE VISUAL */
+        .responsive-title { font-size: 3.5rem; }
+        
+        .btn-pass-toggle { color: #00C853 !important; background: transparent !important; }
+        .btn-pass-toggle:focus { outline: none !important; box-shadow: none !important; }
+
+        input:-webkit-autofill {
+          -webkit-text-fill-color: #fff !important;
+          -webkit-box-shadow: 0 0 0px 1000px #000 inset !important;
+        }
+
+        @media (max-width: 768px) {
+          .responsive-title { font-size: 2.2rem !important; letter-spacing: -2px !important; }
+          .vault-container { padding: 30px !important; border-radius: 30px !important; }
+          .responsive-row { flex-direction: column !important; gap: 0 !important; }
+          .unete-nav { padding: 20px 5% !important; }
+        }
+
+        @media (max-width: 480px) {
+          .responsive-title { font-size: 1.8rem !important; }
+          .vault-container { border: none !important; background: transparent !important; box-shadow: none !important; padding: 15px !important; }
+        }
       `}</style>
     </div>
   );
