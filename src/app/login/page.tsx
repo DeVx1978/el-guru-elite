@@ -1,7 +1,8 @@
 "use client";
+
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase'; // Asegúrate de que esta ruta sea correcta
 import { Lock, Mail, Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
@@ -12,27 +13,28 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [showPass, setShowPass] = useState(false);
 
-  // --- BLINDAJE 1: LIMPIEZA Y PREPARACIÓN ---
+  // Limpieza inicial de storage (buena práctica)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.clear(); 
+      localStorage.clear();
       sessionStorage.clear();
     }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password) {
+      setError("Por favor ingresa email y contraseña");
+      return;
+    }
 
     setError(null);
     setLoading(true);
 
     try {
-      // NORMALIZACIÓN: Forzamos minúsculas y eliminamos espacios invisibles
       const cleanEmail = email.toLowerCase().trim();
       const cleanPass = password.trim();
 
-      // Consulta a la base de datos con datos normalizados
       const { data, error: err } = await supabase
         .from('socios')
         .select('*')
@@ -44,27 +46,32 @@ export default function LoginPage() {
         throw new Error('Credenciales incorrectas. Verifica tu acceso Élite.');
       }
 
+      // Si el socio está pendiente, redirigir a revisión
       if (data.estado === 'pendiente') {
         router.push('/revision-pendiente');
         return;
       }
 
-      // --- BLINDAJE 2: PERSISTENCIA DE AUTORIDAD ---
+      // Persistencia unificada y consistente (esto es clave)
       if (typeof window !== 'undefined') {
+        localStorage.setItem('userEmail', data.email);
+        localStorage.setItem('userRol', data.rol || 'socio');
         localStorage.setItem('socio_id', data.id);
         localStorage.setItem('socio_nombre', data.nombre);
-        localStorage.setItem('socio_rol', data.rol || 'socio');
-        localStorage.setItem('socio_email', data.email); // Guardamos el email para validar el búnker después
+        localStorage.setItem('socio_email', data.email);
         sessionStorage.setItem('sesion_activa', 'true');
       }
 
-      // --- CAMBIO ESTRATÉGICO: REDIRECCIÓN UNIFICADA ---
-      // Eliminamos el salto directo al /admin. 
-      // Ahora todos (incluida María José) pasan primero por la "puerta principal".
-      router.push('/panel');
+      // Redirección inteligente
+      if (data.rol === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/panel');
+      }
 
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Error de autenticación");
+    } finally {
       setLoading(false);
     }
   };
