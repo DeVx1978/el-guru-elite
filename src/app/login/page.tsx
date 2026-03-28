@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase'; // Asegúrate de que esta ruta sea correcta
+import { supabase } from '@/lib/supabase';
 import { Lock, Mail, Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
@@ -13,11 +13,13 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [showPass, setShowPass] = useState(false);
 
-  // Limpieza inicial de storage (buena práctica)
+  // --- BLINDAJE 1: LIMPIEZA ABSOLUTA DE CACHÉ Y SESIÓN ---
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.clear();
       sessionStorage.clear();
+      // Pequeño hack para forzar al navegador a ignorar el caché de formularios
+      window.scrollTo(0, 0);
     }
   }, []);
 
@@ -46,13 +48,12 @@ export default function LoginPage() {
         throw new Error('Credenciales incorrectas. Verifica tu acceso Élite.');
       }
 
-      // Si el socio está pendiente, redirigir a revisión
       if (data.estado === 'pendiente') {
         router.push('/revision-pendiente');
         return;
       }
 
-      // Persistencia unificada y consistente (esto es clave)
+      // --- PERSISTENCIA UNIFICADA ---
       if (typeof window !== 'undefined') {
         localStorage.setItem('userEmail', data.email);
         localStorage.setItem('userRol', data.rol || 'socio');
@@ -62,7 +63,7 @@ export default function LoginPage() {
         sessionStorage.setItem('sesion_activa', 'true');
       }
 
-      // Redirección inteligente
+      // REDIRECCIÓN INTELIGENTE
       if (data.rol === 'admin') {
         router.push('/admin');
       } else {
@@ -90,6 +91,7 @@ export default function LoginPage() {
           <p style={{ color: '#444', fontSize: '0.9rem', marginTop: '10px' }}>Terminal de Autenticación Bancaria</p>
         </div>
 
+        {/* --- BLINDAJE 2: ANTI-AUTOCOMPLETADO MEDIANTE NOMBRES ÚNICOS --- */}
         <form onSubmit={handleLogin} autoComplete="off">
           <label style={{ color: '#333', fontSize: '0.75rem', fontStyle: 'italic', fontWeight: 900, display: 'block', marginBottom: '8px', letterSpacing: '2px' }}>
             CREDENTIAL_ID (EMAIL)
@@ -98,6 +100,8 @@ export default function LoginPage() {
             <Mail size={18} color="#222" style={{ position: 'absolute', left: '15px', top: '18px', zIndex: 10 }} />
             <input 
               type="email" 
+              name="elite_user_login" // Nombre único para confundir al navegador
+              autoComplete="off" 
               placeholder="user@elite.com" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
@@ -115,6 +119,8 @@ export default function LoginPage() {
             <Lock size={18} color="#222" style={{ position: 'absolute', left: '15px', top: '18px', zIndex: 10 }} />
             <input 
               type={showPass ? "text" : "password"} 
+              name="elite_pass_vault" // Nombre único
+              autoComplete="new-password" // Evita que sugiera claves guardadas
               placeholder="••••••••" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
