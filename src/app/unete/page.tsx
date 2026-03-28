@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { 
   User, Mail, Lock, Phone, Target, Zap, Award, Star, 
-  MapPin, UploadCloud, ShieldCheck, Landmark, Sparkles, Clock, Eye, EyeOff, ChevronRight, ArrowLeft, Globe, TrendingUp, Briefcase
+  MapPin, UploadCloud, ShieldCheck, Landmark, Sparkles, Clock, Eye, EyeOff, ArrowLeft, Globe, TrendingUp, Briefcase
 } from 'lucide-react';
 
 const clientSupabase = createClient(
@@ -13,7 +13,7 @@ const clientSupabase = createClient(
 );
 
 const planes = [
-  { id: 'micro', nombre: 'MICRO SOCIO', precio: 100, porcentaje: '0.067% Utilidad', icon: Target, color: '#00C853' },
+  { id: 'micro', nombre: 'MICRO SOCIO', precio: 100, porcentaje: '0.067% Utilidad', icon: Target, color: '#E0E0E0' },
   { id: 'inicial', nombre: 'SOCIO INICIAL', precio: 250, porcentaje: '0.167% Utilidad', icon: Briefcase, color: '#00B0FF' },
   { id: 'activo', nombre: 'SOCIO ACTIVO', precio: 500, porcentaje: '0.333% Utilidad', icon: Zap, color: '#FFD600' },
   { id: 'premium', nombre: 'SOCIO PREMIUM', precio: 1000, porcentaje: '0.667% Utilidad', icon: Award, color: '#FF3D00' },
@@ -35,8 +35,8 @@ const obtenerMetodosPago = (pais: string) => {
     return [
       { id: 'pichincha', nombre: 'BANCO PICHINCHA', info: 'Cta Ahorros: 2208543100 - Titular: El Gurú Élite' },
       { id: 'guayaquil', nombre: 'BANCO GUAYAQUIL', info: 'Cta Corriente: 11452290 - Titular: Gestión Élite' },
-      { id: 'western_ec', nombre: 'WESTERN UNION', info: 'Beneficiario: Maria José - CI: [ID]' },
-      { id: 'nequi_ec', nombre: 'DEPÓSITO NEQUI', info: 'Celular: +593 [NÚMERO]' },
+      { id: 'nequi_ec', nombre: 'NEQUI / DEUNA', info: 'Celular: +593 [NÚMERO] - Titular: Maria José' },
+      { id: 'western_ec', nombre: 'WESTERN UNION', info: 'Beneficiario: Maria José - Solicitar C.I. al soporte' },
       { id: 'usdt_ec', nombre: 'USDT (Red TRC20)', info: 'Wallet: TXu4...Red TRC20' },
     ];
   }
@@ -73,25 +73,51 @@ export default function UnetePage() {
 
   const metodosDisponibles = obtenerMetodosPago(formData.pais);
 
-  useEffect(() => { setIsMounted(true); }, []);
+  // Validaciones centralizadas
+  const paso1Valido = formData.nombre.trim().length > 2 && 
+                      formData.email.includes('@') && 
+                      formData.password.length >= 6 && 
+                      formData.password === formData.confirmPassword && 
+                      formData.tyc;
+
+  const paso2Valido = formData.pais !== '' && 
+                      formData.ciudad.trim().length > 1 && 
+                      formData.telefono.trim().length >= 7;
+
+  const paso3Valido = formData.plan !== '';
+  const paso4Valido = !!comprobante;
+
+  useEffect(() => { 
+    setIsMounted(true); 
+  }, []);
 
   useEffect(() => {
-    if (metodosDisponibles.length > 0) {
-      setFormData(prev => ({ ...prev, metodoPago: prev.metodoPago || metodosDisponibles[0].id }));
+    if (metodosDisponibles.length > 0 && !formData.metodoPago) {
+      setFormData(prev => ({ ...prev, metodoPago: metodosDisponibles[0].id }));
     }
   }, [formData.pais, metodosDisponibles]);
+
+  // Limpiar URL del comprobante al cambiar de paso o desmontar
+  useEffect(() => {
+    return () => {
+      if (comprobanteUrl) URL.revokeObjectURL(comprobanteUrl);
+    };
+  }, [comprobanteUrl]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
     setFormData(prev => ({ ...prev, [name]: val }));
+    if (error) setError(null); // Limpiar error al escribir
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
+      if (comprobanteUrl) URL.revokeObjectURL(comprobanteUrl);
       setComprobante(file);
       setComprobanteUrl(URL.createObjectURL(file));
+      setError(null);
     }
   };
 
@@ -105,261 +131,224 @@ export default function UnetePage() {
     setError(null);
 
     try {
+      const fileExt = comprobante.name.split('.').pop()?.toLowerCase() || 'png';
+      const fileName = `comprobantes/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+
+      const { error: uploadError } = await clientSupabase.storage
+        .from('pagos')
+        .upload(fileName, comprobante);
+
+      if (uploadError) throw new Error(`Error al subir el comprobante: ${uploadError.message}`);
+
+      const { data: urlData } = clientSupabase.storage
+        .from('pagos')
+        .getPublicUrl(fileName);
+
+      const publicUrl = urlData.publicUrl;
+
       const { data: socio, error: errSocio } = await clientSupabase
         .from('socios')
         .insert([{
           nombre: formData.nombre.trim(),
           email: formData.email.trim().toLowerCase(),
           password: formData.password,
-          pais: formData.pais,
-          telefono: `${formData.codigoArea} ${formData.telefono}`,
-          plan: formData.plan,
+          rol: 'socio',
           estado: 'pendiente',
-          rol: 'socio'
+          utilidad_total: 0,
+          comprobante_url: publicUrl
         }])
         .select()
         .single();
 
-      if (errSocio) throw new Error(`Error al crear socio: ${errSocio.message}`);
-      if (!socio?.id) throw new Error("No se recibió ID del socio");
+      if (errSocio || !socio?.id) throw errSocio || new Error("No se pudo crear el socio");
 
-      const { error: errElite } = await clientSupabase.from('socios_elite').insert([{
+      await clientSupabase.from('socios_elite').insert([{
         id_socio: socio.id,
         nivel_socio: formData.plan.toUpperCase(),
-        ciudad: formData.ciudad || ''
+        inversion_minima: planes.find(p => p.id === formData.plan)?.precio || 0,
+        pais: formData.pais,
+        ciudad: formData.ciudad || '',
+        telefono: `${formData.codigoArea} ${formData.telefono}`
       }]);
 
-      if (errElite) throw new Error(`Error en socios_elite: ${errElite.message}`);
-
       setPaso(5);
-
     } catch (err: any) {
-      console.error("Error completo en finalizarRegistro:", err);
-      setError(err.message || "Error desconocido al procesar el registro. Intenta de nuevo.");
+      console.error("Error en registro:", err);
+      setError(err.message || "Error en el protocolo de registro. Intenta nuevamente.");
     } finally {
       setLoading(false);
     }
   };
-
-  const paso1Valido = formData.nombre.trim().length > 2 && formData.email.includes('@') && formData.password.length >= 6 && formData.password === formData.confirmPassword && formData.tyc;
-  const paso2Valido = formData.pais !== '' && formData.ciudad.trim().length > 1 && formData.telefono.trim().length > 5;
-  const paso3Valido = formData.plan !== '';
-  const paso4Valido = !!comprobante;
 
   if (!isMounted) return <div className="min-h-screen bg-black" />;
 
   return (
     <div className="unete-wrapper">
       <div className="bg-gradient-radial"></div>
-
-      <nav className="unete-nav" style={{position:'relative', zIndex:100, width:'100%', maxWidth:'1200px', padding:'40px 5%', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-        <button onClick={() => paso > 1 ? setPaso(paso-1) : router.push('/')} style={{background:'transparent', border:'none', color:'#444', fontWeight:'900', cursor:'pointer', display:'flex', alignItems:'center', gap:'10px'}}>
+      
+      <nav className="unete-nav">
+        <button onClick={() => paso > 1 ? setPaso(paso-1) : router.push('/')} className="back-link">
           <ArrowLeft size={18}/> <span>VOLVER</span>
         </button>
-        <div style={{textAlign:'right'}}>
-          <div style={{fontSize:'10px', color:'#1a1a1a', letterSpacing:'4px'}}>FASE 0{paso}</div>
-          <div style={{width:'120px', height:'3px', background:'#111', borderRadius:'10px', overflow:'hidden', marginTop:'5px'}}>
-            <div style={{ 
-                width: `${(paso/4)*100}%`, height: '100%', transition: '1s cubic-bezier(0.4, 0, 0.2, 1)',
-                backgroundColor: paso === 1 ? '#00C853' : paso === 2 ? '#00B0FF' : paso === 3 ? '#AA00FF' : '#FFD600' 
+        <div className="step-indicator">
+          <div className="step-text">FASE 0{paso}</div>
+          <div className="step-bar">
+            <div className="fill" style={{
+              width: `${(paso / 4) * 100}%`, 
+              backgroundColor: paso === 1 ? '#00C853' : paso === 2 ? '#00B0FF' : paso === 3 ? '#AA00FF' : '#FFD600'
             }}></div>
           </div>
         </div>
       </nav>
 
-      <main className="unete-content" style={{display:'flex', justifyContent:'center', alignItems:'center', minHeight:'80vh', position:'relative', zIndex:10, padding:'20px'}}>
-        <div className="vault-container" style={{width:'100%', maxWidth:'550px', background:'rgba(5,5,5,0.85)', backdropFilter:'blur(50px)', border:'1px solid rgba(255,255,255,0.05)', padding:'50px', borderRadius:'40px', boxShadow:'0 50px 100px rgba(0,0,0,1)'}}>
-          
+      <main className="unete-content">
+        <div className="vault-container">
           {paso === 1 && (
             <div className="fade-in">
-              <span style={{color: '#00C853', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><Sparkles size={12} className="mr-2"/> PROTOCOLO DE IDENTIDAD</span>
-              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>FORJAR <span style={{color: '#00C853', textShadow: '0 0 20px rgba(0,200,83,0.4)'}}>IDENTIDAD</span></h1>
-              <div style={{display:'flex', flexDirection:'column', gap:'15px', marginBottom:'40px'}}>
-                <div className="input-group-elite" style={{borderColor:'#00C85344'}}><User size={18} style={{color:'#00C853'}}/><input name="nombre" placeholder="Nombre Completo" value={formData.nombre} onChange={handleInputChange} autoComplete="off" /></div>
-                <div className="input-group-elite" style={{borderColor:'#00C85344'}}><Mail size={18} style={{color:'#00C853'}}/><input name="email" placeholder="Email de Inversor" value={formData.email} onChange={handleInputChange} autoComplete="off" /></div>
-                <div className="responsive-row" style={{display:'flex', gap:'15px'}}>
-                    <div className="input-group-elite" style={{flex:1, borderColor:'#00C85344'}}><Lock size={18} style={{color:'#00C853'}}/><input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange}/><button onClick={() => setShowPass(!showPass)} className="btn-pass-toggle" style={{background:'transparent', border:'none', cursor:'pointer'}}>{showPass ? <EyeOff size={16}/> : <Eye size={16}/>}</button></div>
-                    <div className="input-group-elite" style={{flex:1, borderColor:'#00C85344'}}><Lock size={18} style={{color:'#00C853'}}/><input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Validar" value={formData.confirmPassword} onChange={handleInputChange}/></div>
+              <span className="badge"><Sparkles size={12}/> PROTOCOLO IDENTIDAD</span>
+              <h1>FORJAR <span className="green">IDENTIDAD</span></h1>
+              <div className="form-stack">
+                <div className="input-elite"><User size={18} color="#00C853"/><input name="nombre" placeholder="Nombre Completo" value={formData.nombre} onChange={handleInputChange} autoComplete="off"/></div>
+                <div className="input-elite"><Mail size={18} color="#00C853"/><input name="email" placeholder="Email de Inversor" value={formData.email} onChange={handleInputChange} autoComplete="off"/></div>
+                <div className="input-elite">
+                    <Lock size={18} color="#00C853"/>
+                    <input type={showPass ? "text" : "password"} name="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange}/>
+                    <button type="button" onClick={() => setShowPass(!showPass)} className="pass-toggle">
+                        {showPass ? <EyeOff size={18} color="#00C853" /> : <Eye size={18} color="#00C853" />}
+                    </button>
                 </div>
+                <div className="input-elite"><Lock size={18} color="#00C853"/><input type={showPass ? "text" : "password"} name="confirmPassword" placeholder="Confirmar Contraseña" value={formData.confirmPassword} onChange={handleInputChange}/></div>
               </div>
-              <label style={{display:'flex', alignItems:'center', gap:'15px', cursor:'pointer', marginBottom:'30px'}}>
-                <input type="checkbox" name="tyc" checked={formData.tyc} onChange={handleInputChange} style={{display:'none'}} />
-                <div style={{width:'22px', height:'22px', border:'2px solid #00C853', borderRadius:'6px', background: formData.tyc ? '#00C853' : 'transparent'}}></div>
-                <span style={{fontSize:'11px', color:'#444', fontWeight:'700'}}>ACEPTO PROTOCOLOS DE SEGURIDAD ÉLITE</span>
+              <label className="checkbox-elite">
+                <input type="checkbox" name="tyc" checked={formData.tyc} onChange={handleInputChange} />
+                <div className="custom-cb"></div>
+                <span>ACEPTO PROTOCOLOS DE SEGURIDAD ÉLITE</span>
               </label>
-              <button onClick={() => paso1Valido && setPaso(2)} className="btn-final" style={{background: paso1Valido ? '#00C853' : '#080808', color: paso1Valido ? '#000' : '#222', cursor: paso1Valido ? 'pointer' : 'not-allowed'}}>INICIAR SECUENCIA</button>
+              <button disabled={!paso1Valido} onClick={() => setPaso(2)} className="btn-next">SIGUIENTE FASE</button>
             </div>
           )}
 
           {paso === 2 && (
             <div className="fade-in">
-              <span style={{color: '#00B0FF', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><Globe size={12} className="mr-2"/> PROTOCOLO GEOGRÁFICO</span>
-              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>ORIGEN <span style={{color: '#00B0FF', textShadow: '0 0 20px rgba(0,176,255,0.4)'}}>GEOGRÁFICO</span></h1>
-              <div style={{display:'flex', flexDirection:'column', gap:'15px', marginBottom:'40px'}}>
-                <div className="input-group-elite" style={{borderColor:'#00B0FF44'}}><Globe size={18} style={{color:'#00B0FF'}}/><select name="pais" value={formData.pais} onChange={(e) => { const p = paises.find(x => x.nombre === e.target.value); setFormData({...formData, pais: e.target.value, codigoArea: p?.codigo || ''}); }} style={{appearance:'none'}}>{paises.map(p => <option key={p.nombre} value={p.nombre} style={{background:'#000'}}>{p.flag} {p.nombre}</option>)}</select></div>
-                <div className="input-group-elite" style={{borderColor:'#00B0FF44'}}><MapPin size={18} style={{color:'#00B0FF'}}/><input name="ciudad" placeholder="Jurisdicción de Residencia" value={formData.ciudad} onChange={handleInputChange}/></div>
-                <div className="input-group-elite" style={{borderColor:'#00B0FF44', gap:0}}>
-                  <Phone size={18} style={{color:'#00B0FF', marginRight:'15px'}}/>
-                  <span style={{color:'#00B0FF', fontWeight:'900', borderRight:'1px solid #222', paddingRight:'15px', marginRight:'15px', fontFamily:'JetBrains Mono'}}>{formData.codigoArea || '+??'}</span>
-                  <input name="telefono" placeholder="WhatsApp Móvil" value={formData.telefono} onChange={handleInputChange} style={{paddingLeft:0}} />
+              <span className="badge blue-badge"><Globe size={12}/> LOCALIZACIÓN</span>
+              <h1>ORIGEN <span className="blue">GEOGRÁFICO</span></h1>
+              <div className="form-stack">
+                <div className="input-elite">
+                    <Globe size={18} color="#00B0FF"/>
+                    <select name="pais" value={formData.pais} onChange={(e) => { 
+                      const p = paises.find(x => x.nombre === e.target.value); 
+                      setFormData({...formData, pais: e.target.value, codigoArea: p?.codigo || ''}); 
+                    }}>
+                        {paises.map(p => <option key={p.nombre} value={p.nombre} style={{background: '#000', color: '#fff'}}>{p.flag} {p.nombre}</option>)}
+                    </select>
+                </div>
+                <div className="input-elite"><MapPin size={18} color="#00B0FF"/><input name="ciudad" placeholder="Ciudad de Residencia" value={formData.ciudad} onChange={handleInputChange}/></div>
+                <div className="input-elite">
+                    <Phone size={18} color="#00B0FF"/>
+                    <span className="area-code">{formData.codigoArea || '+??'}</span>
+                    <input name="telefono" placeholder="WhatsApp Móvil" value={formData.telefono} onChange={handleInputChange}/>
                 </div>
               </div>
-              <button onClick={() => paso2Valido && setPaso(3)} className="btn-final" style={{background: paso2Valido ? '#00B0FF' : '#080808', color: paso2Valido ? '#000' : '#222', cursor: paso2Valido ? 'pointer' : 'not-allowed'}}>VALIDAR UBICACIÓN</button>
+              <button disabled={!paso2Valido} onClick={() => setPaso(3)} className="btn-next blue-btn">VALIDAR ORIGEN</button>
             </div>
           )}
 
           {paso === 3 && (
             <div className="fade-in">
-              <span style={{color: '#AA00FF', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><TrendingUp size={12} className="mr-2"/> PROTOCOLO DE CAPITAL</span>
-              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>RANGO DE <span style={{color: '#AA00FF', textShadow: '0 0 20px rgba(170,0,255,0.4)'}}>INVERSIÓN</span></h1>
-              <div style={{display:'flex', flexDirection:'column', gap:'10px', marginBottom:'30px'}}>
+              <span className="badge purple-badge"><TrendingUp size={12}/> CAPITAL</span>
+              <h1>PLAN DE <span className="purple">INVERSIÓN</span></h1>
+              <div className="planes-grid">
                 {planes.map(p => (
-                  <div key={p.id} onClick={() => setFormData({...formData, plan: p.id})} style={{background: '#040404', border: formData.plan === p.id ? `1px solid ${p.color}` : '1px solid #111', padding:'20px', borderRadius:'15px', display:'flex', alignItems:'center', gap:'20px', cursor:'pointer'}}>
-                    <div style={{color:p.color, background:`${p.color}15`, padding:'10px', borderRadius:'10px'}}><p.icon size={20}/></div>
-                    <div style={{flex:1}}><h3 style={{fontSize:'14px', fontWeight:'900'}}>{p.nombre}</h3><p style={{fontSize:'11px', color:'#444'}}>{p.porcentaje}</p></div>
-                    <div style={{color:p.color, fontWeight:'900', fontSize:'1.2rem'}}>${p.precio}</div>
+                  <div key={p.id} onClick={() => setFormData({...formData, plan: p.id})} className={`plan-card ${formData.plan === p.id ? 'active' : ''}`} style={{'--pcolor': p.color} as any}>
+                    <p.icon size={20} color={p.color}/>
+                    <div className="p-info"><h3>{p.nombre}</h3><p>{p.porcentaje}</p></div>
+                    <div className="p-price">${p.precio}</div>
                   </div>
                 ))}
               </div>
-              <button onClick={() => paso3Valido && setPaso(4)} className="btn-final" style={{background: paso3Valido ? '#AA00FF' : '#080808', color: paso3Valido ? '#fff' : '#222', cursor: paso3Valido ? 'pointer' : 'not-allowed'}}>PROSEGUIR AL PAGO</button>
+              <button disabled={!paso3Valido} onClick={() => setPaso(4)} className="btn-next purple-btn">IR AL PAGO</button>
             </div>
           )}
 
           {paso === 4 && (
             <div className="fade-in">
-              <span style={{color: '#FFD600', fontSize:'10px', fontWeight:'900', letterSpacing:'4px'}}><Landmark size={12} className="mr-2"/> PROTOCOLO DE TRANSFERENCIA</span>
-              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>VERIFICAR <span style={{color: '#FFD600', textShadow: '0 0 20px rgba(255,214,0,0.4)'}}>DEPÓSITO</span></h1>
+              <span className="badge gold-badge"><Landmark size={12}/> AUDITORÍA</span>
+              <h1>SUBIR <span className="gold">PAGO</span></h1>
               
-              <div style={{background:'#000', border:'1px solid #111', borderRadius:'25px', padding:'30px', marginBottom:'30px', fontFamily:'JetBrains Mono'}}>
-                <div style={{background:'#050505', border:'1px solid #FFD60044', borderRadius:'12px', height:'55px', display:'flex', alignItems:'center', padding:'0 15px', gap:'10px', marginBottom:'20px'}}>
-                  <Landmark size={18} style={{color:'#FFD600'}}/>
-                  <select 
-                    name="metodoPago" 
-                    value={formData.metodoPago} 
-                    onChange={handleInputChange} 
-                    style={{background:'transparent', color:'#fff', border:'none', width:'100%', outline:'none', appearance:'none'}}
-                  >
-                    {metodosDisponibles.map(m => (
-                      <option key={m.id} value={m.id} style={{background:'#000'}}>{m.nombre}</option>
-                    ))}
-                  </select>
+              <div className="payment-stack">
+                <div className="input-elite">
+                    <Landmark size={18} color="#FFD600"/>
+                    <select name="metodoPago" value={formData.metodoPago} onChange={handleInputChange}>
+                        {metodosDisponibles.map(m => <option key={m.id} value={m.id} style={{background: '#000', color: '#fff'}}>{m.nombre}</option>)}
+                    </select>
                 </div>
-                
-                <div style={{color:'#555', fontSize:'13px', lineHeight:'1.6', marginBottom:'25px', borderLeft:'2px solid #222', paddingLeft:'15px'}}>
-                  <span style={{color:'#FFD600'}}>{">> "}</span>
-                  {metodosDisponibles.find(m => m.id === formData.metodoPago)?.info}
-                </div>
-
-                <div 
-                  onClick={() => fileInputRef.current?.click()} 
-                  style={{ 
-                    border: '2px dashed #111', 
-                    borderRadius: '20px', 
-                    height: '180px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    cursor: 'pointer', 
-                    overflow: 'hidden', 
-                    borderColor: comprobante ? '#FFD600' : '#111' 
-                  }}
-                >
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    hidden 
-                    onChange={handleFileChange} 
-                    accept="image/*" 
-                  />
-                  {comprobanteUrl ? (
-                    <img src={comprobanteUrl} style={{width:'100%', height:'100%', objectFit:'contain'}} alt="Voucher" />
-                  ) : (
-                    <UploadCloud size={35} style={{color: '#FFD600', opacity: '0.2'}}/>
-                  )}
+                <div className="payment-info">
+                    {metodosDisponibles.find(m => m.id === formData.metodoPago)?.info || "Cargando protocolos..."}
                 </div>
               </div>
 
-              {comprobante && (
-                <div style={{color: '#FFD600', fontSize: '13px', textAlign: 'center', margin: '15px 0', fontWeight:'700'}}>
-                  ✓ Comprobante cargado correctamente
-                </div>
-              )}
-
-              {error && (
-                <div style={{ 
-                  background: '#FF3D0011', 
-                  border: '1px solid #FF3D00', 
-                  color: '#FF3D00', 
-                  padding: '15px', 
-                  borderRadius: '12px', 
-                  marginBottom: '20px',
-                  fontSize: '13px'
-                }}>
-                  ⚠️ {error}
-                </div>
-              )}
-
-              <button 
-                disabled={loading || !comprobante} 
-                onClick={finalizarRegistro} 
-                className="btn-final" 
-                style={{
-                  background: (!comprobante || loading) ? '#080808' : '#FFD600', 
-                  color: (!comprobante || loading) ? '#222' : '#000', 
-                  cursor: (!comprobante || loading) ? 'not-allowed' : 'pointer',
-                  opacity: (!comprobante || loading) ? 0.6 : 1
-                }}
-              >
+              <div className="upload-zone" onClick={() => fileInputRef.current?.click()} style={{borderColor: comprobante ? '#FFD600' : '#111'}}>
+                <input type="file" ref={fileInputRef} hidden onChange={handleFileChange} accept="image/*"/>
+                {comprobanteUrl ? <img src={comprobanteUrl} alt="Voucher"/> : <UploadCloud size={40} color="#FFD600" opacity={0.2}/>}
+              </div>
+              {error && <div className="error-tag">{error}</div>}
+              <button disabled={loading || !paso4Valido} onClick={finalizarRegistro} className="btn-next gold-btn">
                 {loading ? 'SINCRONIZANDO...' : 'FINALIZAR REGISTRO'}
               </button>
             </div>
           )}
 
           {paso === 5 && (
-            <div className="fade-in" style={{textAlign:'center'}}>
-              <div style={{marginBottom:'30px', display:'inline-block', padding:'30px', background:'#FFD60011', borderRadius:'100%', border:'1px solid #FFD60022'}}><Clock size={60} style={{color: '#FFD600'}} className="animate-pulse"/></div>
-              <h1 className="responsive-title" style={{fontWeight:'900', letterSpacing:'-4px', lineHeight:'0.85', textTransform:'uppercase', margin:'40px 0', color:'#fff'}}>SOLICITUD EN <span style={{color: '#FFD600', textShadow: '0 0 20px rgba(255,214,0,0.4)'}}>REVISIÓN</span></h1>
-              <div style={{background:'#080808', border:'1px solid #111', padding:'25px', borderRadius:'20px', marginBottom:'35px', color:'#666', fontSize:'14px', lineHeight:'1.6'}}>
-                <p>Su información ha sido recibida y se encuentra en fase de auditoría.</p>
-                <p style={{color:'#FFD600', fontWeight:'700', marginTop:'10px'}}>El pago y los datos serán verificados. En las próximas horas su cuenta será activada oficialmente tras la validación financiera.</p>
-              </div>
-              <button onClick={() => window.location.href = '/'} className="btn-final" style={{background:'#FFD600', color:'#000'}}>ENTENDIDO</button>
+            <div className="fade-in success-screen">
+              <Clock size={60} color="#FFD600" className="animate-pulse"/>
+              <h1>EN <span className="gold">REVISIÓN</span></h1>
+              <p>María José verificará su depósito en el panel administrativo.</p>
+              <button onClick={() => router.push('/')} className="btn-next">ENTENDIDO</button>
             </div>
           )}
         </div>
       </main>
 
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap');
-        .unete-wrapper { background: #000; min-height: 100vh; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; flex-direction: column; align-items: center; width: 100%; position: relative; overflow-x: hidden; }
-        .bg-gradient-radial { position: fixed; inset: 0; background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%); z-index: 0; pointer-events: none; }
-        .input-group-elite { background: #000 !important; border: 1px solid #111 !important; border-radius: 14px; height: 65px; display: flex; align-items: center; padding: 0 20px; gap: 15px; margin-bottom: 15px; transition: 0.3s; }
-        .input-group-elite input, .input-group-elite select { background: transparent !important; color: #fff !important; border: none !important; width: 100% !important; font-size: 16px; outline: none !important; -webkit-box-shadow: 0 0 0px 1000px #000 inset !important; -webkit-text-fill-color: #fff !important; }
-        .btn-final { width: 100%; padding: 25px; border-radius: 18px; border: none; font-weight: 900; letter-spacing: 4px; text-transform: uppercase; transition: 0.4s; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .unete-wrapper { background: #000 !important; min-height: 100vh; color: #fff !important; font-family: 'Plus Jakarta Sans', sans-serif; position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .bg-gradient-radial { position: fixed; inset: 0; background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%) !important; z-index: 0; }
+        .unete-nav { position: relative; z-index: 10; width: 100%; max-width: 1200px; padding: 40px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .back-link { background: none; border: none; color: #444; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 11px; text-transform: uppercase; }
+        .step-bar { width: 100px; height: 3px; background: #111; margin-top: 5px; border-radius: 5px; overflow: hidden; }
+        .step-bar .fill { height: 100%; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .vault-container { width: 100%; max-width: 500px; background: rgba(5,5,5,0.95) !important; border: 1px solid #111; padding: 50px; border-radius: 35px; backdrop-filter: blur(20px); box-shadow: 0 40px 100px rgba(0,0,0,0.8); position: relative; z-index: 10; }
+        h1 { font-size: 3rem; font-weight: 900; letter-spacing: -3px; margin: 25px 0 35px; line-height: 0.9; text-transform: uppercase; color: #fff !important; }
+        .green { color: #00C853 !important; } .blue { color: #00B0FF !important; } .purple { color: #AA00FF !important; } .gold { color: #FFD600 !important; }
+        .input-elite { background: #000 !important; border: 1px solid #111 !important; padding: 0 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; height: 65px; }
+        .input-elite input, .input-elite select { background: transparent !important; border: none !important; color: #fff !important; width: 100% !important; outline: none !important; font-size: 16px; height: 100%; }
+        .input-elite select option { background: #000 !important; color: #fff !important; padding: 10px; }
+        .area-code { color: #00B0FF; font-weight: 900; border-right: 1px solid #222; padding-right: 15px; font-family: monospace; }
+        .pass-toggle { background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; }
+        .checkbox-elite { display: flex; align-items: center; gap: 15px; cursor: pointer; margin: 30px 0; }
+        .checkbox-elite input { display: none; }
+        .checkbox-elite .custom-cb { width: 22px; height: 22px; border: 2px solid #00C853; border-radius: 6px; }
+        .checkbox-elite input:checked + .custom-cb { background: #00C853; }
+        .checkbox-elite span { font-size: 11px; color: #444; font-weight: 800; }
+        .plan-card { background: #080808 !important; border: 1px solid #111 !important; padding: 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.3s; }
+        .plan-card.active { border-color: var(--pcolor) !important; background: rgba(255,255,255,0.02) !important; }
+        .p-info h3 { font-size: 13px; margin: 0; font-weight: 900; color: #fff !important; } .p-info p { font-size: 10px; color: #444; margin: 0; }
+        .p-price { margin-left: auto; font-weight: 900; color: var(--pcolor); font-size: 1.2rem; }
+        .payment-info { background: #050505; border: 1px solid #111; padding: 15px; border-radius: 12px; margin-bottom: 20px; color: #ccc; font-size: 13px; border-left: 3px solid #FFD600; font-family: monospace; line-height: 1.6; }
+        .upload-zone { height: 180px; border: 2px dashed #111; border-radius: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; margin-bottom: 20px; }
+        .upload-zone img { width: 100%; height: 100%; object-fit: contain; }
+        .btn-next { width: 100%; padding: 22px; border-radius: 18px; border: none; font-weight: 900; letter-spacing: 2px; background: #00C853; color: #000; cursor: pointer; transition: 0.4s; text-transform: uppercase; }
+        .btn-next:disabled { background: #111 !important; color: #333 !important; cursor: not-allowed; }
+        .blue-btn { background: #00B0FF !important; } .purple-btn { background: #AA00FF !important; color: #fff !important; } .gold-btn { background: #FFD600 !important; }
+        .error-tag { color: #FF3D00; font-weight: 900; font-size: 12px; text-align: center; margin-bottom: 20px; }
+        .success-screen { text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .success-screen p { color: #444; margin-bottom: 30px; font-size: 14px; line-height: 1.6; }
         .fade-in { animation: appear 0.6s ease-out forwards; }
-        @keyframes appear { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* PARCHE DE ÉLITE: RESPONSIVIDAD Y BLINDAJE VISUAL */
-        .responsive-title { font-size: 3.5rem; }
-        
-        .btn-pass-toggle { color: #00C853 !important; background: transparent !important; }
-        .btn-pass-toggle:focus { outline: none !important; box-shadow: none !important; }
-
-        input:-webkit-autofill {
-          -webkit-text-fill-color: #fff !important;
-          -webkit-box-shadow: 0 0 0px 1000px #000 inset !important;
-        }
+        @keyframes appear { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 768px) {
-          .responsive-title { font-size: 2.2rem !important; letter-spacing: -2px !important; }
-          .vault-container { padding: 30px !important; border-radius: 30px !important; }
-          .responsive-row { flex-direction: column !important; gap: 0 !important; }
-          .unete-nav { padding: 20px 5% !important; }
-        }
-
-        @media (max-width: 480px) {
-          .responsive-title { font-size: 1.8rem !important; }
-          .vault-container { border: none !important; background: transparent !important; box-shadow: none !important; padding: 15px !important; }
+          h1 { font-size: 2.2rem !important; letter-spacing: -2px !important; }
+          .vault-container { padding: 30px 20px !important; border-radius: 25px !important; margin: 15px; }
+          .unete-nav { padding: 25px 15px; }
         }
       `}</style>
     </div>

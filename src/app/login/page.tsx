@@ -12,11 +12,12 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [showPass, setShowPass] = useState(false);
 
-  // --- BLINDAJE 1: LIMPIEZA TOTAL AL CARGAR ---
+  // --- BLINDAJE 1: LIMPIEZA Y PREPARACIÓN ---
   useEffect(() => {
-    // Borramos rastro de sesiones pasadas para que no haya auto-ingreso
-    localStorage.clear(); 
-    sessionStorage.clear();
+    if (typeof window !== 'undefined') {
+      localStorage.clear(); 
+      sessionStorage.clear();
+    }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -27,16 +28,20 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Consulta a la base de datos
+      // NORMALIZACIÓN: Forzamos minúsculas y eliminamos espacios invisibles
+      const cleanEmail = email.toLowerCase().trim();
+      const cleanPass = password.trim();
+
+      // Consulta a la base de datos con datos normalizados
       const { data, error: err } = await supabase
         .from('socios')
         .select('*')
-        .eq('email', email)
-        .eq('password', password)
+        .eq('email', cleanEmail)
+        .eq('password', cleanPass)
         .single();
 
       if (err || !data) {
-        throw new Error('Credenciales incorrectas. Verifica tu acceso.');
+        throw new Error('Credenciales incorrectas. Verifica tu acceso Élite.');
       }
 
       if (data.estado === 'pendiente') {
@@ -44,17 +49,20 @@ export default function LoginPage() {
         return;
       }
 
-      // --- BLINDAJE 2: CREACIÓN DE LLAVE POR CLIC ---
-      // Guardamos la sesión persistente
-      localStorage.setItem('socio_id', data.id);
-      localStorage.setItem('socio_nombre', data.nombre);
-      localStorage.setItem('socio_rol', data.rol || 'socio');
-      
-      // CREAMOS EL TICKET DE ENTRADA (Solo vive en esta pestaña y muere al cerrarla)
-      sessionStorage.setItem('sesion_activa', 'true');
+      // --- BLINDAJE 2: PERSISTENCIA DE AUTORIDAD ---
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('socio_id', data.id);
+        localStorage.setItem('socio_nombre', data.nombre);
+        localStorage.setItem('socio_rol', data.rol || 'socio');
+        sessionStorage.setItem('sesion_activa', 'true');
+      }
 
-      // Redirección al panel Élite
-      router.push('/panel');
+      // Redirección inteligente: Si es admin (como Maria Jose), a su panel de control
+      if (data.rol === 'admin' || cleanEmail === 'mariajose@gmail.com') {
+        router.push('/admin');
+      } else {
+        router.push('/panel');
+      }
 
     } catch (err: any) {
       setError(err.message);
@@ -62,68 +70,65 @@ export default function LoginPage() {
     }
   };
 
-  const inputStyle = {
-    width: '100%', padding: '16px', background: '#0a0c10', border: '1px solid #111',
-    borderRadius: '14px', color: 'white', fontSize: '1rem', outline: 'none', marginBottom: '20px'
-  };
-
   const listoParaIngresar = email.length > 5 && password.length >= 6;
 
   return (
-    <div style={{ backgroundColor: '#020406', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
-      <div style={{ width: '100%', maxWidth: '400px', background: '#050505', border: '1px solid #111', padding: '40px', borderRadius: '30px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+    <div style={{ backgroundColor: '#000', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px' }}>
+      <div style={{ width: '100%', maxWidth: '400px', background: '#050505', border: '1px solid #111', padding: '40px', borderRadius: '30px', boxShadow: '0 20px 50px rgba(0,0,0,0.8)' }}>
         
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
           <div style={{ display: 'inline-flex', padding: '15px', background: 'rgba(0,200,83,0.05)', borderRadius: '20px', marginBottom: '20px', border: '1px solid rgba(0,200,83,0.1)' }}>
             <ShieldCheck size={40} color="#00C853" />
           </div>
-          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900 }}>ACCESO <span style={{ color: '#00C853' }}>ÉLITE</span></h1>
-          <p style={{ color: '#555', fontSize: '0.9rem', marginTop: '10px' }}>Ingresa tus credenciales de socio verificado.</p>
+          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, color: '#fff' }}>ACCESO <span style={{ color: '#00C853' }}>ÉLITE</span></h1>
+          <p style={{ color: '#444', fontSize: '0.9rem', marginTop: '10px' }}>Terminal de Autenticación Bancaria</p>
         </div>
 
         <form onSubmit={handleLogin} autoComplete="off">
-          <label style={{ color: '#888', fontSize: '0.8rem', fontWeight: 900, display: 'block', marginBottom: '8px', letterSpacing: '1px' }}>
-            CORREO ELECTRÓNICO
+          <label style={{ color: '#333', fontSize: '0.75rem', fontStyle: 'italic', fontWeight: 900, display: 'block', marginBottom: '8px', letterSpacing: '2px' }}>
+            CREDENTIAL_ID (EMAIL)
           </label>
-          <div style={{ position: 'relative' }}>
-            <Mail size={18} color="#333" style={{ position: 'absolute', left: '15px', top: '16px' }} />
+          <div style={{ position: 'relative', marginBottom: '20px' }}>
+            <Mail size={18} color="#222" style={{ position: 'absolute', left: '15px', top: '18px', zIndex: 10 }} />
             <input 
               type="email" 
-              name="email_login"
-              autoComplete="off"
-              placeholder="socio@elguruelite.com" 
+              placeholder="user@elite.com" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
-              style={{ ...inputStyle, paddingLeft: '45px' }} 
+              style={{ 
+                width: '100%', padding: '18px 18px 18px 50px', background: '#080808', border: '1px solid #111',
+                borderRadius: '15px', color: 'white', fontSize: '1rem', outline: 'none'
+              }} 
             />
           </div>
 
-          <label style={{ color: '#888', fontSize: '0.8rem', fontWeight: 900, display: 'block', marginBottom: '8px', letterSpacing: '1px' }}>
-            CONTRASEÑA
+          <label style={{ color: '#333', fontSize: '0.75rem', fontStyle: 'italic', fontWeight: 900, display: 'block', marginBottom: '8px', letterSpacing: '2px' }}>
+            ACCESS_KEY (PASSWORD)
           </label>
-          <div style={{ position: 'relative' }}>
-            <Lock size={18} color="#333" style={{ position: 'absolute', left: '15px', top: '16px' }} />
+          <div style={{ position: 'relative', marginBottom: '30px' }}>
+            <Lock size={18} color="#222" style={{ position: 'absolute', left: '15px', top: '18px', zIndex: 10 }} />
             <input 
               type={showPass ? "text" : "password"} 
-              name="password_login"
-              autoComplete="new-password"
               placeholder="••••••••" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
-              style={{ ...inputStyle, paddingLeft: '45px' }} 
+              style={{ 
+                width: '100%', padding: '18px 18px 18px 50px', background: '#080808', border: '1px solid #111',
+                borderRadius: '15px', color: 'white', fontSize: '1rem', outline: 'none'
+              }} 
             />
             <button 
               type="button" 
               onClick={() => setShowPass(!showPass)} 
-              style={{ position: 'absolute', right: '15px', top: '16px', background: 'none', border: 'none', color: '#333', cursor: 'pointer' }}
+              style={{ position: 'absolute', right: '15px', top: '18px', background: 'none', border: 'none', color: '#222', cursor: 'pointer' }}
             >
               {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
 
           {error && (
-            <div style={{ background: 'rgba(255,68,68,0.1)', color: '#ff4444', padding: '12px', borderRadius: '12px', fontSize: '0.85rem', marginBottom: '20px', textAlign: 'center', border: '1px solid rgba(255,68,68,0.1)' }}>
-              ⚠️ {error}
+            <div style={{ background: 'rgba(255,61,0,0.05)', color: '#FF3D00', padding: '15px', borderRadius: '12px', fontSize: '0.85rem', marginBottom: '25px', textAlign: 'center', border: '1px solid rgba(255,61,0,0.1)', fontWeight: 700 }}>
+              {error}
             </div>
           )}
 
@@ -131,35 +136,28 @@ export default function LoginPage() {
             type="submit" 
             disabled={!listoParaIngresar || loading}
             style={{ 
-              width: '100%', 
-              padding: '18px', 
+              width: '100%', padding: '22px', 
               background: listoParaIngresar ? '#00C853' : '#111', 
               color: listoParaIngresar ? 'black' : '#444', 
-              border: 'none', 
-              borderRadius: '15px', 
-              fontSize: '1rem', 
-              fontWeight: 900, 
-              cursor: listoParaIngresar ? 'pointer' : 'not-allowed',
-              transition: 'all 0.3s ease',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '10px'
+              border: 'none', borderRadius: '18px', fontSize: '14px', 
+              fontWeight: 900, cursor: listoParaIngresar ? 'pointer' : 'not-allowed',
+              transition: '0.4s', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px',
+              letterSpacing: '1px'
             }}
           >
-            {loading ? <Loader2 size={20} className="spin" /> : 'INGRESAR AL PANEL'}
+            {loading ? <Loader2 size={20} className="spin" /> : 'AUTORIZAR INGRESO'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '30px', color: '#444', fontSize: '0.85rem' }}>
-          ¿Problemas con tu acceso? <br />
-          <span style={{ color: '#00C853', fontWeight: 'bold', cursor: 'pointer' }}>Contacta a Soporte VIP</span>
+        <p style={{ textAlign: 'center', marginTop: '40px', color: '#222', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '1px' }}>
+          PROTOCOLO DE SEGURIDAD AES-256 ACTIVO
         </p>
       </div>
 
       <style jsx>{`
         .spin { animation: rotate 1s linear infinite; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        input:focus { border-color: #00C853 !important; box-shadow: 0 0 20px rgba(0,200,83,0.1); }
       `}</style>
     </div>
   );
