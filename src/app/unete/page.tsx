@@ -73,7 +73,6 @@ export default function UnetePage() {
 
   const metodosDisponibles = obtenerMetodosPago(formData.pais);
 
-  // Validaciones centralizadas
   const paso1Valido = formData.nombre.trim().length > 2 && 
                       formData.email.includes('@') && 
                       formData.password.length >= 6 && 
@@ -97,7 +96,6 @@ export default function UnetePage() {
     }
   }, [formData.pais, metodosDisponibles]);
 
-  // Limpiar URL del comprobante al cambiar de paso o desmontar
   useEffect(() => {
     return () => {
       if (comprobanteUrl) URL.revokeObjectURL(comprobanteUrl);
@@ -108,7 +106,7 @@ export default function UnetePage() {
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
     setFormData(prev => ({ ...prev, [name]: val }));
-    if (error) setError(null); // Limpiar error al escribir
+    if (error) setError(null);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,6 +129,11 @@ export default function UnetePage() {
     setError(null);
 
     try {
+      // FIX: Cálculo del plan justo antes de insertar para evitar NULLs
+      const planSeleccionado = planes.find(p => p.id === formData.plan);
+      const valorPlan = planSeleccionado ? planSeleccionado.precio : 0;
+      const nombrePlan = planSeleccionado ? planSeleccionado.nombre : 'N/A';
+
       const fileExt = comprobante.name.split('.').pop()?.toLowerCase() || 'png';
       const fileName = `comprobantes/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
 
@@ -146,6 +149,7 @@ export default function UnetePage() {
 
       const publicUrl = urlData.publicUrl;
 
+      // INSERT ATÓMICO EN SOCIOS CON VALORES FORZADOS
       const { data: socio, error: errSocio } = await clientSupabase
         .from('socios')
         .insert([{
@@ -155,17 +159,24 @@ export default function UnetePage() {
           rol: 'socio',
           estado: 'pendiente',
           utilidad_total: 0,
-          comprobante_url: publicUrl
+          comprobante_url: publicUrl,
+          // Forzamos los campos que salían NULL
+          plan: nombrePlan,
+          inversion: valorPlan,
+          pais: formData.pais,
+          ciudad: formData.ciudad || '',
+          telefono: `${formData.codigoArea} ${formData.telefono}`
         }])
         .select()
         .single();
 
       if (errSocio || !socio?.id) throw errSocio || new Error("No se pudo crear el socio");
 
+      // RESPALDO EN SOCIOS_ELITE (Mantenemos por arquitectura)
       await clientSupabase.from('socios_elite').insert([{
         id_socio: socio.id,
-        nivel_socio: formData.plan.toUpperCase(),
-        inversion_minima: planes.find(p => p.id === formData.plan)?.precio || 0,
+        nivel_socio: nombrePlan,
+        inversion_minima: valorPlan,
         pais: formData.pais,
         ciudad: formData.ciudad || '',
         telefono: `${formData.codigoArea} ${formData.telefono}`

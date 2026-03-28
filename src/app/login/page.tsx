@@ -54,15 +54,14 @@ export default function LoginPage() {
         localStorage.setItem('socio_id', data.id);
         localStorage.setItem('socio_nombre', data.nombre);
         localStorage.setItem('socio_rol', data.rol || 'socio');
+        localStorage.setItem('socio_email', data.email); // Guardamos el email para validar el búnker después
         sessionStorage.setItem('sesion_activa', 'true');
       }
 
-      // Redirección inteligente: Si es admin (como Maria Jose), a su panel de control
-      if (data.rol === 'admin' || cleanEmail === 'mariajose@gmail.com') {
-        router.push('/admin');
-      } else {
-        router.push('/panel');
-      }
+      // --- CAMBIO ESTRATÉGICO: REDIRECCIÓN UNIFICADA ---
+      // Eliminamos el salto directo al /admin. 
+      // Ahora todos (incluida María José) pasan primero por la "puerta principal".
+      router.push('/panel');
 
     } catch (err: any) {
       setError(err.message);
