@@ -6,7 +6,7 @@ import {
   ShieldCheck, ArrowUpRight, Lock, Scale, Activity, Zap, TrendingUp, Globe, X, Menu, ShieldAlert, 
   Cpu, Database, BarChart3, Target, Binary, Radio, MessageSquare, Globe2
 } from 'lucide-react';
-
+import Eventos from '@/components/Eventos';
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -50,11 +50,11 @@ export default function LandingPage() {
   };
 
   const membresias = [
-    { name: 'Micro', price: '100', profit: '8-10%', perk: 'Nivel 1: Acceso Base', color: '#E0E0E0', delay: '0.1s' },
-    { name: 'Inicial', price: '250', profit: '12-15%', perk: 'Nivel 2: Gestión Activa', color: '#00B0FF', delay: '0.2s' },
-    { name: 'Activo', price: '500', profit: '18.5%', perk: 'Nivel 3: Capital Auditado', color: '#FFD600', delay: '0.3s' },
-    { name: 'Premium', price: '1000', profit: '20-25%', perk: 'Nivel 4: Prioridad Institucional', color: '#FF3D00', delay: '0.4s' },
-    { name: 'Élite', price: '1500', profit: '30% VIP', perk: 'Nivel 5: Fondo Global VIP', color: '#AA00FF', delay: '0.5s' }
+    { name: 'Micro', price: '100', profit: '0.067%', perk: 'Nivel 1: Acceso Base', color: '#E0E0E0', delay: '0.1s' },
+    { name: 'Inicial', price: '250', profit: '0.167%', perk: 'Nivel 2: Gestión Activa', color: '#00B0FF', delay: '0.2s' },
+    { name: 'Activo', price: '500', profit: '0.333%', perk: 'Nivel 3: Capital Auditado', color: '#FFD600', delay: '0.3s' },
+    { name: 'Premium', price: '1000', profit: '0.667%', perk: 'Nivel 4: Prioridad Institucional', color: '#FF3D00', delay: '0.4s' },
+    { name: 'Élite', price: '1500', profit: '1% VIP', perk: 'Nivel 5: Fondo Global VIP', color: '#AA00FF', delay: '0.5s' }
   ];
 
   const abrirLegal = (tipo: string) => {
@@ -144,7 +144,7 @@ export default function LandingPage() {
           <div className="matrix-card">
             <div className="m-header"><ShieldCheck size={16}/> SEGURIDAD</div>
             <div className="m-value">AES-256</div>
-            <div className="m-footer">ENCRIPTACIÓN DE GRADO MILITAR</div>
+            <div className="m-footer">ENCRIPTACIÓN DE DATOS IN TIME</div>
           </div>
         </section>
 
@@ -167,6 +167,7 @@ export default function LandingPage() {
             ))}
           </div>
         </section>
+        <Eventos />
       </main>
 
       <footer className="footer-elite-master">
@@ -184,7 +185,7 @@ export default function LandingPage() {
             <div className="f-col-status">
               <div className="status-indicator">
                 <div className="status-dot"></div>
-                <span className="font-mono">NODES ONLINE: [LON] [NYC] [HKG]</span>
+                <span className="font-mono">GAMEPLAY ONLINE: [LON] [NYC] [HKG]</span>
               </div>
               <div className="f-concierge-link" onClick={() => window.open('https://wa.me/tunumerowhatsapp', '_blank')}>
                 <MessageSquare size={16} color="#00C853"/>

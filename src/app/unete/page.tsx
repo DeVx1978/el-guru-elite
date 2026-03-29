@@ -129,13 +129,12 @@ export default function UnetePage() {
     setError(null);
 
     try {
-      // FIX: Cálculo del plan justo antes de insertar para evitar NULLs
       const planSeleccionado = planes.find(p => p.id === formData.plan);
       const valorPlan = planSeleccionado ? planSeleccionado.precio : 0;
       const nombrePlan = planSeleccionado ? planSeleccionado.nombre : 'N/A';
 
       const fileExt = comprobante.name.split('.').pop()?.toLowerCase() || 'png';
-      const fileName = `comprobantes/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
 
       const { error: uploadError } = await clientSupabase.storage
         .from('pagos')
@@ -143,13 +142,6 @@ export default function UnetePage() {
 
       if (uploadError) throw new Error(`Error al subir el comprobante: ${uploadError.message}`);
 
-      const { data: urlData } = clientSupabase.storage
-        .from('pagos')
-        .getPublicUrl(fileName);
-
-      const publicUrl = urlData.publicUrl;
-
-      // INSERT ATÓMICO EN SOCIOS CON VALORES FORZADOS
       const { data: socio, error: errSocio } = await clientSupabase
         .from('socios')
         .insert([{
@@ -159,8 +151,7 @@ export default function UnetePage() {
           rol: 'socio',
           estado: 'pendiente',
           utilidad_total: 0,
-          comprobante_url: publicUrl,
-          // Forzamos los campos que salían NULL
+          comprobante_url: fileName,
           plan: nombrePlan,
           inversion: valorPlan,
           pais: formData.pais,
@@ -172,7 +163,6 @@ export default function UnetePage() {
 
       if (errSocio || !socio?.id) throw errSocio || new Error("No se pudo crear el socio");
 
-      // RESPALDO EN SOCIOS_ELITE (Mantenemos por arquitectura)
       await clientSupabase.from('socios_elite').insert([{
         id_socio: socio.id,
         nivel_socio: nombrePlan,

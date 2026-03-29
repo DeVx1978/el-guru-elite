@@ -150,7 +150,11 @@ export default function AdminPanel() {
                       <td className="actions-td">
                         <div className="actions-flex">
                           <button 
-                            onClick={() => setModalImagen({ open: true, url: s.comprobante_url || '', nombre: s.nombre })}
+                            onClick={() => setModalImagen({ 
+                              open: true, 
+                              url: s.comprobante_url || '', 
+                              nombre: s.nombre 
+                            })}
                             className="action-btn view-btn"
                           >
                             <Eye size={16} /> VER
@@ -177,7 +181,7 @@ export default function AdminPanel() {
             </table>
           </div>
 
-          {/* MOBILE VIEW - Intacta */}
+          {/* MOBILE VIEW */}
           <div className="mobile-view">
             {socios
               .filter(s => s.nombre?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -214,7 +218,11 @@ export default function AdminPanel() {
 
                   <div className="card-actions-mobile">
                     <button 
-                      onClick={() => setModalImagen({ open: true, url: s.comprobante_url || '', nombre: s.nombre })}
+                      onClick={() => setModalImagen({ 
+                        open: true, 
+                        url: s.comprobante_url || '', 
+                        nombre: s.nombre 
+                      })}
                       className="action-btn view-btn"
                     >
                       <Eye size={16} /> VER COMPROBANTE
@@ -242,10 +250,16 @@ export default function AdminPanel() {
         </div>
       </main>
 
-      {/* MODAL VOUCHER - Tamaño corregido y adaptado */}
+      {/* MODAL VOUCHER */}
       {modalImagen.open && (
-        <div className="modal-overlay" onClick={() => setModalImagen({ open: false, url: '', nombre: '' })}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div 
+          className="modal-overlay" 
+          onClick={() => setModalImagen({ open: false, url: '', nombre: '' })}
+        >
+          <div 
+            className="modal-content" 
+            onClick={e => e.stopPropagation()}
+          >
             <div className="modal-top-bar">
               <h3>VOUCHER: {modalImagen.nombre.toUpperCase()}</h3>
               <button onClick={() => setModalImagen({ open: false, url: '', nombre: '' })}>
@@ -254,7 +268,16 @@ export default function AdminPanel() {
             </div>
             <div className="modal-body">
               {modalImagen.url ? (
-                <img src={modalImagen.url} alt="Comprobante" className="voucher-image" />
+                <img 
+                  src={
+                    modalImagen.url.startsWith('http') 
+                      ? modalImagen.url 
+                      : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/pagos/${modalImagen.url}`
+                  } 
+                  alt="Voucher"
+                  className="voucher-image"
+                  style={{ maxWidth: '100%', maxHeight: '75vh', borderRadius: '15px', objectFit: 'contain' }}
+                />
               ) : (
                 <div className="no-pago">SIN IMAGEN DISPONIBLE</div>
               )}
@@ -262,7 +285,6 @@ export default function AdminPanel() {
           </div>
         </div>
       )}
-
       <style jsx global>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
@@ -336,7 +358,6 @@ export default function AdminPanel() {
         }
         .search-box input { background: none; border: none; color: #fff; outline: none; width: 100%; font-size: 12px; }
 
-        /* Tabla Escritorio */
         .desktop-view {
           background: #050505;
           border: 1px solid #111;
@@ -400,7 +421,7 @@ export default function AdminPanel() {
         .approve-btn { border-color: #00C853; color: #00C853; }
         .delete-btn { border-color: #FF3D00; color: #FF3D00; }
 
-        /* ==================== MODAL VOUCHER - TAMAÑO CORREGIDO ==================== */
+        /* MODAL */
         .modal-overlay { 
           position: fixed; 
           inset: 0; 
@@ -453,10 +474,10 @@ export default function AdminPanel() {
           text-align: center; 
         }
 
-        /* Mobile View intacta */
+        /* Mobile */
         .mobile-view { display: none; flex-direction: column; gap: 20px; padding-bottom: 40px; }
 
-        .card-socio { background: #050505; border: 1px solid #111; border-radius: 22px; padding: 24px; transition: all 0.3s ease; }
+        .card-socio { background: #050505; border: 1px solid #111; border-radius: 22px; padding: 24px; }
 
         .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
         .card-user strong { font-size: 16px; font-weight: 900; text-transform: uppercase; display: block; }
@@ -499,9 +520,6 @@ export default function AdminPanel() {
         .view-btn { border-color: #00C853; color: #00C853; }
         .approve-btn { border-color: #00C853; color: #00C853; }
         .delete-btn { border-color: #FF3D00; color: #FF3D00; }
-
-        /* Responsive */
-        .menu-trigger { display: none; }
 
         @media (max-width: 1024px) {
           .sidebar { left: -260px; }
